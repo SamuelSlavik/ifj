@@ -15,11 +15,11 @@ all: $(PROG)
 
 ############################## SCANNER ###################################
 
-scanner.o: dynamic_buffer.c
-	$(CC) $(CFLAGS) -NOT_TESTING -c $< -o $@
+scanner.o: scanner.c dynamic_buffer.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
-test-scanner.o: dynamic_buffer.c
-	$(CC) $(CFLAGS) -c $< -o $@	
+test-scanner.o: scanner.c dynamic_buffer.c
+	$(CC) $(CFLAGS) -DTESTING -c $< -o $@	
 
 test-scanner: test-scanner.o dynamic_buffer.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
@@ -27,10 +27,10 @@ test-scanner: test-scanner.o dynamic_buffer.o
 ########################### DYNAMIC_BUFFER ###############################
 
 dynamic_buffer.o: dynamic_buffer.c
-	$(CC) $(CFLAGS) -NOT_TESTING -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 test-dynamic_buffer.o: dynamic_buffer.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -DTESTING -c $< -o $@
 
 test-dynamic_buffer: test-dynamic_buffer.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm

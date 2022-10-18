@@ -21,7 +21,7 @@ tDynamicBuffer* dynamicBuffer_INIT() {
         return NULL;
     }
     else {
-        buffer->data = malloc(BUFFER_SIZE);
+        buffer->data = calloc(BUFFER_SIZE, sizeof(char));
         if (buffer->data == NULL) {
             free(buffer);
             return NULL;
@@ -37,14 +37,13 @@ tDynamicBuffer* dynamicBuffer_INIT() {
 
 bool dynamicBuffer_ADD_CHAR(tDynamicBuffer* buffer ,char c) {
 
-
     if (buffer == NULL){
         return false;
     }
 
     if (buffer->size + 1 < buffer->allocated_size){
-        buffer->size++;
         buffer->data[buffer->size] = c;
+        buffer->size++;
         return true;
     }
     else {
@@ -54,10 +53,10 @@ bool dynamicBuffer_ADD_CHAR(tDynamicBuffer* buffer ,char c) {
             return false;
         }
         else {
-            buffer->size++;
-            buffer->allocated_size += BUFFER_SIZE;
             buffer->data = tmp;
+            buffer->allocated_size += BUFFER_SIZE;
             buffer->data[buffer->size] = c;
+            buffer->size++;
             return true;
         }
     }
@@ -72,14 +71,14 @@ void dynamicBufferFREE(tDynamicBuffer* buffer){
 }
 
 
-#ifndef NOT_TESTING
+#ifdef TESTING
 
 int main(){
 
     tDynamicBuffer* buffer = dynamicBuffer_INIT();
 
     if (buffer == NULL){
-        printf("Chyba alokácie !");
+        fprintf(stderr, "Allocation fail !\n");
     }
 
     int c;
@@ -88,10 +87,9 @@ int main(){
     while ((c = getchar()) != EOF) {
         err = dynamicBuffer_ADD_CHAR(buffer, c);
         if (err == false) {
-            printf("Chyba bufferu !\n");
+            fprintf(stderr, "Buffer allocation fail !\n");
         }
-        
-        for (unsigned long i = 0; buffer->size > i; i++){
+        for (unsigned long i = 0; (buffer->size - 1) > i; i++){
             printf("%c", buffer->data[i]);
         }
         printf("\n");
@@ -103,4 +101,4 @@ int main(){
 }
 
 
-#endif // NOT_TESTING
+#endif // TESTING
