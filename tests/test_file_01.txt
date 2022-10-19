@@ -1,1 +1,1 @@
-<?php+-*/$var"lol" < > <= >= = === / /* *nic* */ ?int ?stringt ?> !== !=== / firstfun void
+1<=2

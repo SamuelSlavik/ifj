@@ -59,6 +59,8 @@ enum token_type {
     T_VAR_ID,
     T_FUN_ID,
     T_STRING,
+    T_NUM_INT,
+    T_NUM_FLOAT,
     //
     T_COLON,                // :
     T_CONCATENATION,        // .

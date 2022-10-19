@@ -12,6 +12,7 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdlib.h>
 #include "scanner.h"
 #include "dynamic_buffer.h"
 
@@ -422,6 +423,65 @@ void load_exclamation(tToken* token, char c, unsigned long *init_count){
     }
 }
 
+
+void load_num(tToken* token, char c, unsigned long *init_count){
+    /* INIT BUFFER*/
+    if (!(*init_count)){
+        token->data.STRINGval = dynamicBuffer_INIT();
+        if (token->data.STRINGval == NULL){
+            /* err handle */
+        }
+        *init_count = 1;
+    }
+    /* PROCESS */
+    if (isdigit(c) || c == 'e' || c == 'E'){
+        bool err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
+        if (err == false){
+            /*err handle*/
+        }
+    }
+    else{
+        ungetc(c, stdin);
+        *init_count = 0;
+    }
+}
+
+
+void string_to_num(tToken* token){
+
+    char* err;
+
+    long tmp_int;
+    double tmp_double;
+
+    /* IF INT */
+
+    tmp_int = strtol(token->data.STRINGval->data, &err, 10);
+
+    if (*err == '\0') {
+        token->type = T_NUM_INT;
+        dynamicBufferFREE(token->data.STRINGval);
+        token->data.INTval = tmp_int;
+        return;
+    }
+    
+    /* IF FLOAT */
+
+    tmp_double = strtod(token->data.STRINGval->data, &err);
+    
+    if (*err == '\0'){
+        token->type = T_NUM_FLOAT;
+        dynamicBufferFREE(token->data.STRINGval);
+        token->data.FLOATval = tmp_double;
+        return;
+    }
+
+    /* ELSE */
+    dynamicBufferFREE(token->data.STRINGval);
+    token->type = T_ERROR;
+}
+
+
 /**
  * @brief Function return token type of reserved ID or type T_FUN_ID
  * 
@@ -605,12 +665,14 @@ tToken get_token(){
             load_string(&token, c, &init_count);
             break;
         case S_DOLLAR:
-            if (init_count){
-                if (c != '_' && (!isalpha(c)) && (!isdigit(c))){
-                    init_count = 0;
-                    ungetc(c, stdin);
-                    return token;
+            if (init_count && c != '_' && (!isalpha(c)) && (!isdigit(c))){
+                if (token.data.STRINGval->data[0] != '_' && (!isalpha(token.data.STRINGval->data[0]))){
+                    dynamicBufferFREE(token.data.STRINGval);
+                    token.type = T_ERROR;
                 }
+                init_count = 0;
+                ungetc(c, stdin);
+                return token;
             } 
             load_var_id(&token, c, &init_count);
             break;
@@ -634,7 +696,12 @@ tToken get_token(){
             }
             break;
         case S_NUM:
-
+            load_num(&token, c, &init_count);
+            if (isspace(c)){
+                string_to_num(&token);
+                return token;
+            }
+            break;
         case S_ERROR:
             token.type = T_ERROR;
             return token;
@@ -661,14 +728,28 @@ tToken get_token(){
     if (token.type == T_FUN_ID){ // CHECK FOR RESERVED IDs
         token.type =  is_reserved_id(token.data.STRINGval);
     }
+
+    if (token.type == T_VAR_ID){
+        if (token.data.STRINGval->data[0] != '_' && (!isalpha(token.data.STRINGval->data[0]))){
+            dynamicBufferFREE(token.data.STRINGval);
+            token.type = T_ERROR;
+            return token;
+        }
+    }
     
     if (token.type == T_VAR_ID || token.type == T_FUN_ID){ // RETURN WITHOUT FREE BUFFER
         init_count = 0;
         return token;
     }
     else if (token.type == T_STRING){ // UNCMOPLETE STRING
+        dynamicBufferFREE(token.data.STRINGval);
         init_count = 0;
         token.type = T_ERROR;
+        return token;
+    }
+    else if (STATE == S_NUM){
+        string_to_num(&token);
+        init_count = 0;
         return token;
     }
     
@@ -697,6 +778,12 @@ void print_token_type(enum token_type type){
     {
     case T_STRING:
         printf(ANSI_COLOR_YELLOW "[T_STRING]" ANSI_COLOR_RESET "\n");
+        break;
+    case T_NUM_INT:
+        printf(ANSI_COLOR_YELLOW "[T_NUM_INT]" ANSI_COLOR_RESET "\n");
+        break;
+    case T_NUM_FLOAT:
+        printf(ANSI_COLOR_YELLOW "[T_NUM_FLOAT]" ANSI_COLOR_RESET "\n");
         break;
     case T_STRING_TYPE:
         printf(ANSI_COLOR_YELLOW "[T_STRING_TYPE]" ANSI_COLOR_RESET "\n");
@@ -814,7 +901,6 @@ void print_token_type(enum token_type type){
 int main(){
 
     tToken token;
-
     while ((token = get_token()).type != T_EOF)
     {
         if (token.type == T_COMMENT_ERROR){
@@ -827,8 +913,13 @@ int main(){
         if (token.type == T_STRING || token.type == T_VAR_ID || token.type == T_FUN_ID){
             printf("TOKEN VALUE: %s\n", token.data.STRINGval->data);
         }
+        else if (token.type == T_NUM_INT){
+            printf("TOKEN VALUE: %ld\n", token.data.INTval);
+        }
+        else if (token.type == T_NUM_FLOAT){
+            printf("TOKEN VALUE: %f\n", token.data.FLOATval);
+        }
     }
-    
     return 0;
 }
 
