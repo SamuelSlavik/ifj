@@ -28,7 +28,7 @@ enum automat_state change_state(char c){
         return S_LETTER;
     }
     else if (isdigit(c)){
-        return S_NUM;
+        return S_INT_NUM;
     }
     else if(isspace(c)){
         return S_START;
@@ -48,16 +48,16 @@ enum automat_state change_state(char c){
     case ';':
         return S_SEMICOLON;
         break;
-    case '{':
+    case '}':
         return S_R_BRAC;
         break;
-    case '}':
+    case '{':
         return S_L_BRAC;
         break;
-    case '(':
+    case ')':
         return S_R_PAR;
         break;
-    case ')':
+    case '(':
         return S_L_PAR;
         break;
     case '=':
@@ -100,188 +100,6 @@ enum automat_state change_state(char c){
     }
 }
 
-/**
- * @brief Function for loading token while is in state S_EQUAL
- * 
- * @param token token where chars will be loaded
- * @param c char that will be loaded
- * @param init_count control parameter for initialization
- */
-void load_equal(tToken* token, char c, unsigned long *init_count){
-    /* INIT BUFFER*/
-    if (!(*init_count)){
-        token->data.STRINGval = dynamicBuffer_INIT();
-        if (token->data.STRINGval == NULL){
-            /* err handle */
-        }
-        *init_count = 1;
-    }
-    /* PROCESS */
-    if (c == '='){
-        bool err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
-        if (err == false){
-            /*err handle*/
-        }
-        /* SET TOKEN TYPE */
-        if ((strcmp(token->data.STRINGval->data, "===")) == 0){
-                token->type = T_EQUALS;
-            }    
-        else if ((strcmp(token->data.STRINGval->data, "=")) == 0){
-                token->type = T_ASSIGN;
-            }
-        else {
-                token->type = T_ERROR;
-            }
-    }
-    else{
-        ungetc(c, stdin);
-        *init_count = 0;
-        dynamicBufferFREE(token->data.STRINGval);
-    }
-}
-
-/**
- * @brief Function for loading token while is in state S_GREATER_THAN
- * 
- * @param token token where chars will be loaded
- * @param c char that will be loaded
- * @param init_count control parameter for initialization
- */
-void load_greater_than(tToken* token, char c, unsigned long *init_count){
-    /* INIT_BUFFER */
-    if (!(*init_count)){
-        token->data.STRINGval = dynamicBuffer_INIT();
-        if (token->data.STRINGval == NULL){
-            /* err handle */
-        }
-        *init_count = 1;
-    }
-    /* PROCESS */
-    if (c == '>' || c == '='){
-        bool err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
-        if (err == false){
-            /*err handle*/
-        }
-        /* SET TOKEN TYPE */
-        if ((strcmp(token->data.STRINGval->data, ">=")) == 0){
-            token->type = T_GREATER_OR_EQUAL;
-        }
-        else if ((strcmp(token->data.STRINGval->data, ">")) == 0){
-            token->type = T_GREATER_THAN;
-        }
-        else {
-            token->type = T_ERROR;
-        }
-    }
-    else {
-        ungetc(c, stdin);
-        *init_count = 0;
-        dynamicBufferFREE(token->data.STRINGval);
-    }
-}
-
-/**
- * @brief Function for loading token while is in state S_LESS_THAN
- * 
- * @param token token where chars will be loaded
- * @param c char that will be loaded
- * @param init_count control parameter for initialization
- */
-void load_less_than(tToken* token, char c, unsigned long *init_count){
-    /* INIT_BUFFER */
-    if (!(*init_count)){
-        token->data.STRINGval = dynamicBuffer_INIT();
-        if (token->data.STRINGval == NULL){
-            /* err handle */
-        }
-        *init_count = 1;
-    }
-    /* PROCESS */
-    if (c == '<' || c == '=' || c == '?' || c == 'p' || c == 'h'){
-        bool err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
-        if (err == false){
-            /*err handle*/
-        }
-        /* SET TOKEN TYPE */
-        if ((strcmp(token->data.STRINGval->data, "<=")) == 0){
-            token->type = T_LESS_OR_EQUAL;
-        }
-        else if ((strcmp(token->data.STRINGval->data, "<?php")) == 0){
-            token->type = T_PROLOG_START;
-        }
-        else if ((strcmp(token->data.STRINGval->data, "<")) == 0){
-            token->type = T_LESS_THAN;
-        }
-        else{
-            token->type = T_ERROR;
-        }
-    }
-    else {
-        ungetc(c, stdin);
-        *init_count = 0;
-        dynamicBufferFREE(token->data.STRINGval);
-    }
-}
-
-/**
- * @brief Function for loading token while is in state S_SLASH
- * 
- * @param token token where chars will be loaded
- * @param c char that will be loaded
- * @param init_count control parameter for initialization
- */
-void load_slash(tToken* token, char c, unsigned long *init_count){
-    /* INIT_BUFFER */
-    if (!(*init_count)){
-        token->data.STRINGval = dynamicBuffer_INIT();
-        if (token->data.STRINGval == NULL){
-            /* err handle */
-        }
-        *init_count = 1;
-    }
-    /* PROCESS */
-    if ((c == '/' || c == '*') && 
-        (strcmp(token->data.STRINGval->data, "/*")) &&  // is comment
-        (strcmp(token->data.STRINGval->data, "//")) &&  // is comment
-        (strcmp(token->data.STRINGval->data, "*"))){    // is end of comment
-
-        bool err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
-        if (err == false){
-            /*err handle*/
-        }
-    }
-    else {
-        if (((strcmp(token->data.STRINGval->data, "/*")) == 0) || ((strcmp(token->data.STRINGval->data, "*")) == 0)){
-
-            if (((strcmp(token->data.STRINGval->data, "*")) == 0) && (c == '/')){  // end of comment
-                token->data.STRINGval->data[1] = '/';    // "*" => "*/"
-                return; // comment completed 
-            }
-            if (c == '*'){                                                         // possible end of comment (got '*')
-                token->data.STRINGval->data[0] = c;      // 
-                token->data.STRINGval->data[1] = '\0';   // "/*" => "*" 
-            }
-            else {                                                                 // keep starting state (no '/' after '*')
-                token->data.STRINGval->data[0] = '/';    // 
-                token->data.STRINGval->data[1] = '*';    // "*" => "/*" 
-            }
-            return; // incomplete comment
-        }
-        else if ((strcmp(token->data.STRINGval->data, "//")) == 0){
-            return; // comment completed 
-        }
-        else if ((strcmp(token->data.STRINGval->data, "/")) == 0){
-            token->type = T_DIV;
-        }
-        else{
-            token->type = T_ERROR;
-        }
-        ungetc(c, stdin);
-        *init_count = 0;
-        dynamicBufferFREE(token->data.STRINGval);
-        token->data.STRINGval = NULL;
-    }
-}
 
 /**
  * @brief Function for loading token while is in state S_STRING
@@ -303,13 +121,10 @@ void load_string(tToken* token, char c, unsigned long *init_count){
     if (c != '"'){
         bool err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
         if (err == false){
-            /*err handle*/
+                /*err handle*/
         }
     }
-    else{
-        token->type = T_STRING;
-        return;
-    }
+    token->type = T_ERROR;
 }
 
 /**
@@ -329,15 +144,11 @@ void load_var_id(tToken* token, char c, unsigned long *init_count){
         *init_count = 1;
     }
     /* PROCESS */
-    if (c == '_' || isalpha(c) || isdigit(c)){
-        bool err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
-        if (err == false){
-            /*err handle*/
-        }
+    bool err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
+    if (err == false){
+        /*err handle*/
     }
-    else{
-        token->type = T_VAR_ID;
-    }
+    token->type = T_VAR_ID;
 }
 
 /**
@@ -347,7 +158,7 @@ void load_var_id(tToken* token, char c, unsigned long *init_count){
  * @param c char that will be loaded
  * @param init_count control parameter for initialization
  */
-void load_questioner(tToken* token, char c, unsigned long *init_count){
+void load_type_id(tToken* token, char c, unsigned long *init_count){
     /* INIT BUFFER*/
     if (!(*init_count)){
         token->data.STRINGval = dynamicBuffer_INIT();
@@ -357,69 +168,22 @@ void load_questioner(tToken* token, char c, unsigned long *init_count){
         *init_count = 1;
     }
     /* PROCESS */
-    if (isalpha(c) || isdigit(c) || c == '?' || (c == '>')){
-        bool err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
-        if (err == false){
-            /*err handle*/
-        }
-        /* SET TOKEN TYPE */
-        if (((strcmp(token->data.STRINGval->data, "?>")) == 0)){
-            token->type = T_PROLOG_END;
-        }
-        else if (((strcmp(token->data.STRINGval->data, "?string")) == 0)){
-            token->type = T_STRING_TYPE;
-        }
-        else if (((strcmp(token->data.STRINGval->data, "?int")) == 0)){
-            token->type = T_INT_TYPE;
-        }
-        else if (((strcmp(token->data.STRINGval->data, "?float")) == 0)){
-            token->type = T_FLOAT_TYPE;
-        }
-        else{
-            token->type = T_ERROR;
-        }
+    bool err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
+    if (err == false){
+        /*err handle*/
     }
-    else {
-        ungetc(c, stdin);
-        *init_count = 0;
-        dynamicBufferFREE(token->data.STRINGval);
+    /* SET TOKEN TYPE */
+    if (((strcmp(token->data.STRINGval->data, "string")) == 0)){
+        token->type = T_STRING_TYPE;
     }
-}
-
-/**
- * @brief Function for loading token while is in state S_EXCLAMATION
- * 
- * @param token token where chars will be loaded
- * @param c char that will be loaded
- * @param init_count control parameter for initialization
- */
-void load_exclamation(tToken* token, char c, unsigned long *init_count){
-    /* INIT BUFFER*/
-    if (!(*init_count)){
-        token->data.STRINGval = dynamicBuffer_INIT();
-        if (token->data.STRINGval == NULL){
-            /* err handle */
-        }
-        *init_count = 1;
+    else if (((strcmp(token->data.STRINGval->data, "int")) == 0)){
+        token->type = T_INT_TYPE;
     }
-    /* PROCESS */
-    if (c == '=' || c == '!'){
-        bool err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
-        if (err == false){
-            /*err handle*/
-        }
-        /* SET TOKEN TYPE */
-        if ((strcmp(token->data.STRINGval->data, "!==")) == 0){
-                token->type = T_NOT_EQUALS;
-            }    
-        else {
-                token->type = T_ERROR;
-            }
+    else if (((strcmp(token->data.STRINGval->data, "float")) == 0)){
+        token->type = T_FLOAT_TYPE;
     }
     else{
-        ungetc(c, stdin);
-        *init_count = 0;
-        dynamicBufferFREE(token->data.STRINGval);
+        token->type = T_ERROR;
     }
 }
 
@@ -434,15 +198,9 @@ void load_num(tToken* token, char c, unsigned long *init_count){
         *init_count = 1;
     }
     /* PROCESS */
-    if (isdigit(c) || c == 'e' || c == 'E'){
-        bool err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
-        if (err == false){
-            /*err handle*/
-        }
-    }
-    else{
-        ungetc(c, stdin);
-        *init_count = 0;
+    bool err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
+    if (err == false){
+        /*err handle*/
     }
 }
 
@@ -539,18 +297,12 @@ void load_letter(tToken* token, char c, unsigned long *init_count){
         *init_count = 1;
     }
     /* PROCESS */
-    if ((isalpha(c)) || (isdigit(c)) || (c == '_')){
-        bool err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
-        if (err == false){
-            /*err handle*/
-        }
-        /* SET TOKEN TYPE */
-        token->type = T_FUN_ID;
+    bool err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
+    if (err == false){
+        /*err handle*/
     }
-    else{
-        ungetc(c, stdin);
-        *init_count = 0;
-    }
+    /* SET TOKEN TYPE */
+    token->type = is_reserved_id(token->data.STRINGval);
 }
 
 /**
@@ -561,6 +313,7 @@ void load_letter(tToken* token, char c, unsigned long *init_count){
 tToken get_token(){
 
     tToken token;
+    token.type = T_UNKNOW;
     static unsigned long init_count;
     int c = getchar();
 
@@ -580,125 +333,300 @@ tToken get_token(){
                 ungetc(c, stdin);
             }
             break;
+        /* : */
         case S_COLON:
             token.type = T_COLON;
             return token;
+        /* . */
         case S_DOT:
             token.type = T_CONCATENATION;
             return token;
+        /* , */
         case S_COMMA:
             token.type = T_COMMA;
             return token;
+        /* ; */
         case S_SEMICOLON:
             token.type = T_SEMICOLON;
             return token;
+        /* } */
         case S_R_BRAC:
             token.type = T_R_BRAC;
             return token;
+        /* { */
         case S_L_BRAC:
             token.type = T_L_BRAC;
             return token;
+        /* ) */
         case S_R_PAR:
             token.type = T_R_PAR;
             return token;
+        /* ( */
         case S_L_PAR:
             token.type = T_L_PAR;
             return token;
+        /* = */
         case S_EQUAL:
-            load_equal(&token, c, &init_count);
-            if (c != '='){
+            token.type = T_ASSIGN;
+            STATE = S_EQEQ;
+            break;
+        /* == */
+        case S_EQEQ:
+            if (c == '='){
+                STATE = S_ASSIGN;
+                token.type = T_ERROR;
+            }
+            else{
+                ungetc(c, stdin);
                 return token;
             }
             break;
+        /* === */
+        case S_ASSIGN:
+            if (c == '='){
+                token.type = T_EQUALS;
+            }
+            else{
+                token.type = T_ERROR;
+                ungetc(c, stdin);
+            }
+            return token;
+        /* > */
         case S_GREATER_THAN:
-            load_greater_than(&token, c, &init_count);
-            if (c != '>' && c != '='){
-                return token;
-            }
+            token.type = T_GREATER_THAN;
+            STATE = S_G_T_;
             break;
+        /* >[?] */
+        case S_G_T_:
+            if (c == '='){
+                token.type = T_GREATER_OR_EQUAL;
+            }
+            else{
+                ungetc(c, stdin);
+            }
+            return token;
+        /* < */
         case S_LESS_THAN:
-            load_less_than(&token, c, &init_count);
-            if (c != '<' && c != '=' && c != '?' && c != 'p' && c != 'h'){
-                return token;
-            }
+            token.type = T_LESS_THAN;
+            STATE = S_L_T_;
             break;
+        /* <[?] */
+        case S_L_T_:
+            if (c == '='){
+                token.type = T_LESS_OR_EQUAL;
+            }
+            else if (c == '?'){
+                token.type = T_PROLOG_START;
+            }
+            else{
+                ungetc(c, stdin);
+            }
+            return token;
+        /* * */
         case S_ASTERISK:
             token.type = T_MUL;
             return token;
+        /* / */
         case S_SLASH:
-            load_slash(&token, c, &init_count);
-            /* IF COMMENT */
-            if (token.data.STRINGval != NULL){
-                if (((strcmp(token.data.STRINGval->data, "//")) == 0) && (c == '\n')) {
-                    init_count = 0;
-                    dynamicBufferFREE(token.data.STRINGval);
-                    token.data.STRINGval = NULL;
-                    token.type = T_ERROR; // fill token.type to something else than T_DIV
-                }
-                else if (((strcmp(token.data.STRINGval->data, "*/")) == 0)){
-                    init_count = 0;
-                    dynamicBufferFREE(token.data.STRINGval);
-                    token.data.STRINGval = NULL;
-                    token.type = T_ERROR; // fill token.type to something else than T_DIV
-                }
+            token.type = T_DIV;
+            STATE = S_COMMENT;
+            break;
+        /* /[?] */
+        case S_COMMENT:
+            if (c == '/'){
+                STATE = S_LINE_COMMENT;
             }
-            /* RETURN DIV */
-            if ((token.data.STRINGval == NULL) && (token.type == T_DIV)){
+            else if (c == '*'){
+                STATE = S_BLOCK_COMMENT;
+            }
+            else{
+                ungetc(c, stdin);
                 return token;
             }
-            /* RETURN COMMENT */
-            else if ((token.data.STRINGval == NULL) && (token.type != T_DIV)){
+            break;
+        /* // */
+        case S_LINE_COMMENT:
+            if (c == '\n'){
+                token.type = T_UNKNOW;
                 STATE = S_START;
             }
             break;
+        /* BLOCK COMMENT */            
+        case S_BLOCK_COMMENT:
+            token.type = T_ERROR;
+            if (c == '*'){
+                STATE = S_B_C_END;
+            }
+            break;
+        /* BLOCK COMMENT END */
+        case S_B_C_END:
+            if (c == '/'){
+                token.type = T_UNKNOW;
+                STATE = S_START;
+            }
+            else {
+                STATE = S_BLOCK_COMMENT;
+            }
+            break;
+        /* + */
         case S_PLUS:
             token.type = T_ADD;
             return token;
+        /* - */
         case S_MINUS:
             token.type = T_SUB;
             return token;
+        /* "..." */
         case S_QUOTE:
             if ((init_count) && c == '"'){
                 init_count = 0;
+                token.type = T_STRING;
                 return token;
             }
             load_string(&token, c, &init_count);
             break;
+        /* $ */
         case S_DOLLAR:
-            if (init_count && c != '_' && (!isalpha(c)) && (!isdigit(c))){
-                if (token.data.STRINGval->data[0] != '_' && (!isalpha(token.data.STRINGval->data[0]))){
-                    dynamicBufferFREE(token.data.STRINGval);
-                    token.type = T_ERROR;
-                }
+            if ((c == '_') || (isalpha(c))){
+                init_count = 0;
+                load_var_id(&token, c, &init_count);
+                STATE = S_V_ID;
+            }
+            else if ((!init_count) && (c == '$')){ // skip first $
+                init_count = 1;
+                token.type = T_ERROR;
+                STATE = S_DOLLAR;
+            }
+            else {
+                token.type = T_ERROR;
+                ungetc(c, stdin);
+                init_count = 0;
+                return token;
+            }
+            break;
+        /* $_a-zA-Z  */
+        case S_V_ID:
+            if((c == '_') || (isalpha(c)) || (isdigit(c))){
+                load_var_id(&token, c, &init_count);
+            }
+            else {
                 init_count = 0;
                 ungetc(c, stdin);
                 return token;
-            } 
-            load_var_id(&token, c, &init_count);
+            }
             break;
+        /* ? */
         case S_QUESTIONER:
-            load_questioner(&token, c, &init_count);
-            if (!isalpha(c) && !isdigit(c) && (c != '?') && (c != '>')){
+            if (c == '>'){
+                init_count = 0;
+                token.type = T_PROLOG_END;
+                return token;
+            }
+            else if (isalpha(c)){
+                ungetc(c, stdin);
+                init_count = 0;
+                STATE = S_TYPE_ID;
+            }
+            else if ((init_count != 2) && (c == '?')){
+                init_count = 2;
+            }
+            else{
+                init_count = 0;
+                ungetc(c, stdin);
+                token.type = T_ERROR;
                 return token;
             }
             break;
+        /* ?int | ?string | ?float */
+        case S_TYPE_ID:
+            if (isalpha(c)){
+                load_type_id(&token, c, &init_count);
+            }
+            else{
+                dynamicBufferFREE(token.data.STRINGval);
+                ungetc(c, stdin);
+                init_count = 0;
+                return token;
+            }
+            break;
+        /* ! */
         case S_EXCLAMATION:
-            load_exclamation(&token, c, &init_count);
-            if ((c != '=') && (c != '!')){
+            if ((init_count == 0) && (c == '!')){       // !
+                init_count = 2;
+                token.type = T_ERROR; 
+            }
+            else if ((init_count == 2) && (c == '=')){  // !=
+                init_count = 3;
+                token.type = T_ERROR;
+            }
+            else if ((init_count == 3) && (c == '=')){  // !==
+                init_count = 0;
+                token.type = T_NOT_EQUALS;
+                return token;
+            }
+            else {
+                init_count = 0;
+                token.type = T_ERROR;
                 return token;
             }
             break;
+        /* _a-zA-Z */
         case S_LETTER:
             load_letter(&token, c, &init_count);
             if ((!isalpha(c)) && (!isdigit(c)) && (c != '_')){
-                token.type = is_reserved_id(token.data.STRINGval);
+                ungetc(c, stdin);
+                init_count = 0;
                 return token;
             }
             break;
-        case S_NUM:
-            load_num(&token, c, &init_count);
-            if (isspace(c)){
+        /* 0-9 */
+        case S_INT_NUM:
+            if (isdigit(c)){
+                load_num(&token, c, &init_count);
+            }
+            else if (c == '.'){
+                load_num(&token, c, &init_count);
+                STATE = S_FLOAT_NUM;
+            }
+            else if ((c == 'e') || (c == 'E')){
+                load_num(&token, c, &init_count);
+                STATE = S_EXP_NUM;
+            }
+            else {
                 string_to_num(&token);
+                ungetc(c, stdin);
+                init_count = 0;
+                return token;
+            }
+            break;
+        case S_FLOAT_NUM:
+            if (isdigit(c)){
+                load_num(&token, c, &init_count);
+            }
+            else if ((c == 'e') || (c == 'E')){
+                load_num(&token, c, &init_count);
+                STATE = S_EXP_NUM;
+            }
+            else {
+                string_to_num(&token);
+                ungetc(c, stdin);
+                init_count = 0;
+                return token;
+            }
+            break;
+        case S_EXP_NUM:
+            if (isdigit(c)){
+                load_num(&token, c, &init_count);
+                STATE = S_FLOAT_NUM;
+            }
+            else if ((c == '+') || (c == '-')){
+                load_num(&token, c, &init_count);
+                STATE = S_FLOAT_NUM;
+            }
+            else {
+                init_count = 0;
+                token.type = T_ERROR;
+                dynamicBufferFREE(token.data.STRINGval);
                 return token;
             }
             break;
@@ -711,56 +639,24 @@ tToken get_token(){
         }
     } while ((c = getchar()) != EOF);
 
-    /* UNCOMPLETE BOLCK OF COMMENT */
-    if (STATE == S_SLASH){
-        if (token.data.STRINGval != NULL){
-            if (((strcmp(token.data.STRINGval->data, "//")) == 0)){ // line comment and EOF
-                token.type = T_EOF;
-            }
-            else{
-                token.type = T_COMMENT_ERROR;
-            }
-            dynamicBufferFREE(token.data.STRINGval);
-            return token;
-        }
-    }
     /* EOF */
-    if (token.type == T_FUN_ID){ // CHECK FOR RESERVED IDs
-        token.type =  is_reserved_id(token.data.STRINGval);
-    }
-
-    if (token.type == T_VAR_ID){
-        if (token.data.STRINGval->data[0] != '_' && (!isalpha(token.data.STRINGval->data[0]))){
-            dynamicBufferFREE(token.data.STRINGval);
-            token.type = T_ERROR;
-            return token;
-        }
-    }
     
-    if (token.type == T_VAR_ID || token.type == T_FUN_ID){ // RETURN WITHOUT FREE BUFFER
-        init_count = 0;
-        return token;
-    }
-    else if (token.type == T_STRING){ // UNCMOPLETE STRING
-        dynamicBufferFREE(token.data.STRINGval);
-        init_count = 0;
-        token.type = T_ERROR;
-        return token;
-    }
-    else if (STATE == S_NUM){
+    if ((STATE == S_INT_NUM) || (STATE == S_FLOAT_NUM) || (STATE == S_EXP_NUM)){
         string_to_num(&token);
         init_count = 0;
-        return token;
     }
     
-    if (init_count){ // FREE AFTER EOF
-        init_count = 0;
+    if ((init_count == 1) && 
+        (token.type != T_VAR_ID) && 
+        (token.type != T_FUN_ID)){ // FREE AFTER EOF
         dynamicBufferFREE(token.data.STRINGval);
     }
-    /* COMPLETE BLOCK OF COMMENT AND EOF */
-    else {
+
+    if ((token.type == T_UNKNOW) || (STATE == S_LINE_COMMENT) || (STATE == S_BLOCK_COMMENT)){
         token.type = T_EOF;
     }
+
+    init_count = 0;
     return token;
 }
 

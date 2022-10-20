@@ -23,26 +23,39 @@ enum automat_state {
     S_DOT,                  // .
     S_COMMA,                // ,
     S_SEMICOLON,            // ;
-    S_R_BRAC,               // {
-    S_L_BRAC,               // }
-    S_R_PAR,                // (
-    S_L_PAR,                // ) 
+    S_R_BRAC,               // }
+    S_L_BRAC,               // {
+    S_R_PAR,                // )
+    S_L_PAR,                // ( 
     //
     S_EQUAL,                // =
+    S_EQEQ,                 // ==
+    S_ASSIGN,               // ===
     S_GREATER_THAN,         // >
+    S_G_T_,                 // >[?]
     S_LESS_THAN,            // <
+    S_L_T_,                 // <[?]
     //
     S_ASTERISK,             // *
     S_SLASH,                // /
+    S_COMMENT,              // /[?]
+    S_LINE_COMMENT,         // //
+    S_BLOCK_COMMENT,        // /*
+    S_B_C_END,              // /* ... *
     S_PLUS,                 // +
     S_MINUS,                // -
     //
     S_QUOTE,                // "
     S_DOLLAR,               // $
+    S_V_ID,                 // $_a-zA-Z 
     S_QUESTIONER,           // ?
+    S_PROLOG_END,           // ?>
+    S_TYPE_ID,              // ?int | ?string | ?float
     S_EXCLAMATION,          // !
     S_LETTER,
-    S_NUM,
+    S_INT_NUM,
+    S_FLOAT_NUM,
+    S_EXP_NUM,
 
 };
 
@@ -66,10 +79,10 @@ enum token_type {
     T_CONCATENATION,        // .
     T_COMMA,                // ,
     T_SEMICOLON,            // ;
-    T_R_BRAC,               // {
-    T_L_BRAC,               // }
-    T_R_PAR,                // (
-    T_L_PAR,                // )
+    T_R_BRAC,               // }
+    T_L_BRAC,               // {
+    T_R_PAR,                // )
+    T_L_PAR,                // (
     //
     T_ASSIGN,               // =
     T_EQUALS,               // === 
