@@ -18,6 +18,7 @@
 enum automat_state {
     S_ERROR,
     S_START,
+    S_PROLOG,
     //
     S_COLON,                // :
     S_DOT,                  // .
@@ -49,7 +50,6 @@ enum automat_state {
     S_DOLLAR,               // $
     S_V_ID,                 // $_a-zA-Z 
     S_QUESTIONER,           // ?
-    S_PROLOG_END,           // ?>
     S_TYPE_ID,              // ?int | ?string | ?float
     S_EXCLAMATION,          // !
     S_LETTER,
@@ -65,9 +65,12 @@ enum automat_state {
  * 
  */
 enum token_type {
-    T_STRING_TYPE,
-    T_FLOAT_TYPE,
-    T_INT_TYPE,
+    T_STRING_TYPE,          // string
+    T_FLOAT_TYPE,           // float
+    T_INT_TYPE,             // int
+    T_STRING_N_TYPE,        // ?string
+    T_FLOAT_N_TYPE,         // ?float
+    T_INT_N_TYPE,           // ?int
     // T_NUM_EXP,
     T_VAR_ID,
     T_FUN_ID,
@@ -96,8 +99,9 @@ enum token_type {
     T_DIV,                  // /
     T_ADD,                  // +
     T_SUB,                  // -
-    T_PROLOG_START,         // <?php    
-    T_PROLOG_END,           // ?>
+    T_PROLOG_START,         // <?php
+    T_PROLOG,    
+    T_EPILOG,               // ?>
     //
     T_WHILE,
     T_IF,
@@ -108,7 +112,7 @@ enum token_type {
     //
     T_EOF,
     T_UNKNOW,
-    T_COMMENT_ERROR,
+    T_COMMENT_ERROR,        // incomplete block of comment
     T_ERROR,
 };
 
@@ -135,6 +139,92 @@ typedef struct Token
     tToken_value data;
 } tToken;
 
+/**
+ * @brief Function for changis STATE from S_STATE
+ * 
+ * @param c char which decided what state will be choosen
+ * @return enum automat_state 
+ */
+enum automat_state change_state(char c);
+
+
+/**
+ * @brief Function for loading loading string to token
+ * 
+ * @param token token where chars will be loaded
+ * @param c char that will be loaded
+ * @param init_count control parameter for initialization
+ */
+void load_string(tToken* token, char c, unsigned long *init_count);
+
+
+/**
+ * @brief Function for loading variable name of token
+ * 
+ * @param token token where chars will be loaded
+ * @param c char that will be loaded
+ * @param init_count control parameter for initialization
+ */
+void load_var_id(tToken* token, char c, unsigned long *init_count);
+
+
+/**
+ * @brief Function for loading types of token
+ * 
+ * @param token token where chars will be loaded
+ * @param c char that will be loaded
+ * @param init_count control parameter for initialization
+ */
+void load_type_id(tToken* token, char c, unsigned long *init_count);
+
+
+/**
+ * @brief Function for loading numbers to token
+ * 
+ * @param token token where chars will be loaded
+ * @param c char that will be loaded
+ * @param init_count control parameter for initialization
+ */
+void load_num(tToken* token, char c, unsigned long *init_count);
+
+
+/**
+ * @brief Transform string to int or float
+ * 
+ * @param token with data that will be proccessed
+ */
+void string_to_num(tToken* token);
+
+
+/**
+ * @brief Function return token type of reserved ID or type T_FUN_ID
+ * 
+ * @param string string that well be compared with reserved IDs
+ * @return enum token_type 
+ */
+enum token_type is_reserved_id(tDynamicBuffer* string);
+
+
+/**
+ * @brief Function for loading token while is in state S_LETTER
+ * 
+ * @param token token where chars will be loaded
+ * @param c char that will be loaded
+ * @param init_count control parameter for initialization
+ */
+void load_letter(tToken* token, char c, unsigned long *init_count);
+
+
+/**
+ * @brief Create the token object loaded from stdin
+ * @param automat_state there are 3 possible automat states
+ * 0 => WAITING ON PROLOG
+ * 1 => PROCESS PROGRAM (normall token loading)
+ * 2 => CHECKING CORRECT END (after epilog occures)
+ * 
+ * @return Loaded Token
+ */
+tToken get_token(short automat_state);
 
 /*************** TESTING ***************/
 
