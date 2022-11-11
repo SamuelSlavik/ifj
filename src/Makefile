@@ -35,6 +35,12 @@ test-dynamic_buffer.o: dynamic_buffer.c
 test-dynamic_buffer: test-dynamic_buffer.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 
+
+############################### STACK ####################################
+
+stack.o: stack.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
 ############################## XXXXXXX ###################################
 
 clean:
