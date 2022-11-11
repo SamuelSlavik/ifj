@@ -13,11 +13,18 @@
 
 #include <string.h>
 #include <stdbool.h>
+#include "dynamic_buffer.h"
+#include "scanner.h"
 
 
 #define AVG_LEN_MIN 0.5
 #define AVG_LEN_MAX 2
 
+
+/**
+ * @brief Hash tabe structure
+ * 
+ */
 typedef struct htab{
     size_t size;
     size_t arr_size;
@@ -25,15 +32,69 @@ typedef struct htab{
 } htab_t;
 
 
-typedef const char * htab_key_t;
+typedef const tDynamicBuffer *htab_key_t;
+
+/**
+ * @brief Data for variables
+ * 
+ */
+typedef struct data_var
+{
+    bool init;                      // true if variable was initialized false if not
+} tData_var;
 
 
+/**
+ * @brief tuple variable type and variable name
+ * 
+ */
+typedef struct fun_TaV
+{
+    enum token_type var_type;       // type of variable
+    tDynamicBuffer *var;            // variable name
+} tVar_TaV;
+
+
+/**
+ * @brief Data for functions
+ * 
+ */
+typedef struct data_fun
+{
+    bool init;                      // true if function was initialized false if not
+    bool defined;                   // true if function was defined false if not
+    tVar_TaV *Ta_V[100];            // list of types and variables in parameter of function
+    enum token_type return_type;    // return type of function
+    htab_t *localST;                // pointer to local symbol table for this function
+} tData_fun;
+
+
+/**
+ * @brief Union for data variable or function
+ * 
+ */
+typedef union htab_data_type
+{
+    tData_var *var_data;
+    tData_fun *fun_data;
+
+} htab_data_type_t;
+
+
+/**
+ * @brief Hash table data item structure
+ * 
+ */
 typedef struct htab_data {
     htab_key_t key;
-    // fill stuff
+    htab_data_type_t data;
 } htab_data_t;
 
 
+/**
+ * @brief Hash table item structure
+ * 
+ */
 typedef struct htab_item{
     htab_data_t *data;
     struct htab_item *next;
