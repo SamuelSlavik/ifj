@@ -1,7 +1,7 @@
 /**
  * @file stack.c
  * @author Michal Ľaš (xlasmi00)
- * @brief Implemantation of Stack storing data type void *
+ * @brief Implemantation of Stack data type storing data type void *
  * @version 0.1
  * @date 2022-11-11
  * 
