@@ -43,10 +43,10 @@ stack.o: stack.c
 
 ############################# HASH_TABLE #################################
 
-htab.o: htab.c dynamic_buffer.c stack.c scanner.c error.c
+htab.o: htab.c dynamic_buffer.c stack.c scanner.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-htab: htab.o dynamic_buffer.o stack.o scanner.o error.o
+htab: htab.o dynamic_buffer.o stack.o scanner.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 
 ############################## XXXXXXX ###################################
