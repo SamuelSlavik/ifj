@@ -15,24 +15,31 @@
 #include <stdbool.h>
 #include "dynamic_buffer.h"
 #include "scanner.h"
+#include "stack.h"
 
 
 #define AVG_LEN_MIN 0.5
 #define AVG_LEN_MAX 2
 
 
+#define HTAB_SIZE 997       //99991
+
+
+typedef struct htab htab_t;
+
 /**
  * @brief Hash tabe structure
  * 
  */
-typedef struct htab{
-    size_t size;
-    size_t arr_size;
-    struct htab_item **arr_ptr;
-} htab_t;
+struct htab{
+    size_t size;                    // current size of HT
+    size_t arr_size;                // allocated size
+    struct htab_item **arr_ptr;     // pointer to list of synonyms
+    htab_t *globalST;               // pointer to Global hash table
+};
 
 
-typedef const tDynamicBuffer *htab_key_t;
+typedef const char *htab_key_t;
 
 /**
  * @brief Data for variables
@@ -41,6 +48,7 @@ typedef const tDynamicBuffer *htab_key_t;
 typedef struct data_var
 {
     bool init;                      // true if variable was initialized false if not
+    enum token_type type;           // type of variable
 } tData_var;
 
 
@@ -51,7 +59,7 @@ typedef struct data_var
 typedef struct fun_TaV
 {
     enum token_type var_type;       // type of variable
-    tDynamicBuffer *var;            // variable name
+    char *var;                      // variable name
 } tVar_TaV;
 
 
@@ -61,9 +69,9 @@ typedef struct fun_TaV
  */
 typedef struct data_fun
 {
-    bool init;                      // true if function was initialized false if not
+    bool declared;                  // true if function was declared false if not
     bool defined;                   // true if function was defined false if not
-    tVar_TaV *Ta_V[100];            // list of types and variables in parameter of function
+    tStack *TaV;                    // stack of types and variables in parameter of function
     enum token_type return_type;    // return type of function
     htab_t *localST;                // pointer to local symbol table for this function
 } tData_fun;
@@ -75,8 +83,8 @@ typedef struct data_fun
  */
 typedef union htab_data_type
 {
-    tData_var *var_data;
-    tData_fun *fun_data;
+    tData_var var_data;
+    tData_fun fun_data;
 
 } htab_data_type_t;
 
@@ -162,7 +170,7 @@ htab_data_t * htab_find(htab_t * t, htab_key_t key);
  * 
  * @param t hash table
  * @param key item key
- * @return htab_pair_t* pointer to new item or existing item with same key
+ * @return htab_pair_t* pointer to new item or existing item with same key or NULL if allocation fail
  */
 htab_data_t * htab_lookup_add(htab_t * t, htab_key_t key);
 

@@ -41,6 +41,14 @@ test-dynamic_buffer: test-dynamic_buffer.o
 stack.o: stack.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
+############################# HASH_TABLE #################################
+
+htab.o: htab.c dynamic_buffer.c stack.c scanner.c error.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+htab: htab.o dynamic_buffer.o stack.o scanner.o error.o
+	$(CC) $(CFLAGS) $^ -o $@ -lm
+
 ############################## XXXXXXX ###################################
 
 clean:
