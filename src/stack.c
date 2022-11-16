@@ -52,8 +52,3 @@ void *StackTop(tStack *s){
 bool StackIsEmpty(tStack *s){
     return (s->top == NULL);
 }
-
-int main(){
-
-    return 0;
-}
