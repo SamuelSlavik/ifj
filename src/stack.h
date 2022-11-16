@@ -27,4 +27,50 @@ typedef struct stack
 
 
 
+/**
+ * @brief Initialization of new Stack
+ * 
+ * @param s pointer to Stack
+ */
+void StackInit(tStack *s);
+
+
+/**
+ * @brief Function push data to top of the Stack
+ * 
+ * @param s pointer to Stack
+ * @param data 
+ * @return true if function success
+ * @return false if function fail
+ */
+bool StackPush(tStack *s, void *data);
+
+
+/**
+ * @brief Function remove element on top of the Stack
+ * 
+ * @param s pointer to Stack
+ */
+void StackPop(tStack *s);
+
+
+/**
+ * @brief Function for getting data from top of the Stack
+ * 
+ * @param s pointer to Stack
+ * @return void* pointer to data stored in top element of Stack or NULL if Stack is empty
+ */
+void *StackTop(tStack *s);
+
+
+/**
+ * @brief Function Check if Stack is empty
+ * 
+ * @param s pointer to Stack
+ * @return true if stack is empty
+ * @return false if stack is not empty
+ */
+bool StackIsEmpty(tStack *s);
+
+
 #endif // STACK_H
