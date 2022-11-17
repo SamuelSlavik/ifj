@@ -1,0 +1,9 @@
+<?php
+declare(strict_types=1);
+
+function foo(?string $str) : ?int {
+    //body
+    /* more body */
+}
+
+?>

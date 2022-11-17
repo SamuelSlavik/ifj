@@ -21,7 +21,7 @@ scanner.o: scanner.c dynamic_buffer.c
 test-scanner.o: scanner.c dynamic_buffer.c
 	$(CC) $(CFLAGS) -DTESTING -c $< -o $@	
 
-test-scanner: test-scanner.o dynamic_buffer.o
+test-scanner: test-scanner.o dynamic_buffer.o error.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 
 ########################### DYNAMIC_BUFFER ###############################
@@ -35,7 +35,6 @@ test-dynamic_buffer.o: dynamic_buffer.c
 test-dynamic_buffer: test-dynamic_buffer.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 
-
 ############################### STACK ####################################
 
 stack.o: stack.c
@@ -48,8 +47,13 @@ htab.o: htab.c
 
 stable.o: stable.c htab.c stack.c scanner.c
 	$(CC) $(CFLAGS) -c $< -o $@
+  
+############################### ERROR #####################################
 
-############################## XXXXXXX ###################################
+error.o: error.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+############################### XXXXX #####################################
 
 clean:
 	rm -f $(PROG)
