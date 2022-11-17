@@ -41,13 +41,13 @@ test-dynamic_buffer: test-dynamic_buffer.o
 stack.o: stack.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-############################# HASH_TABLE #################################
+########################### SYMBOL_TABLE #################################
 
-htab.o: htab.c dynamic_buffer.c stack.c scanner.c
+htab.o: htab.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-htab: htab.o dynamic_buffer.o stack.o scanner.o
-	$(CC) $(CFLAGS) $^ -o $@ -lm
+stable.o: stable.c htab.c stack.c scanner.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 ############################## XXXXXXX ###################################
 

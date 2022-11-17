@@ -13,10 +13,6 @@
 #include <stdint.h>
 
 #include "htab.h"
-#include "stack.h"
-#include "scanner.h"
-#include "dynamic_buffer.h"
-
 
 
 
@@ -225,6 +221,7 @@ void htab_clear(htab_t * t){
             item = item->next;
 
             free((void *)item_to_del->data->key);
+            st_fun_param_free(item_to_del->data);
             free(item_to_del->data);
             free(item_to_del);
         }
@@ -237,166 +234,4 @@ void htab_free(htab_t * t){
     htab_clear(t);
     free(t->arr_ptr);
     free(t);
-}
-
-
-/* Functions for working with symbol table */
-
-
-htab_data_t *st_fun_declaration(htab_t *global_ST, tStack *param_s, tToken token){
-
-    htab_data_t *data_ST;
-
-    /* Add to global table */
-    data_ST = htab_lookup_add(global_ST, token.data.STRINGval->data);
-    if (data_ST == NULL){
-        return NULL;
-    }
-
-    /* Free token string */
-    dynamicBufferFREE(token.data.STRINGval);
-
-    /* Set declared to true and defined to false and return to to Unknow*/
-    data_ST->data.fun_data.declared = true;
-    data_ST->data.fun_data.defined = false;
-    data_ST->data.fun_data.return_type = T_UNKNOW;
-
-    /* Create stack of parameters */
-    StackInit(param_s);
-
-    data_ST->data.fun_data.TaV = param_s;
-
-    /* Set local symbol table to NULL */
-    data_ST->data.fun_data.localST = NULL;
-
-    return data_ST;
-}
-
-
-
-tVar_TaV* st_fun_param_create(tToken token){
-
-    tVar_TaV *tuple = malloc(sizeof(tVar_TaV));
-    if (tuple == NULL){
-        return NULL;
-    }
-
-    tuple->var_type = token.type;
-    return tuple;
-}
-
-
-
-bool st_fun_param_set(htab_data_t *data, tVar_TaV *tuple, tToken token){
-
-    char *var = malloc(sizeof(char) * (strlen(token.data.STRINGval->data) + 1));
-    if (var == NULL){
-        return false;
-    }
-    strcpy(var, token.data.STRINGval->data);
-
-    dynamicBufferFREE(token.data.STRINGval);
-
-    tuple->var = var;
-
-    if (!StackPush(data->data.fun_data.TaV, (void *) tuple)){
-        return false;
-    }
-    return true;
-}
-
-
-
-void st_fun_retrun_type(htab_data_t *data, tToken token){
-    data->data.fun_data.return_type = token.type;
-}
-
-
-
-void st_fun_definition(htab_data_t *data){
-    data->data.fun_data.defined = true;
-}
-
-
-
-htab_t *st_fun_call(htab_data_t *data, tStack *s, htab_t *global_ST){
-    /* Create ST for function */
-    htab_t *local_ST = htab_init(HTAB_SIZE);
-    if (local_ST == NULL){
-        return NULL;
-    }
-    data->data.fun_data.localST = local_ST;
-    local_ST->globalST = global_ST;
-
-    if (!StackPush(s, (void *) local_ST)){
-        return NULL;
-    }
-    return local_ST;
-}
-
-
-
-htab_t *st_fun_return(tStack *s){
-
-    htab_t *ST = StackTop(s);
-    htab_free(ST);
-    StackPop(s);
-    return StackTop(s);
-}
-
-
-
-
-htab_data_t *st_var_create(htab_t *t, tToken token){
-
-    htab_data_t *data_ST = htab_find(t, token.data.STRINGval->data);
-
-    if (data_ST != NULL){
-        return data_ST;
-    }
-    else{
-        /* Add to global table */
-        data_ST = htab_lookup_add(t, token.data.STRINGval->data);
-        if (data_ST == NULL){
-            return NULL;
-        }
-
-        /* Free token string */
-        dynamicBufferFREE(token.data.STRINGval);
-
-        /* Set init to true */
-        data_ST->data.var_data.init = true;
-
-        return data_ST;
-    }
-}
-
-
-
-void st_var_set(htab_data_t *data, tToken token){
-
-    data->data.var_data.type = token.type;
-
-    if (token.type == T_STRING){
-        dynamicBufferFREE(token.data.STRINGval);
-    }
-}
-
-/*
-void st_fun_free(){
-    if (item_to_del->data->data.fun_data.declared && !item_to_del->data->data.var_data.init){
-        while (!StackIsEmpty(item_to_del->data->data.fun_data.TaV)){
-            free(((tVar_TaV *)StackTop(item_to_del->data->data.fun_data.TaV))->var);
-            free(((tVar_TaV *)StackTop(item_to_del->data->data.fun_data.TaV)));
-            StackPop(item_to_del->data->data.fun_data.TaV);
-        }                
-    }
-}
-*/
-
-int main(){
-
-
-
-    return 0;
 }
