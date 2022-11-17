@@ -48,13 +48,13 @@ bool dynamicBuffer_ADD_CHAR(tDynamicBuffer* buffer ,char c) {
     }
     else {
         char* tmp;
-        tmp = realloc(buffer->data, buffer->allocated_size + BUFFER_SIZE);
+        tmp = realloc(buffer->data, buffer->allocated_size * 2);
         if (tmp == NULL) {
             return false;
         }
         else {
             buffer->data = tmp;
-            buffer->allocated_size += BUFFER_SIZE;
+            buffer->allocated_size *= 2;
             buffer->data[buffer->size] = c;
             buffer->size++;
             return true;
