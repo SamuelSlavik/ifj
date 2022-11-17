@@ -35,13 +35,23 @@ test-dynamic_buffer.o: dynamic_buffer.c
 test-dynamic_buffer: test-dynamic_buffer.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 
+############################### STACK ####################################
+
+stack.o: stack.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+########################### SYMBOL_TABLE #################################
+
+htab.o: htab.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+stable.o: stable.c htab.c stack.c scanner.c
+	$(CC) $(CFLAGS) -c $< -o $@
+  
 ############################### ERROR #####################################
 
 error.o: error.c
 	$(CC) $(CFLAGS) -c $< -o $@
-
-error: error.o
-	$(CC) $(CFLAGS) $^ -o $@ -lm
 
 ############################### XXXXX #####################################
 
