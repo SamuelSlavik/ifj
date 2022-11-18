@@ -5,7 +5,7 @@
 
 CC=gcc
 CFLAGS=-O2 -std=c11 -pedantic -Wall -Wextra
-PROG=test-scanner test-dynamic_buffer
+PROG=test-scanner test-dynamic_buffer test-parser
 
 .PHONY: clean all
 
@@ -52,6 +52,15 @@ stable.o: stable.c htab.c stack.c scanner.c
 
 error.o: error.c
 	$(CC) $(CFLAGS) -c $< -o $@
+
+########################### PARSER #################################
+test-parser: parser.o scanner.o dynamic_buffer.o error.o
+	$(CC) $(CFLAGS) $^ -o $@ -lm
+
+parser.o: parser.c scanner.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+
 
 ############################### XXXXX #####################################
 
