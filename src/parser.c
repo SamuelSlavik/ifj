@@ -171,20 +171,16 @@ bool f_fn_call_l(tToken *token){
 }
 
 bool f_func(tToken *token){
-    print_token_type(token->type);
     bool func = false;
     if(token->type == T_FUNCTION){
         *token = get_token(1);
-        print_token_type(token->type);
         if(token->type == T_FUN_ID){
             *token = get_token(1);
             if (token->type == T_L_PAR){
                 *token = get_token(1);
                 func = f_func_param(token);
-                print_token_type(token->type);
                 if(token->type == T_COLON && func != false){
                     *token = get_token(1);
-                    print_token_type(token->type);
                     func = f_func_type(token) && f_func_dedf(token); 
                 }
                 //TODO SKONTROLOVAT MAGIA
@@ -196,7 +192,6 @@ bool f_func(tToken *token){
 bool f_func_dedf(tToken *token){
     bool func_dedf = false;
     if(token->type == T_L_BRAC){
-        print_token_type(token->type);
         *token = get_token(1);
         func_dedf = f_in_body(token);
     }
@@ -231,7 +226,6 @@ bool f_in_body(tToken *token){
     bool in_body = false;
     if(token->type== T_R_BRAC){
         *token = get_token(1);
-        print_token_type(token->type);
         in_body = true;
         return in_body;
     }
