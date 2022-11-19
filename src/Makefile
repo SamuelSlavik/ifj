@@ -54,10 +54,10 @@ error.o: error.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 ########################### PARSER #################################
-test-parser: parser.o scanner.o dynamic_buffer.o error.o
+test-parser: parser.o scanner.o dynamic_buffer.o error.o expression_parser.o stack.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 
-parser.o: parser.c scanner.c
+parser.o: parser.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 

@@ -29,8 +29,10 @@ Rules:
 <fn_type>    =>  [T_VOID, T_STRING_TYPE, T_FLOAT_TYPE, T_INT_TYPE]
 
 
-<fn_call_l>  =>  [T_STRING, T_NUM_INT, T_NUM_FLOAT, T_VAR_ID] <fn_call_l>
-<fn_call_l>  =>  [T_R_PAR]
+<fn_call_l>  => [T_STRING, T_NUM_INT, T_NUM_FLOAT, T_VAR_ID] <fn_call_lc>
+
+<fn_call_lc> => [T_COMMA] <fn_call_l>
+<fn_call_lc> => [T_R_PAR]
 
 <body>       =>  [T_VAR_ID] <body_as>
 <body_as>    =>  [T_ASSIGN] <body_var>
