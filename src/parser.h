@@ -19,6 +19,8 @@ bool f_body_ret(tToken *token);
 
 bool f_fn_call_l(tToken *token);
 
+bool f_fn_call_lc(tToken *token);
+
 bool f_func(tToken *token);
 
 bool f_func_dedf(tToken *token);

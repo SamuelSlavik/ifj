@@ -12,6 +12,7 @@
 
 #include "parser.h"
 #include "scanner.h"
+#include "expression_parser.h"
 
 
 //<start> =>  [T_PROLOG] <prog>
@@ -43,6 +44,7 @@ bool f_prog(tToken *token){
 }
 bool f_body(tToken *token){
     bool body = false;
+    tToken end_token;
     switch (token->type)
     {
     case T_VAR_ID:
@@ -67,14 +69,44 @@ bool f_body(tToken *token){
     break;
     case T_IF:
         *token = get_token(1);
-        //TODO
+        if(token->type == T_L_PAR){
+            *token = get_token(1);
+            end_token.type = T_R_PAR;
+            body = check_expr_syntax(token, &end_token);
+            if (body == false) return body; //znova magia skontrolovat
+            *token = get_token(1);
+            if (token->type == T_L_BRAC){
+                *token = get_token(1);
+                body = f_in_body(token);
+                if (body == false) return body;
+                if (token->type == T_ELSE){
+                    *token = get_token(1);
+                    if(token->type == T_L_BRAC){
+                        *token = get_token(1);
+                        body = f_in_body(token);
+                    }
+                }
+            }
+        }
     break;
     case T_WHILE:
         *token = get_token(1);
-        //TODO
+        if(token->type == T_L_PAR){
+            *token = get_token(1);
+            end_token.type = T_R_PAR;
+            body = check_expr_syntax(token, &end_token);
+            if (body == false) return body; //znova magia skontrolovat
+            *token = get_token(1);
+            if (token->type == T_L_BRAC){
+                *token = get_token(1);
+                body = f_in_body(token);
+            }
+        }
     break;
-    //todo expression
     default:
+        end_token.type = T_SEMICOLON;
+        body = check_expr_syntax(token, &end_token);
+        *token = get_token(1);
         break;
     }
     return body;
@@ -96,18 +128,7 @@ bool f_body_as(tToken *token){
 
 bool f_body_var(tToken *token){
     bool body_var = false;
-    switch (token->type)
-    {
-    case T_NUM_INT:
-    case T_NUM_FLOAT:
-    case T_STRING:
-        *token = get_token(1);
-        if (token->type == T_SEMICOLON){
-            *token = get_token(1);
-            body_var = true;
-        }
-        break;
-    case T_FUN_ID:
+    if(token->type == T_FUN_ID){
         *token = get_token(1);
         if (token->type == T_L_PAR){
             *token = get_token(1);
@@ -117,33 +138,25 @@ bool f_body_var(tToken *token){
             }
             *token = get_token(1);
         }
-        break;
-    //TODO expression
-    default:
-        break;
+    }
+    else{
+        tToken end_token={.type = T_SEMICOLON};
+        body_var = check_expr_syntax(token, &end_token);
+        *token = get_token(1);
+        
     }
     return body_var;
 }
 
 bool f_body_ret(tToken *token){
     bool body_ret = false;
-    switch (token->type)
-    {
-    case T_STRING:
-    case T_NUM_INT:
-    case T_NUM_FLOAT:
-    case T_VAR_ID:
-        *token = get_token(1);
-        if (token->type == T_SEMICOLON){
-            body_ret = true;
-        }
-        break;
-    case T_SEMICOLON:
+    if (token->type == T_SEMICOLON){
         body_ret = true;
-        break;
-    //TODO EXPRESSION
-    default:
-        break;
+    }
+    else{
+        tToken end_token={.type = T_SEMICOLON};
+        body_ret = check_expr_syntax(token, &end_token);
+        *token = get_token(1);
     }
     return body_ret;
     
@@ -158,16 +171,31 @@ bool f_fn_call_l(tToken *token){
     case T_NUM_FLOAT:
     case T_VAR_ID:
         *token = get_token(1);
-        fn_call_bool = f_fn_call_l(token);
+        fn_call_bool = f_fn_call_lc(token);
+        break;
+    default:
+        fn_call_bool = f_fn_call_lc(token); //??????????????????
+        break;
+    }
+    return fn_call_bool;
+}
+
+bool f_fn_call_lc(tToken *token){
+    bool fn_call_bool2 = false;
+    switch (token->type)
+    {
+    case T_COMMA:
+        *token = get_token(1);
+        fn_call_bool2 = f_fn_call_l(token);
         break;
     case T_R_PAR:
         *token = get_token(1);
-        fn_call_bool = true;
+        fn_call_bool2 = true;
         break;
     default:
         break;
     }
-    return fn_call_bool;
+    return fn_call_bool2;
 }
 
 bool f_func(tToken *token){
@@ -302,9 +330,9 @@ bool f_func_mparam(tToken * token){
 int main(){
     tToken token = get_token(0);
     if (f_start(&token)){
-        printf("PRINTF MAIN OK\n");
+        printf("SYNTAX OK\n");
     }
     else{
-        printf("PRINTF MAIN ERROR\n");
+        printf("SYNTAX ERROR\n");
     }
 }
