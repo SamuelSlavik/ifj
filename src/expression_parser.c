@@ -49,7 +49,7 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token){
         // Get topmost terminal on stack and precedence table indexes
         tExprItem *top_terminal = get_stack_top_terminal(&expr_stack);
         size_t top_terminal_idx = top_terminal->type;
-        size_t input_token_idx = token_to_preced_idx(current_token->type, is_expr_end_token(current_token, end_token, &par_level) && top_terminal->type != T_LPAR_EXPR);
+        size_t input_token_idx = token_to_preced_idx(current_token->type, is_expr_end_token(current_token, end_token, &par_level) && top_terminal_idx != T_LPAR_EXPR);
 
         if (input_token_idx == T_UNKNOW_EXPR){
             return false;
@@ -66,7 +66,7 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token){
                 exit(99);
             }
             new_expr_item->token = current_token;
-            new_expr_item->type = token_to_preced_idx(current_token->type, is_expr_end_token(current_token, end_token, &par_level) && top_terminal->type != T_LPAR_EXPR);
+            new_expr_item->type = token_to_preced_idx(current_token->type, is_expr_end_token(current_token, end_token, &par_level) && top_terminal_idx != T_LPAR_EXPR);
             new_expr_item->is_terminal = true;
             new_expr_item->handle = false;
 
@@ -89,7 +89,7 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token){
                 exit(99);
             }
             new_expr_item->token = current_token;
-            new_expr_item->type = token_to_preced_idx(current_token->type, is_expr_end_token(current_token, end_token, &par_level) && top_terminal->type != T_LPAR_EXPR);
+            new_expr_item->type = token_to_preced_idx(current_token->type, is_expr_end_token(current_token, end_token, &par_level) && top_terminal_idx != T_LPAR_EXPR);
             new_expr_item->is_terminal = true;
             new_expr_item->handle = false;
 
@@ -120,7 +120,7 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token){
             tmp_stack_item = StackTop(&help_stack);
 
             if (tmp_stack_item->is_terminal == true){
-                if (tmp_stack_item->type == T_LPAR_EXPR || tmp_stack_item->type == T_OPERAND_EXPR){
+                if (tmp_stack_item->type == T_OPERAND_EXPR){
                     // Create new stack item and push it
                     tExprItem *new_expr_item = (tExprItem*) malloc(sizeof(tExprItem));
                     if (new_expr_item == NULL){
@@ -132,6 +132,31 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token){
                     new_expr_item->handle = false;
 
                     StackPush(&expr_stack, new_expr_item);
+                } else if (tmp_stack_item->type == T_LPAR_EXPR){
+                    StackPop(&help_stack);
+                    tmp_stack_item = (tExprItem*) StackTop(&help_stack);
+
+                    if (tmp_stack_item != NULL && tmp_stack_item->type == T_OPERAND_EXPR){
+                        StackPop(&help_stack);
+                        tmp_stack_item = (tExprItem*) StackTop(&help_stack);
+                        if (tmp_stack_item != NULL && tmp_stack_item->type == T_RPAR_EXPR){
+                            // Create new stack item and push it
+                            tExprItem *new_expr_item = (tExprItem*) malloc(sizeof(tExprItem));
+                            if (new_expr_item == NULL){
+                                exit(99);
+                            }
+                            new_expr_item->token = current_token;
+                            new_expr_item->type = T_OPERAND_EXPR;
+                            new_expr_item->is_terminal = false;
+                            new_expr_item->handle = false;
+
+                            StackPush(&expr_stack, new_expr_item);
+                        } else {
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
                 } else {
                     return false;
                 }
