@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 function foo(?string $str) : ?int {
+    null
     //body
     /* more body */
 }

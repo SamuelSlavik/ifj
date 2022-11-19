@@ -68,6 +68,7 @@ enum token_type {
     T_STRING_TYPE,          // string
     T_FLOAT_TYPE,           // float
     T_INT_TYPE,             // int
+    T_NULL,                 // null
     T_STRING_N_TYPE,        // ?string
     T_FLOAT_N_TYPE,         // ?float
     T_INT_N_TYPE,           // ?int
