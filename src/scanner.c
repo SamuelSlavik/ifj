@@ -254,6 +254,9 @@ enum token_type is_reserved_id(tDynamicBuffer* string){
     else if ((strcmp(string->data, "void")) == 0){
         return T_VOID;
     }
+    else if ((strcmp(string->data, "null") == 0)){
+        return T_NULL;
+    }
     else {
         return T_FUN_ID;
     }
@@ -812,6 +815,9 @@ void print_token_type(enum token_type type){
         break;
     case T_NUM_FLOAT:
         printf(ANSI_COLOR_YELLOW "[T_NUM_FLOAT]" ANSI_COLOR_RESET "\n");
+        break;
+    case T_NULL:
+        printf(ANSI_COLOR_YELLOW "[T_NULL]" ANSI_COLOR_RESET "\n");
         break;
     case T_STRING_TYPE:
         printf(ANSI_COLOR_YELLOW "[T_STRING_TYPE]" ANSI_COLOR_RESET "\n");
