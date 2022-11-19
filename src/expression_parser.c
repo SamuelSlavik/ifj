@@ -35,7 +35,7 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token){
 
     while (
             !is_expr_end_token(current_token, end_token, &par_level)
-            &&
+            ||
             !is_stack_end_state(&expr_stack, end_token)
     ){
         printf("\n\nLoop interation!\n");
@@ -49,7 +49,11 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token){
         // Get topmost terminal on stack and precedence table indexes
         tExprItem *top_terminal = get_stack_top_terminal(&expr_stack);
         size_t top_terminal_idx = top_terminal->type;
-        size_t input_token_idx = token_to_preced_idx(current_token->type, is_expr_end_token(current_token, end_token, &par_level));
+        size_t input_token_idx = token_to_preced_idx(current_token->type, is_expr_end_token(current_token, end_token, &par_level) && top_terminal->type != T_LPAR_EXPR);
+
+        if (input_token_idx == T_UNKNOW_EXPR){
+            return false;
+        }
 
         printf("indexes [%lu] [%lu]\n", top_terminal_idx, input_token_idx);
         printf("topmost terminal: ");
@@ -62,7 +66,7 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token){
                 exit(99);
             }
             new_expr_item->token = current_token;
-            new_expr_item->type = token_to_preced_idx(current_token->type, is_expr_end_token(current_token, end_token, &par_level));
+            new_expr_item->type = token_to_preced_idx(current_token->type, is_expr_end_token(current_token, end_token, &par_level) && top_terminal->type != T_LPAR_EXPR);
             new_expr_item->is_terminal = true;
             new_expr_item->handle = false;
 
@@ -85,7 +89,7 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token){
                 exit(99);
             }
             new_expr_item->token = current_token;
-            new_expr_item->type = token_to_preced_idx(current_token->type, is_expr_end_token(current_token, end_token, &par_level));
+            new_expr_item->type = token_to_preced_idx(current_token->type, is_expr_end_token(current_token, end_token, &par_level) && top_terminal->type != T_LPAR_EXPR);
             new_expr_item->is_terminal = true;
             new_expr_item->handle = false;
 
@@ -150,13 +154,20 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token){
                     case T_GTE_EXPR:
                     case T_EQ_EXPR:
                     case T_NEQ_EXPR:
-                        // Create new stack item and push it
-                        new_expr_item->token = current_token;
-                        new_expr_item->type = T_OPERAND_EXPR;
-                        new_expr_item->is_terminal = false;
-                        new_expr_item->handle = false;
+                        StackPop(&help_stack);
+                        tmp_stack_item = (tExprItem*) StackTop(&help_stack);
+                        if (tmp_stack_item != NULL && tmp_stack_item->type == T_OPERAND_EXPR){
+                            // Create new stack item and push it
+                            new_expr_item->token = current_token;
+                            new_expr_item->type = T_OPERAND_EXPR;
+                            new_expr_item->is_terminal = false;
+                            new_expr_item->handle = false;
 
-                        StackPush(&expr_stack, new_expr_item);
+                            StackPush(&expr_stack, new_expr_item);
+                        } else {
+                            free(new_expr_item);
+                            return false;
+                        }
                         break;
                     default:
                         free(new_expr_item);
@@ -168,6 +179,7 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token){
         } else if (preced_tab[top_terminal_idx][input_token_idx] == '\0'){
             return false;
         }
+        printf("is end token: %d\n", is_stack_end_state(&expr_stack, end_token));
     }
     return true;
 }
@@ -362,10 +374,29 @@ int main(){
     tToken end_tok_semicolon = {.type=T_SEMICOLON};
     tToken end_tok_r_par = {.type=T_R_PAR};
 
-    if (check_expr_syntax(&start_tok, &end_tok_r_par))
+    if (check_expr_syntax(&start_tok, &end_tok_semicolon))
         printf("Expression is syntactically OK\n");
     else
         printf("Expression is syntactically WRONG\n");
+    tToken next = get_token(1);
+    printf("next : %lu\n", next.type);
+    print_token_type(token_to_preced_idx(next.type, false));
+    next = get_token(1);
+    printf("next : %lu\n", next.type);
+    print_token_type(token_to_preced_idx(next.type, false));
+    next = get_token(1);
+    printf("next : %lu\n", next.type);
+    print_token_type(token_to_preced_idx(next.type, false));
+    next = get_token(1);
+    printf("next : %lu\n", next.type);
+    print_token_type(token_to_preced_idx(next.type, false));
+    next = get_token(1);
+    printf("next : %lu\n", next.type);
+    print_token_type(token_to_preced_idx(next.type, false));
+    next = get_token(1);
+    printf("next : %lu\n", next.type);
+    print_token_type(token_to_preced_idx(next.type, false));
+
 
     return 0;
 }
