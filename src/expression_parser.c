@@ -310,6 +310,8 @@ enum expr_item_type token_to_preced_idx(enum token_type token_type, bool is_end)
             return T_SUB_EXPR;
         case T_SEMICOLON:
             return T_END_EXPR;
+        case T_NULL:
+            return T_OPERAND_EXPR;
         default:
             return T_UNKNOW_EXPR;
     }
@@ -386,7 +388,7 @@ int main(){
     StackInit(&stack);
 
     tToken end_tok_semicolon = {.type=T_SEMICOLON};
-    //tToken end_tok_r_par = {.type=T_R_PAR};
+    // tToken end_tok_r_par = {.type=T_R_PAR};
 
     if (check_expr_syntax(&start_tok, &end_tok_semicolon))
         printf("Expression is syntactically OK\n");
