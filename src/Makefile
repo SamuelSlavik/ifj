@@ -4,8 +4,8 @@
  #
 
 CC=gcc
-CFLAGS=-O2 -std=c11 -pedantic -Wall -Wextra
-PROG=test-scanner test-dynamic_buffer test-parser
+CFLAGS=-O2 -std=c11 -pedantic -Wall -Wextra -g
+PROG=test-scanner test-dynamic_buffer test-parser test-expression_parser
 
 .PHONY: clean all
 
@@ -61,6 +61,17 @@ parser.o: parser.c scanner.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 
+
+############################## EXPRESSION PARSER ###################################
+
+expression_parser.o: expression_parser.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+test-expression_parser.o: expression_parser.c
+	$(CC) $(CFLAGS) -DTESTING -c $< -o $@
+
+test-expression_parser: test-expression_parser.o stack.o scanner.o error.o dynamic_buffer.o
+	$(CC) $(CFLAGS) $^ -o $@ -lm
 
 ############################### XXXXX #####################################
 
