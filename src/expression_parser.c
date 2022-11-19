@@ -38,10 +38,6 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token){
             ||
             !is_stack_end_state(&expr_stack, end_token)
     ){
-        printf("\n\nLoop interation!\n");
-        printf("par level: %lu\n", par_level);
-        print_stack(&expr_stack);
-
         if (current_token->type == T_L_PAR){
             par_level++;
         }
@@ -54,10 +50,6 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token){
         if (input_token_idx == T_UNKNOW_EXPR){
             return false;
         }
-
-        printf("indexes [%lu] [%lu]\n", top_terminal_idx, input_token_idx);
-        printf("topmost terminal: ");
-        print_token_type(top_terminal->type);
 
         if (preced_tab[top_terminal_idx][input_token_idx] == '='){
             // Create new stack item and push it
@@ -204,7 +196,6 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token){
         } else if (preced_tab[top_terminal_idx][input_token_idx] == '\0'){
             return false;
         }
-        printf("is end token: %d\n", is_stack_end_state(&expr_stack, end_token));
     }
     return true;
 }
@@ -229,9 +220,7 @@ void print_stack(tStack *expr_stack){
 }
 
 void clean_expr_stack(tStack *expr_stack){
-    printf("cleaning stack\n");
     while (!StackIsEmpty(expr_stack)){
-        print_token_type(((tExprItem*) StackTop(expr_stack))->type);
         free((tExprItem*) StackTop(expr_stack));
         StackPop(expr_stack);
     }
@@ -397,31 +386,12 @@ int main(){
     StackInit(&stack);
 
     tToken end_tok_semicolon = {.type=T_SEMICOLON};
-    tToken end_tok_r_par = {.type=T_R_PAR};
+    //tToken end_tok_r_par = {.type=T_R_PAR};
 
     if (check_expr_syntax(&start_tok, &end_tok_semicolon))
         printf("Expression is syntactically OK\n");
     else
         printf("Expression is syntactically WRONG\n");
-    tToken next = get_token(1);
-    printf("next : %lu\n", next.type);
-    print_token_type(token_to_preced_idx(next.type, false));
-    next = get_token(1);
-    printf("next : %lu\n", next.type);
-    print_token_type(token_to_preced_idx(next.type, false));
-    next = get_token(1);
-    printf("next : %lu\n", next.type);
-    print_token_type(token_to_preced_idx(next.type, false));
-    next = get_token(1);
-    printf("next : %lu\n", next.type);
-    print_token_type(token_to_preced_idx(next.type, false));
-    next = get_token(1);
-    printf("next : %lu\n", next.type);
-    print_token_type(token_to_preced_idx(next.type, false));
-    next = get_token(1);
-    printf("next : %lu\n", next.type);
-    print_token_type(token_to_preced_idx(next.type, false));
-
 
     return 0;
 }

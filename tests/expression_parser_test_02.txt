@@ -1,4 +1,4 @@
 <?php
 declare(strict_types=1);
-((5+3)*2);
+$a !== null;
 echo("hello");
