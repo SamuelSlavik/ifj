@@ -1,0 +1,11 @@
+Example: "Hello" || 15 || 32.875 || $variable
+E => [T_STRING, T_NUM_INT, T_NUM_FLOAT, T_VAR_ID]
+
+Example: E (operator) E
+E => E [T_MUL, T_DIV] E
+E => E [T_CONCATENATION, T_ADD, T_SUB] E
+E => E [T_GREATER_THAN, T_GREATER_OR_EQUAL, T_LESS_THAN, T_LESS_OR_EQUAL] E
+E => E [T_EQUALS, T_NOT_EQUALS] E
+
+Example: (E)
+E => [T_L_BRAC] E [T_R_BRAC]
