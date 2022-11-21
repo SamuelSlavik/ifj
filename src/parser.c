@@ -13,6 +13,8 @@
 #include "parser.h"
 #include "scanner.h"
 #include "expression_parser.h"
+#include "dynamic_buffer.h"
+#include "dll_instruction_list.h"
 
 
 //<start> =>  [T_PROLOG] <prog>
@@ -49,6 +51,7 @@ bool f_body(tToken *token){
     {
     case T_VAR_ID:
         *token = get_token(1);
+        // add instruction DEFVAR ID PREMENNEJ
         body = f_body_as(token);
         break;
     case T_FUN_ID:
@@ -115,6 +118,7 @@ bool f_body(tToken *token){
 bool f_body_as(tToken *token){
     bool body_as = false;
     if (token->type == T_ASSIGN){
+        //add insctruction mov
         *token = get_token(1);
         body_as = f_body_var(token);
         
@@ -141,6 +145,7 @@ bool f_body_var(tToken *token){
     }
     else{
         tToken end_token={.type = T_SEMICOLON};
+        //mov a token.data.int cislo
         body_var = check_expr_syntax(token, &end_token);
         *token = get_token(1);
         
@@ -328,11 +333,23 @@ bool f_func_mparam(tToken * token){
 }
 
 int main(){
+    /*tDynamicBuffer *instruction = dynamicBuffer_INIT();
+    dynamicBuffer_ADD_STRING(instruction, ".IFJcode22");
+    dynamicBuffer_ADD_STRING(instruction, ".IFJ");
+    DLList instruction_list;
+    DLL_Init(&instruction_list);
+    DLL_InsertFirst(&instruction_list, instruction);
+    printf("%s\n", instruction_list.first->instruction->data);
+    dynamicBuffer_ADD_STRING(instruction_list.first->instruction, "penispenispenis   ::");
+    printf("%s\n", instruction_list.first->instruction->data);*/
+    
     tToken token = get_token(0);
     if (f_start(&token)){
         printf("SYNTAX OK\n");
+        return 0;
     }
     else{
         printf("SYNTAX ERROR\n");
+        return 1;
     }
 }
