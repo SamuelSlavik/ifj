@@ -1,8 +1,8 @@
 /**
- * @file stable.c
+ * @file symtable.c
  * @author Michal Ľaš (xlasmi00)
  * @brief 
- * @version 0.1
+ * @version 0.3
  * @date 2022-11-16
  * 
  */

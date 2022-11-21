@@ -45,7 +45,7 @@ stack.o: stack.c
 htab.o: htab.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-stable.o: stable.c htab.c stack.c scanner.c
+symtable.o: symtable.c htab.c stack.c scanner.c
 	$(CC) $(CFLAGS) -c $< -o $@
   
 ############################### ERROR #####################################
@@ -54,13 +54,14 @@ error.o: error.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 ########################### PARSER #################################
-test-parser: parser.o scanner.o dynamic_buffer.o error.o expression_parser.o stack.o
+test-parser: parser.o scanner.o dynamic_buffer.o error.o expression_parser.o stack.o dynamic_buffer.o dll_instruction_list.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 
 parser.o: parser.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-
+dll_instruction_list.o: dll_instruction_list.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 ############################## EXPRESSION PARSER ###################################
 
