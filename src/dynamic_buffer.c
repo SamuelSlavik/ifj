@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 #include "dynamic_buffer.h"
 
 
@@ -68,6 +69,17 @@ void dynamicBufferFREE(tDynamicBuffer* buffer){
         free(buffer->data);
         free(buffer);
     }
+}
+
+void dynamicBuffer_ADD_STRING(tDynamicBuffer* buffer ,char *c){ // magia skontrolovat
+    size_t len = strlen(c); 
+    if (buffer->allocated_size < buffer->size + len + 1){
+        buffer->data = realloc(buffer->data, buffer->size + len + 1);
+        buffer->allocated_size += len + 1;
+    }
+    buffer->size += len + 1;
+    strcat(buffer->data, c);
+    
 }
 
 
