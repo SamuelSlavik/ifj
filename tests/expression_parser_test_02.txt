@@ -1,4 +1,4 @@
 <?php
 declare(strict_types=1);
-$a !== null;
+($a !== null)*2);
 echo("hello");
