@@ -33,11 +33,7 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token){
     current_token->data = tmp_token.data;
     size_t par_level = 0;
 
-    while (
-            !is_expr_end_token(current_token, end_token, &par_level)
-            ||
-            !is_stack_end_state(&expr_stack, end_token)
-    ){
+    while (!is_expr_end_token(current_token, end_token, &par_level) || !is_stack_end_state(&expr_stack, end_token)){
         if (current_token->type == T_L_PAR){
             par_level++;
         }
@@ -124,12 +120,15 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token){
                     new_expr_item->handle = false;
 
                     StackPush(&expr_stack, new_expr_item);
+                    clean_expr_stack(&help_stack);
                 } else if (tmp_stack_item->type == T_LPAR_EXPR){
                     StackPop(&help_stack);
+                    free(tmp_stack_item);
                     tmp_stack_item = (tExprItem*) StackTop(&help_stack);
 
                     if (tmp_stack_item != NULL && tmp_stack_item->type == T_OPERAND_EXPR){
                         StackPop(&help_stack);
+                        free(tmp_stack_item);
                         tmp_stack_item = (tExprItem*) StackTop(&help_stack);
                         if (tmp_stack_item != NULL && tmp_stack_item->type == T_RPAR_EXPR){
                             // Create new stack item and push it
@@ -144,16 +143,20 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token){
 
                             StackPush(&expr_stack, new_expr_item);
                         } else {
+                            free(tmp_stack_item);
                             return false;
                         }
                     } else {
+                        free(tmp_stack_item);
                         return false;
                     }
                 } else {
+                    free(tmp_stack_item);
                     return false;
                 }
             } else if (tmp_stack_item->type == T_OPERAND_EXPR){
                 StackPop(&help_stack);
+                free(tmp_stack_item);
                 tmp_stack_item = (tExprItem*) StackTop(&help_stack);
                 tExprItem *new_expr_item = (tExprItem*) malloc(sizeof(tExprItem));
                 if (new_expr_item == NULL){
@@ -171,6 +174,7 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token){
                     case T_GTE_EXPR:
                     case T_EQ_EXPR:
                     case T_NEQ_EXPR:
+                        free(tmp_stack_item);
                         StackPop(&help_stack);
                         tmp_stack_item = (tExprItem*) StackTop(&help_stack);
                         if (tmp_stack_item != NULL && tmp_stack_item->type == T_OPERAND_EXPR){
@@ -182,11 +186,13 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token){
 
                             StackPush(&expr_stack, new_expr_item);
                         } else {
+                            free(current_token);
                             free(new_expr_item);
                             return false;
                         }
                         break;
                     default:
+                        free(current_token);
                         free(new_expr_item);
                         return false;
                 }
@@ -197,6 +203,7 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token){
             return false;
         }
     }
+    //clean_expr_stack(&expr_stack);
     return true;
 }
 
@@ -220,8 +227,18 @@ void print_stack(tStack *expr_stack){
 }
 
 void clean_expr_stack(tStack *expr_stack){
+    printf("Cleaning stack!\n");
     while (!StackIsEmpty(expr_stack)){
-        free((tExprItem*) StackTop(expr_stack));
+        tExprItem *free_item = (tExprItem*) StackTop(expr_stack);
+        if (free_item->token != NULL){
+            printf("Cleaning token space!\n");
+            printf("token to free: \n\taddr: %p\n\ttype: %d\n", (void*)free_item->token, free_item->token->type);
+            free(free_item->token);
+            printf("Token space cleaned!\n");
+        }
+        printf("item to free: \n\taddr: %p\n\ttype: %d\n", (void*)free_item, free_item->type);
+        free(free_item);
+        printf("Popping from stack!\n");
         StackPop(expr_stack);
     }
 }
