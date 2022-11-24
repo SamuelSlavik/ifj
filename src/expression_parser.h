@@ -7,13 +7,14 @@
  *
  */
 
-#include "scanner.h"
-#include "stack.h"
 
 #ifndef IFJ_EXPRESSION_PARSER_H
 #define IFJ_EXPRESSION_PARSER_H
 
-#endif //IFJ_EXPRESSION_PARSER_H
+#include "scanner.h"
+#include "stack.h"
+#include "dll_instruction_list.h"
+
 
 #define PRECED_TAB_SIZE 15
 
@@ -61,7 +62,7 @@ typedef struct expr_item{
     bool handle;
 }tExprItem;
 
-bool check_expr_syntax(tToken *start_token, tToken *end_token);
+bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instruction_list, tToken *extra_token);
 
 bool is_expr_end_token(tToken *current_token, tToken *end_token, size_t *par_level);
 
@@ -74,3 +75,5 @@ enum expr_item_type token_to_preced_idx(enum token_type token_type, bool is_end)
 void clean_expr_stack(tStack *expr_stack);
 
 void print_stack(tStack *expr_stack);
+
+#endif //IFJ_EXPRESSION_PARSER_H
