@@ -206,6 +206,7 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token){
     //clean_expr_stack(&expr_stack);
     return true;
 }
+/*
 
 void print_stack(tStack *expr_stack){
     // PRINT STACK
@@ -225,6 +226,10 @@ void print_stack(tStack *expr_stack){
     }
     // END PRINT STACK
 }
+
+*/
+
+
 
 void clean_expr_stack(tStack *expr_stack){
     printf("Cleaning stack!\n");
@@ -341,6 +346,7 @@ enum expr_item_type token_to_preced_idx(enum token_type token_type, bool is_end)
  *
  * @param unum token_type member
  */
+/*
 void print_token_type(enum token_type type){
     switch (type)
     {
@@ -395,7 +401,7 @@ void print_token_type(enum token_type type){
     default:
         break;
     }
-}
+}*/
 
 int main(){
     printf("TESTING EXPRESSION PARSER!\n");
