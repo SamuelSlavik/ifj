@@ -16,11 +16,12 @@
 #include "stack.h"
 #include "scanner.h"
 #include "htab.h"
+#include "dll_instruction_list.h"
 
 extern htab_t *symtable;
 
 
-bool check_expr_syntax(tToken *start_token, tToken *end_token){
+bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instruction_list, tToken *extra_token){
     //printf("%s ADAMOVFARJNOKOD\n", htab_find(symtable,"aaaaaaaaaaa")->key);
     PRECED_TAB;
     tStack expr_stack;
@@ -418,7 +419,7 @@ int main(){
     tToken end_tok_semicolon = {.type=T_SEMICOLON};
     // tToken end_tok_r_par = {.type=T_R_PAR};
 
-    if (check_expr_syntax(&start_tok, &end_tok_semicolon))
+    if (check_expr_syntax(&start_tok, &end_tok_semicolon, NULL, NULL))
         printf("Expression is syntactically OK\n");
     else
         printf("Expression is syntactically WRONG\n");
