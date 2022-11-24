@@ -283,6 +283,7 @@ void load_letter(tToken* token, char c, unsigned long *init_count){
     token->type = is_reserved_id(token->data.STRINGval);
 }
 
+
 /**
  * @brief Create the token object loaded from stdin
  * @param automat_state there are 3 possible automat states
@@ -297,6 +298,8 @@ tToken get_token(short automat_state){
     tToken token;
     token.type = T_UNKNOW;
     static unsigned long init_count;
+    static unsigned long line_count;
+    token.line = line_count;
     int c = getchar();
 
     if (c == EOF){
@@ -315,6 +318,9 @@ tToken get_token(short automat_state){
             token.type = T_ERROR;
         }
 
+        line_count++;
+        token.line = line_count;
+
         c = getchar();
         if (c != EOF){
             token.type = T_ERROR;
@@ -329,6 +335,9 @@ tToken get_token(short automat_state){
     /* AUTOMAT STATE 0 => WAITING ON PROLOG */
 
     if (automat_state == 0){
+
+        /* set line count to 1 */
+        line_count++;
 
         token.data.STRINGval = dynamicBuffer_INIT();
         if (token.data.STRINGval == NULL){
@@ -357,6 +366,10 @@ tToken get_token(short automat_state){
                     STATE = S_COMMENT;
                 }
                 else if (isspace(c)){
+                    if (c == '\n'){
+                        line_count++;
+                        token.line = line_count;
+                    }
                     STATE = S_PROLOG;
                 }
                 else{
@@ -373,6 +386,11 @@ tToken get_token(short automat_state){
                         /*err handle*/
                     }
                 }
+                else if (c == '\n'){
+                    line_count++;
+                    token.line = line_count;
+                }
+                
                 if (c == ';'){
                     if (!strcmp(token.data.STRINGval->data, "<?phpdeclare(strict_types=1);")){
                         token.type = T_PROLOG;
@@ -420,6 +438,10 @@ tToken get_token(short automat_state){
                 if (c == '*'){
                     STATE = S_B_C_END;
                 }
+                else if(c == '\n'){
+                    line_count++;
+                    token.line = line_count;
+                }
                 break;
             /* BLOCK COMMENT END */
             case S_B_C_END:
@@ -428,6 +450,10 @@ tToken get_token(short automat_state){
                     STATE = S_START;
                 }
                 else {
+                    if (c == '\n'){
+                        line_count++;
+                        token.line = line_count;
+                    }
                     STATE = S_BLOCK_COMMENT;
                 }
                 break;
@@ -446,6 +472,10 @@ tToken get_token(short automat_state){
         switch (STATE)
         {
         case S_START:
+            if (c == '\n'){
+                line_count++;
+                token.line = line_count;
+            }
             STATE = change_state(c);
             if (STATE != S_START){
                 ungetc(c, stdin);
@@ -563,6 +593,8 @@ tToken get_token(short automat_state){
         case S_LINE_COMMENT:
             if (c == '\n'){
                 token.type = T_UNKNOW;
+                line_count++;
+                token.line = line_count;
                 STATE = S_START;
             }
             break;
@@ -572,6 +604,10 @@ tToken get_token(short automat_state){
             if (c == '*'){
                 STATE = S_B_C_END;
             }
+            else if(c == '\n'){
+                line_count++;
+                token.line = line_count;
+            }
             break;
         /* BLOCK COMMENT END */
         case S_B_C_END:
@@ -580,6 +616,10 @@ tToken get_token(short automat_state){
                 STATE = S_START;
             }
             else {
+                if (c == '\n'){
+                    line_count++;
+                    token.line = line_count;
+                }
                 STATE = S_BLOCK_COMMENT;
             }
             break;
@@ -948,6 +988,7 @@ int main(){
     token = get_token(0);
     if(CHECK_ERROR) return error_handle(NO_ERROR);
     print_token_type(token.type);
+    printf("line: %ld\n", token.line);
 
 
     while ((token = get_token(1)).type != T_EOF)
@@ -956,6 +997,7 @@ int main(){
 
         if (token.type == T_EPILOG){
             print_token_type(token.type);
+            printf("line: %ld\n", token.line);
             break;
         }
 
@@ -965,6 +1007,7 @@ int main(){
             break;
         }
         print_token_type(token.type);
+        printf("line: %ld\n", token.line);
 
         if (token.type == T_STRING || token.type == T_VAR_ID || token.type == T_FUN_ID){
             printf("TOKEN VALUE: %s\n", token.data.STRINGval->data);
@@ -981,8 +1024,10 @@ int main(){
         if(CHECK_ERROR) return error_handle(NO_ERROR);
 
         print_token_type(token.type);
+        printf("line: %ld\n", token.line);
     }
     print_token_type(token.type);
+    printf("line: %ld\n", token.line);
 
 
     return 0;
