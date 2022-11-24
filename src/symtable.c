@@ -17,6 +17,7 @@
 #include "stack.h"
 #include "scanner.h"
 
+htab_t *symtable;
 
 
 htab_data_t *st_fun_create(htab_t *global_ST, char *fun_name){
