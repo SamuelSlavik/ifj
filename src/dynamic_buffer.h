@@ -45,7 +45,7 @@ tDynamicBuffer* dynamicBuffer_INIT();
  * @return true if success
  * @return false if fail
  */
-bool dynamicBuffer_ADD_CHAR(tDynamicBuffer* buffer ,char c);
+bool dynamicBuffer_ADD_CHAR(tDynamicBuffer* buffer, char c);
 
 
 /**
@@ -65,7 +65,7 @@ void dynamicBufferFREE(tDynamicBuffer* buffer);
  * @return true if success
  * @return false if fail
  */
-void dynamicBuffer_ADD_STRING(tDynamicBuffer* buffer ,char *c);
+void dynamicBuffer_ADD_STRING(tDynamicBuffer* buffer, const char *c);
 
 
 
