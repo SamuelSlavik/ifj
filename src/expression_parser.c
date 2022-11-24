@@ -15,8 +15,13 @@
 #include "expression_parser.h"
 #include "stack.h"
 #include "scanner.h"
+#include "htab.h"
+
+extern htab_t *symtable;
+
 
 bool check_expr_syntax(tToken *start_token, tToken *end_token){
+    //printf("%s ADAMOVFARJNOKOD\n", htab_find(symtable,"aaaaaaaaaaa")->key);
     PRECED_TAB;
     tStack expr_stack;
     StackInit(&expr_stack);
@@ -232,18 +237,18 @@ void print_stack(tStack *expr_stack){
 
 
 void clean_expr_stack(tStack *expr_stack){
-    printf("Cleaning stack!\n");
+    //printf("Cleaning stack!\n");
     while (!StackIsEmpty(expr_stack)){
         tExprItem *free_item = (tExprItem*) StackTop(expr_stack);
         if (free_item->token != NULL){
-            printf("Cleaning token space!\n");
-            printf("token to free: \n\taddr: %p\n\ttype: %d\n", (void*)free_item->token, free_item->token->type);
+            //printf("Cleaning token space!\n");
+            //printf("token to free: \n\taddr: %p\n\ttype: %d\n", (void*)free_item->token, free_item->token->type);
             free(free_item->token);
-            printf("Token space cleaned!\n");
+            //printf("Token space cleaned!\n");
         }
-        printf("item to free: \n\taddr: %p\n\ttype: %d\n", (void*)free_item, free_item->type);
+        //printf("item to free: \n\taddr: %p\n\ttype: %d\n", (void*)free_item, free_item->type);
         free(free_item);
-        printf("Popping from stack!\n");
+        //printf("Popping from stack!\n");
         StackPop(expr_stack);
     }
 }
