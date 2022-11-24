@@ -12,7 +12,7 @@ bool f_prog(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
 
 bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list);
 
-bool f_body_as(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list);
+//bool f_body_as(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list);
 
 bool f_body_var(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list);
 

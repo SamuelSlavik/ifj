@@ -28,7 +28,7 @@ void DLL_InsertFirst( DLList *list, tDynamicBuffer *instruction ) {
         return;
     }
     new_element->instruction = dynamicBuffer_INIT();
-    dynamicBuffer_ADD_STRING(new_element->instruction->data, instruction->data);
+    dynamicBuffer_ADD_STRING(new_element->instruction, instruction->data);
     new_element->previousElement = NULL;
     new_element->nextElement = list->first;
 
@@ -47,7 +47,8 @@ void DLL_InsertLast( DLList *list, tDynamicBuffer *instruction ) {
         
         return;
     }
-    new_element->instruction = instruction;
+    new_element->instruction = dynamicBuffer_INIT();
+    dynamicBuffer_ADD_STRING(new_element->instruction, instruction->data);
     new_element->nextElement = NULL;
     new_element->previousElement = list->last;
 
@@ -175,7 +176,8 @@ void DLL_InsertAfter( DLList *list, tDynamicBuffer *instruction ) {
             
             return;
         }
-        new_element->instruction = instruction; // Fill data for new element
+        new_element->instruction = dynamicBuffer_INIT();
+        dynamicBuffer_ADD_STRING(new_element->instruction, instruction->data);
         new_element->nextElement = list->active->nextElement;
         new_element->previousElement = list->active;
         list->active->nextElement = new_element;
@@ -198,7 +200,8 @@ void DLL_InsertBefore( DLList *list, tDynamicBuffer *instruction ) {
             
             return;
         }
-        new_element->instruction = instruction; // Fill data for new element
+        new_element->instruction = dynamicBuffer_INIT();
+        dynamicBuffer_ADD_STRING(new_element->instruction->data, instruction->data);
         new_element->nextElement = list->active;
         new_element->previousElement = list->active->previousElement;
         list->active->previousElement = new_element;

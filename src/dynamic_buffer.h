@@ -68,4 +68,16 @@ void dynamicBufferFREE(tDynamicBuffer* buffer);
 void dynamicBuffer_ADD_STRING(tDynamicBuffer* buffer ,char *c);
 
 
+
+/**
+ * @brief Function add one char to dynamic buffer
+ * 
+ * @param buffer buffer where char will be added
+ * @param c char that will be added to buffer
+ * @return true if success
+ * @return false if fail
+ */
+tDynamicBuffer *dynamicBuffer_RESET(tDynamicBuffer* buffer);
+
+
 #endif // DYNAMIC_BUFFER_H
