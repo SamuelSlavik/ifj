@@ -82,6 +82,11 @@ void dynamicBuffer_ADD_STRING(tDynamicBuffer* buffer ,char *c){ // magia skontro
     
 }
 
+tDynamicBuffer *dynamicBuffer_RESET(tDynamicBuffer* buffer){
+    dynamicBufferFREE(buffer);
+    return dynamicBuffer_INIT();
+}
+
 
 #ifdef TESTING
 

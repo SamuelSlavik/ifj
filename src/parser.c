@@ -18,10 +18,20 @@
 #include "htab.h"
 
 extern htab_t *symtable;
+void print_instructions(DLList *instruction_list){
+    DLL_instruction *tmp = instruction_list->first;
+    while(tmp != NULL){
+        printf("%s\n", tmp->instruction->data);
+        tmp = tmp->nextElement;
+    }
 
+}
 
 //<start> =>  [T_PROLOG] <prog>
 bool f_start(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list){
+    if (token->type == T_ERROR){
+        exit(1); //todo error.c
+    }
     bool start = false;
     if (token->type == T_PROLOG) {
         *token = get_token(1);
@@ -32,6 +42,9 @@ bool f_start(tToken *token, tDynamicBuffer *instruction, DLList *instruction_lis
 
 bool f_prog(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list){
     bool prog = false;
+    if (token->type == T_ERROR){
+        exit(1);
+    }
     if (token->type == T_EOF){
         prog = true;
         return prog;
@@ -49,6 +62,9 @@ bool f_prog(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
 }
 bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list){
     bool body = false;
+    if (token->type == T_ERROR){
+        exit(1);
+    }
     tToken end_token;
     switch (token->type)
     {
@@ -57,22 +73,22 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
             dynamicBuffer_ADD_STRING(instruction, "DEFVAR ");
             dynamicBuffer_ADD_STRING(instruction, token->data.STRINGval->data);
             DLL_InsertAfter(instruction_list,instruction);
+            DLL_Next(instruction_list);
+            instruction = dynamicBuffer_RESET(instruction);
         }
         instruction_list->first->curr_var=st_var_create(symtable, token->data.STRINGval->data);
         *token = get_token(1);
-        printf("%s\n", instruction_list->first->curr_var->key);
-        body = f_body_as(token,instruction, instruction_list);
-        /*
+        
         if (token->type == T_ASSIGN){
-            body = f_body_as(token,instruction, instruction_list);
+            body = f_body_var(token,instruction, instruction_list);
             dynamicBuffer_ADD_STRING(instruction, "POPS ");
-            dynamicBuffer_ADD_STRING(instruction, token->data.STRINGval->data);
+            dynamicBuffer_ADD_STRING(instruction, instruction_list->first->curr_var->key);
             DLL_InsertAfter(instruction_list,instruction);
         }
         else{
             end_token.type = T_SEMICOLON;
             body = check_expr_syntax(token, &end_token);
-        }*/
+        }
         break;
     case T_FUN_ID:
         *token = get_token(1);
@@ -138,7 +154,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
     }
     return body;
 }
-
+/*
 bool f_body_as(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list){
     bool body_as = false;
     if (token->type == T_ASSIGN){
@@ -153,9 +169,12 @@ bool f_body_as(tToken *token, tDynamicBuffer *instruction, DLList *instruction_l
     }
     return body_as;
 }
-
+*/
 bool f_body_var(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list){
     bool body_var = false;
+    if (token->type == T_ERROR){
+        exit(1);
+    }
     if(token->type == T_FUN_ID){
         *token = get_token(1);
         if (token->type == T_L_PAR){
@@ -179,6 +198,9 @@ bool f_body_var(tToken *token,tDynamicBuffer *instruction, DLList *instruction_l
 
 bool f_body_ret(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list){
     bool body_ret = false;
+    if (token->type == T_ERROR){
+        exit(1);
+    }
     if (token->type == T_SEMICOLON){
         body_ret = true;
     }
@@ -193,6 +215,9 @@ bool f_body_ret(tToken *token,tDynamicBuffer *instruction, DLList *instruction_l
 
 bool f_fn_call_l(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list){
     bool fn_call_bool = false;
+    if (token->type == T_ERROR){
+        exit(1);
+    }
     switch (token->type)
     {
     case T_STRING:
@@ -211,6 +236,9 @@ bool f_fn_call_l(tToken *token,tDynamicBuffer *instruction, DLList *instruction_
 
 bool f_fn_call_lc(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list){
     bool fn_call_bool2 = false;
+    if (token->type == T_ERROR){
+        exit(1);
+    }
     switch (token->type)
     {
     case T_COMMA:
@@ -229,6 +257,9 @@ bool f_fn_call_lc(tToken *token,tDynamicBuffer *instruction, DLList *instruction
 
 bool f_func(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list){
     bool func = false;
+    if (token->type == T_ERROR){
+        exit(1);
+    }
     if(token->type == T_FUNCTION){
         *token = get_token(1);
         if(token->type == T_FUN_ID){
@@ -248,6 +279,9 @@ bool f_func(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list)
 }
 bool f_func_dedf(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list){
     bool func_dedf = false;
+    if (token->type == T_ERROR){
+        exit(1);
+    }
     if(token->type == T_L_BRAC){
         *token = get_token(1);
         func_dedf = f_in_body(token,instruction, instruction_list);
@@ -261,6 +295,9 @@ bool f_func_dedf(tToken *token,tDynamicBuffer *instruction, DLList *instruction_
 
 bool f_func_type(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list){
     bool func_type = false;
+    if (token->type == T_ERROR){
+        exit(1);
+    }
     switch (token->type)
     {
     case T_VOID:
@@ -281,6 +318,9 @@ bool f_func_type(tToken *token,tDynamicBuffer *instruction, DLList *instruction_
 
 bool f_in_body(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list){
     bool in_body = false;
+    if (token->type == T_ERROR){
+        exit(1);
+    }
     if(token->type== T_R_BRAC){
         *token = get_token(1);
         in_body = true;
@@ -292,6 +332,9 @@ bool f_in_body(tToken *token,tDynamicBuffer *instruction, DLList *instruction_li
 
 bool f_func_param(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list){
     bool func_param = false;
+    if (token->type == T_ERROR){
+        exit(1);
+    }
     switch (token->type)
     {
     case T_STRING:
@@ -323,6 +366,9 @@ bool f_func_param(tToken *token,tDynamicBuffer *instruction, DLList *instruction
 
 bool f_func_mparam(tToken * token,tDynamicBuffer *instruction, DLList *instruction_list){
     bool func_mparam = false;
+    if (token->type == T_ERROR){
+        exit(1);
+    }
     switch (token->type)
     {
     case T_STRING:
@@ -360,18 +406,18 @@ int main(){
     tDynamicBuffer *instruction = dynamicBuffer_INIT();
     symtable = htab_init(HTAB_SIZE);
     DLList instruction_list;
+    dynamicBuffer_ADD_STRING(instruction,".IFJcode22");
     DLL_Init(&instruction_list);
     DLL_InsertFirst(&instruction_list, instruction);
+    dynamicBuffer_RESET(instruction);
     DLL_First(&instruction_list);
     
     tToken token = get_token(0);
     if (f_start(&token,instruction,&instruction_list)){
-        printf("%s\n", instruction_list.last->instruction->data);
         printf("SYNTAX OK\n");
-        return 0;
     }
     else{
         printf("SYNTAX ERROR\n");
-        return 1;
     }
+    print_instructions(&instruction_list);
 }
