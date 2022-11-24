@@ -66,6 +66,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
         exit(1);
     }
     tToken end_token;
+    tToken tmp_token;
     switch (token->type)
     {
     case T_VAR_ID:
@@ -80,14 +81,21 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
         *token = get_token(1);
         
         if (token->type == T_ASSIGN){
+            *token = get_token(1);
             body = f_body_var(token,instruction, instruction_list);
             dynamicBuffer_ADD_STRING(instruction, "POPS ");
-            dynamicBuffer_ADD_STRING(instruction, instruction_list->first->curr_var->key);
+            dynamicBuffer_ADD_STRING(instruction, instruction_list->first->curr_var->key); //vec pozor
+            print_token_type(instruction_list->first->curr_var->data.var_data.type);
             DLL_InsertAfter(instruction_list,instruction);
+            DLL_Next(instruction_list);
+            instruction = dynamicBuffer_RESET(instruction);
         }
         else{
+            tmp_token.type = T_VAR_ID;
             end_token.type = T_SEMICOLON;
-            body = check_expr_syntax(token, &end_token);
+            tmp_token.data.STRINGval= dynamicBuffer_INIT();
+            dynamicBuffer_ADD_STRING(tmp_token.data.STRINGval,instruction_list->first->curr_var->key);
+            body = check_expr_syntax(token, &end_token,instruction_list, &tmp_token);
         }
         break;
     case T_FUN_ID:
@@ -111,7 +119,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
         if(token->type == T_L_PAR){
             *token = get_token(1);
             end_token.type = T_R_PAR;
-            body = check_expr_syntax(token, &end_token);
+            body = check_expr_syntax(token, &end_token,instruction_list,NULL);
             if (body == false) return body; //znova magia skontrolovat
             *token = get_token(1);
             if (token->type == T_L_BRAC){
@@ -137,7 +145,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
         if(token->type == T_L_PAR){
             *token = get_token(1);
             end_token.type = T_R_PAR;
-            body = check_expr_syntax(token, &end_token);
+            body = check_expr_syntax(token, &end_token,instruction_list,NULL);
             if (body == false) return body; //znova magia skontrolovat
             *token = get_token(1);
             if (token->type == T_L_BRAC){
@@ -148,7 +156,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
     break;
     default:
         end_token.type = T_SEMICOLON;
-        body = check_expr_syntax(token, &end_token);
+        body = check_expr_syntax(token, &end_token,instruction_list,NULL);
         *token = get_token(1);
         break;
     }
@@ -189,7 +197,7 @@ bool f_body_var(tToken *token,tDynamicBuffer *instruction, DLList *instruction_l
     else{
         tToken end_token={.type = T_SEMICOLON};
         //mov a token.data.int cislo
-        body_var = check_expr_syntax(token, &end_token);
+        body_var = check_expr_syntax(token, &end_token,instruction_list,NULL);
         *token = get_token(1);
         
     }
@@ -206,7 +214,7 @@ bool f_body_ret(tToken *token,tDynamicBuffer *instruction, DLList *instruction_l
     }
     else{
         tToken end_token={.type = T_SEMICOLON};
-        body_ret = check_expr_syntax(token, &end_token);
+        body_ret = check_expr_syntax(token, &end_token,instruction_list,NULL);
         *token = get_token(1);
     }
     return body_ret;
