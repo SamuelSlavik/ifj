@@ -1,4 +1,9 @@
 <?php
 declare(strict_types=1);
-$a = ("3"==="2");
-echo("hello");
+function readi(float $a, int $b):int{
+    $c = $a+5;
+    return $c;
+}
+$d = 5;
+readi();
+?>

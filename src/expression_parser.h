@@ -64,6 +64,9 @@ typedef struct expr_item{
 
 tDynamicBuffer *label_name_gen(char* name);
 
+tDynamicBuffer *double_2_string(double num);
+tDynamicBuffer *long_2_string(long int num);
+
 bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instruction_list, tToken *extra_token);
 
 bool is_expr_end_token(tToken *current_token, tToken *end_token, size_t *par_level);

@@ -32,6 +32,31 @@ tDynamicBuffer *label_name_gen(char* name){
     return buffer;
 }
 
+tDynamicBuffer *double_2_string(double num){
+    tDynamicBuffer *float_str = dynamicBuffer_INIT();
+    char buffer[50];
+    sprintf(buffer, "%a", num);
+    dynamicBuffer_ADD_STRING(float_str, buffer);
+    return float_str;
+}
+
+tDynamicBuffer *long_2_string(long int num){
+    tDynamicBuffer *long_str = dynamicBuffer_INIT();
+    long long int digit_count = 0;
+    long int number = num;
+    while (number != 0){
+        number /= 10;
+        digit_count++;
+    }
+    char *buffer = malloc(sizeof(char)*digit_count + 1);
+    if (buffer == NULL){
+        exit(99);
+    }
+    sprintf(buffer, "%ld", num);
+    dynamicBuffer_ADD_STRING(long_str, buffer);
+    free(buffer);
+    return long_str;
+}
 
 bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instruction_list, tToken *extra_token){
     PRECED_TAB;
@@ -114,20 +139,30 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
 
             // CODE GENERATION START
             tDynamicBuffer *instruction = dynamicBuffer_INIT();
+            tDynamicBuffer *num_str;
             switch (top_terminal->type) {
                 case T_OPERAND_EXPR:
                     dynamicBuffer_ADD_STRING(instruction, "PUSHS ");
                     switch (top_terminal->token->type) {
                         case T_VAR_ID:
+                            dynamicBuffer_ADD_STRING(instruction, "LF@");
+                            dynamicBuffer_ADD_STRING(instruction, top_terminal->token->data.STRINGval->data);
+                            break;
                         case T_STRING:
                             dynamicBuffer_ADD_STRING(instruction, "string@");
                             dynamicBuffer_ADD_STRING(instruction, top_terminal->token->data.STRINGval->data);
                             break;
                         case T_NUM_INT:
+                            num_str = long_2_string(top_terminal->token->data.INTval);
                             dynamicBuffer_ADD_STRING(instruction, "int@");
+                            dynamicBuffer_ADD_STRING(instruction, num_str->data);
+                            dynamicBufferFREE(num_str);
                             break;
                         case T_NUM_FLOAT:
+                            num_str = double_2_string(top_terminal->token->data.FLOATval);
                             dynamicBuffer_ADD_STRING(instruction, "float@");
+                            dynamicBuffer_ADD_STRING(instruction, num_str->data);
+                            dynamicBufferFREE(num_str);
                             break;
                         case T_NULL:
                             dynamicBuffer_ADD_STRING(instruction, "nil@nil");
@@ -882,7 +917,11 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                 case T_EQ_EXPR:
                     dynamicBuffer_ADD_STRING(instruction, "PUSHFRAME\n");
                     dynamicBuffer_ADD_STRING(instruction, "CREATEFRAME\n");
-                    /*
+
+                    tDynamicBuffer *eq_neq_type = label_name_gen("eq_neq_type");
+                    tDynamicBuffer *calc_eq = label_name_gen("calc_eq");
+                    tDynamicBuffer *eq_end = label_name_gen("eq_end");
+
                     dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_1\n");
                     dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_2\n");
                     dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_1_TYPE\n");
@@ -894,14 +933,38 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_1_TYPE TF@$TMP_1\n");
                     dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_2_TYPE TF@$TMP_2\n");
 
+                    // IF NOT SAME TYPE RETURN FALSE
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFNEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, eq_neq_type->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE TF@$TMP_2_TYPE\n");
+
+                    // calc_eq
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, calc_eq->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
                     dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@$TMP_2\n");
                     dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@$TMP_1\n");
-                    */
-                    // IF NOT SAME TYPE RETURN FALSE
 
                     dynamicBuffer_ADD_STRING(instruction, "POPFRAME\n");
 
                     dynamicBuffer_ADD_STRING(instruction, "EQS");
+
+                    // eq_neq_type
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, eq_neq_type->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHS bool@false");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, eq_end->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // eq_end
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, eq_end->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
                     DLL_InsertAfter(instruction_list, instruction);
                     DLL_Next(instruction_list);
                     instruction = dynamicBuffer_RESET(instruction);
