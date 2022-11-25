@@ -7,6 +7,7 @@
 typedef struct DLL_instruction_list_item {
 	tDynamicBuffer *instruction;
 	htab_data_t *curr_var;
+	htab_data_t *curr_fun;
 	struct DLL_instruction_list_item *previousElement;
 	struct DLL_instruction_list_item *nextElement;
 } DLL_instruction;

@@ -1,1 +1,1 @@
-Initial src
+DAJTE TU PICOVINU NIEKTO PREC
