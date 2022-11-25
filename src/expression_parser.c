@@ -20,9 +20,20 @@
 
 extern htab_t *symtable;
 
+tDynamicBuffer *label_name_gen(char* name){
+    static long int id;
+    char *idstr = malloc(sizeof(id+1));
+    tDynamicBuffer *buffer = dynamicBuffer_INIT();
+    sprintf(idstr,"%ld",id);
+    dynamicBuffer_ADD_STRING(buffer,name);
+    dynamicBuffer_ADD_STRING(buffer,idstr);
+    free(idstr);
+    id += 1;
+    return buffer;
+}
+
 
 bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instruction_list, tToken *extra_token){
-    //printf("%s ADAMOVFARJNOKOD\n", htab_find(symtable,"aaaaaaaaaaa")->key);
     PRECED_TAB;
     tStack expr_stack;
     StackInit(&expr_stack);
@@ -100,6 +111,113 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
         } else if (preced_tab[top_terminal_idx][input_token_idx] == '>'){
             tStack help_stack;
             StackInit(&help_stack);
+
+            // CODE GENERATION START
+            tDynamicBuffer *instruction = dynamicBuffer_INIT();
+            switch (top_terminal->type) {
+                case T_OPERAND_EXPR:
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHS ");
+                    switch (top_terminal->token->type) {
+                        case T_VAR_ID:
+                        case T_STRING:
+                            dynamicBuffer_ADD_STRING(instruction, "string@");
+                            dynamicBuffer_ADD_STRING(instruction, top_terminal->token->data.STRINGval->data);
+                            break;
+                        case T_NUM_INT:
+                            dynamicBuffer_ADD_STRING(instruction, "int@");
+                            break;
+                        case T_NUM_FLOAT:
+                            dynamicBuffer_ADD_STRING(instruction, "float@");
+                            break;
+                        case T_NULL:
+                            dynamicBuffer_ADD_STRING(instruction, "nil@nil");
+                            break;
+                        default:
+                            break;
+                    }
+                    DLL_InsertAfter(instruction_list, instruction);
+                    DLL_Next(instruction_list);
+                    instruction = dynamicBuffer_RESET(instruction);
+                    break;
+                case T_MUL_EXPR:
+                    dynamicBuffer_ADD_STRING(instruction, "MULS");
+                    DLL_InsertAfter(instruction_list, instruction);
+                    DLL_Next(instruction_list);
+                    instruction = dynamicBuffer_RESET(instruction);
+                    break;
+                case T_DIV_EXPR:
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHFRAME\n");
+                    dynamicBuffer_ADD_STRING(instruction, "CREATEFRAME\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_TYPE\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "POPS TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "POPS TF@$TMP_2\n");
+
+                    tDynamicBuffer *label_1 = label_name_gen("OPERAND_1_OK");
+                    tDynamicBuffer *label_2 = label_name_gen("OPERAND_2_OK");
+
+                    dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_TYPE TF@$TMP_1\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, label_1->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@float TF@$TMP_TYPE\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, label_1->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@int TF@$TMP_TYPE\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "EXIT int@7\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, label_1->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "INT2FLOAT TF@$TMP_1 TF@$TMP_1\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_TYPE TF@$TMP_2\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, label_2->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@float TF@$TMP_TYPE\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, label_2->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@int TF@$TMP_TYPE\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "EXIT int@7\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, label_2->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "INT2FLOAT TF@$TMP_2 TF@$TMP_2\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "POPFRAME\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "DIVS");
+                    DLL_InsertAfter(instruction_list, instruction);
+                    DLL_Next(instruction_list);
+                    instruction = dynamicBuffer_RESET(instruction);
+                    dynamicBufferFREE(label_1);
+                    dynamicBufferFREE(label_2);
+                    break;
+                case T_NEQ_EXPR:
+                    dynamicBuffer_ADD_STRING(instruction, "EQS");
+                    DLL_InsertAfter(instruction_list, instruction);
+                    DLL_Next(instruction_list);
+                    instruction = dynamicBuffer_RESET(instruction);
+                    dynamicBuffer_ADD_STRING(instruction, "NOTS");
+                    DLL_InsertAfter(instruction_list, instruction);
+                    DLL_Next(instruction_list);
+                    instruction = dynamicBuffer_RESET(instruction);
+                    break;
+                default:
+                    break;
+            }
+            // CODE GENERATION END
 
             tExprItem *tmp_stack_item = (tExprItem*) StackTop(&expr_stack);
 
@@ -419,7 +537,10 @@ int main(){
     tToken end_tok_semicolon = {.type=T_SEMICOLON};
     // tToken end_tok_r_par = {.type=T_R_PAR};
 
-    if (check_expr_syntax(&start_tok, &end_tok_semicolon, NULL, NULL))
+    DLList instruction_list;
+    DLL_Init(&instruction_list);
+
+    if (check_expr_syntax(&start_tok, &end_tok_semicolon, &instruction_list, NULL))
         printf("Expression is syntactically OK\n");
     else
         printf("Expression is syntactically WRONG\n");

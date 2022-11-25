@@ -71,7 +71,7 @@ void dynamicBufferFREE(tDynamicBuffer* buffer){
     }
 }
 
-void dynamicBuffer_ADD_STRING(tDynamicBuffer* buffer ,char *c){ // magia skontrolovat
+void dynamicBuffer_ADD_STRING(tDynamicBuffer* buffer, const char *c){ // magia skontrolovat
     size_t len = strlen(c); 
     if (buffer->allocated_size <= buffer->size + len + 1){
         buffer->data = realloc(buffer->data, buffer->allocated_size + len + 1);

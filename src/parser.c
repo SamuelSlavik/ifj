@@ -85,7 +85,6 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
             body = f_body_var(token,instruction, instruction_list);
             dynamicBuffer_ADD_STRING(instruction, "POPS ");
             dynamicBuffer_ADD_STRING(instruction, instruction_list->first->curr_var->key); //vec pozor
-            print_token_type(instruction_list->first->curr_var->data.var_data.type);
             DLL_InsertAfter(instruction_list,instruction);
             DLL_Next(instruction_list);
             instruction = dynamicBuffer_RESET(instruction);
@@ -127,7 +126,6 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
                 *token = get_token(1);
                 body = f_in_body(token,instruction, instruction_list);
                 if (body == false) return body;
-                print_token_type(token->type);
                 if (token->type == T_ELSE){
                     *token = get_token(1);
                     if(token->type == T_L_BRAC){
