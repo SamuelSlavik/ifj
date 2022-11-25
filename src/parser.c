@@ -16,7 +16,8 @@
 #include "dynamic_buffer.h"
 #include "dll_instruction_list.h"
 #include "htab.h"
-
+tStack frames;
+htab_t *local_sym;
 extern htab_t *symtable;
 void print_instructions(DLList *instruction_list){
     DLL_instruction *tmp = instruction_list->first;
@@ -70,14 +71,14 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
     switch (token->type)
     {
     case T_VAR_ID:
-        if (htab_find(symtable,token->data.STRINGval->data) == NULL ){
+        if (htab_find(local_sym,token->data.STRINGval->data) == NULL ){
             dynamicBuffer_ADD_STRING(instruction, "DEFVAR ");
             dynamicBuffer_ADD_STRING(instruction, token->data.STRINGval->data);
             DLL_InsertAfter(instruction_list,instruction);
             DLL_Next(instruction_list);
             instruction = dynamicBuffer_RESET(instruction);
         }
-        instruction_list->first->curr_var=st_var_create(symtable, token->data.STRINGval->data);
+        instruction_list->first->curr_var=st_var_create(local_sym, token->data.STRINGval->data);
         *token = get_token(1);
         
         if (token->type == T_ASSIGN){
@@ -98,6 +99,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
         }
         break;
     case T_FUN_ID:
+        //local_sym = st_fun_call(symtable,&frames,token->data.STRINGval->data);
         *token = get_token(1);
         if (token->type == T_L_PAR){
             *token = get_token(1);
@@ -111,7 +113,6 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
         break;
     case T_RETURN:
         *token = get_token(1);
-        print_token_type(token->type);
         body = f_body_ret(token,instruction, instruction_list);
     break;
     case T_IF:
@@ -161,22 +162,6 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
     }
     return body;
 }
-/*
-bool f_body_as(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list){
-    bool body_as = false;
-    if (token->type == T_ASSIGN){
-        //add insctruction mov
-        *token = get_token(1);
-        body_as = f_body_var(token,instruction, instruction_list);
-        
-    }
-    else if (token->type == T_SEMICOLON){
-        *token = get_token(1);
-        body_as = true;
-    }
-    return body_as;
-}
-*/
 bool f_body_var(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list){
     bool body_var = false;
     if (token->type == T_ERROR){
@@ -295,6 +280,7 @@ bool f_func(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list)
         *token = get_token(1);
         if(token->type == T_FUN_ID){
             if (htab_find(symtable,token->data.STRINGval->data) == NULL ){
+                label_name_gen(token->data.STRINGval->data);
             //TODO IFJCODE
             }
             instruction_list->first->curr_fun=st_fun_create(symtable, token->data.STRINGval->data);
@@ -314,6 +300,10 @@ bool f_func(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list)
 }
 bool f_func_dedf(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list){
     bool func_dedf = false;
+    local_sym = htab_init(HTAB_SIZE);
+    StackPush(&frames,(void*)local_sym);
+    
+    st_fun_definition(instruction_list->first->curr_fun);
     if (token->type == T_ERROR){
         exit(1);
     }
@@ -342,6 +332,7 @@ bool f_func_type(tToken *token,tDynamicBuffer *instruction, DLList *instruction_
     case T_STRING_N_TYPE:
     case T_FLOAT_N_TYPE:
     case T_INT_N_TYPE:
+        st_fun_retrun_type(instruction_list->first->curr_fun,token->type);
         *token = get_token(1);
         func_type = true;
         break;
@@ -378,14 +369,9 @@ bool f_func_param(tToken *token,tDynamicBuffer *instruction, DLList *instruction
     case T_STRING_N_TYPE:
     case T_FLOAT_N_TYPE:
     case T_INT_N_TYPE:
-
-        st_fun_param_type(instruction_list->first->curr_fun,token->type);
+        st_fun_param_type(instruction_list->first->curr_fun->data.fun_data.TaV,token->type);
         *token = get_token(1);
-        if(token->type == T_VAR_ID){           //skontrolovat first
-            st_fun_param_name(instruction_list->first->curr_fun,token->data.STRINGval);
-            *token = get_token(1);
-            func_param = f_func_mparam(token,instruction, instruction_list);
-        }
+        func_param = f_func_dedf_param_type(token,instruction, instruction_list);
         break;
     case T_R_PAR:
         *token = get_token(1);
@@ -396,48 +382,48 @@ bool f_func_param(tToken *token,tDynamicBuffer *instruction, DLList *instruction
     return func_param;
 }
 
-bool f_func_mparam(tToken * token,tDynamicBuffer *instruction, DLList *instruction_list){
-    bool func_mparam = false;
-    if (token->type == T_ERROR){
-        exit(1);
+bool f_func_dedf_param_type(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list){
+    bool func_param = false;
+    if(token->type == T_VAR_ID){         //skontrolovat first
+        st_fun_param_name(instruction_list->first->curr_fun->data.fun_data.TaV,token->data.STRINGval);
+        *token = get_token(1);
+        func_param = f_func_dedf_param_var(token,instruction, instruction_list);
     }
-    switch (token->type)
-    {
-    case T_STRING:
-    case T_NUM_INT:
-    case T_NUM_FLOAT:
+    return func_param;
+}
+
+bool f_func_dedf_param_var(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list){
+    bool func_param = false;
+    if(token->type == T_COMMA){
         *token = get_token(1);
-        func_mparam = f_func_mparam(token,instruction, instruction_list);
-        break;
-    case T_STRING_TYPE:
-    case T_FLOAT_TYPE:
-    case T_INT_TYPE:
-    case T_STRING_N_TYPE:
-    case T_FLOAT_N_TYPE:
-    case T_INT_N_TYPE:
-        *token = get_token(1);
-        if(token->type == T_VAR_ID){
+        switch (token->type)
+        {
+        case T_STRING_TYPE:
+        case T_FLOAT_TYPE:
+        case T_INT_TYPE:
+        case T_STRING_N_TYPE:
+        case T_FLOAT_N_TYPE:
+        case T_INT_N_TYPE:
+            st_fun_param_type(instruction_list->first->curr_fun->data.fun_data.TaV,token->type);
             *token = get_token(1);
-            func_mparam = f_func_mparam(token,instruction, instruction_list);
+            func_param = f_func_dedf_param_type(token,instruction, instruction_list);
+            break;
+        default:
+            break;
         }
-        break;
-    case T_COMMA:
-        *token = get_token(1);
-        func_mparam = f_func_mparam(token,instruction, instruction_list);
-        break;
-    case T_R_PAR:
-        *token = get_token(1);
-        func_mparam = true;
-    default:
-        break;
     }
-    return func_mparam;
+    else if(token->type == T_R_PAR){
+        *token = get_token(1);
+        func_param = true;
+    }
+    return func_param;
 }
 
 int main(){
     tDynamicBuffer *instruction = dynamicBuffer_INIT();
     symtable = htab_init(HTAB_SIZE);
     DLList instruction_list;
+    StackInit(&frames);
     dynamicBuffer_ADD_STRING(instruction,".IFJcode22");
     DLL_Init(&instruction_list);
     DLL_InsertFirst(&instruction_list, instruction);
