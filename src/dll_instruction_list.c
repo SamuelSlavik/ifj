@@ -201,7 +201,7 @@ void DLL_InsertBefore( DLList *list, tDynamicBuffer *instruction ) {
             return;
         }
         new_element->instruction = dynamicBuffer_INIT();
-        dynamicBuffer_ADD_STRING(new_element->instruction->data, instruction->data);
+        dynamicBuffer_ADD_STRING(new_element->instruction, instruction->data);
         new_element->nextElement = list->active;
         new_element->previousElement = list->active->previousElement;
         list->active->previousElement = new_element;

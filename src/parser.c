@@ -49,7 +49,7 @@ void print_instructions(DLList *instruction_list){
     DLL_instruction *tmp = instruction_list->first;
     while(tmp != NULL){
         printf("%s\n", tmp->instruction->data);
-        tmp = tmp->previousElement;
+        tmp = tmp->nextElement;
     }
 
 }
@@ -560,7 +560,7 @@ int main(){
     DLL_InsertAfter(&instruction_list,instruction);
     DLL_Next(&instruction_list);
     instruction = dynamicBuffer_RESET(instruction);
-    dynamicBuffer_ADD_STRING(instruction,"POPFRAME");
+    dynamicBuffer_ADD_STRING(instruction,"PUSHFRAME");
     DLL_InsertAfter(&instruction_list,instruction);
     DLL_Next(&instruction_list);
     instruction = dynamicBuffer_RESET(instruction);
@@ -569,7 +569,9 @@ int main(){
     DLL_Next(&instruction_list);
     instruction = dynamicBuffer_RESET(instruction);
     tToken token = get_token(0);
-    f_start(&token,instruction,&instruction_list);
+    if (f_start(&token,instruction,&instruction_list) == false){
+        exit(SYNTAX_ERROR);
+    }
     print_instructions(&instruction_list);
     return 0;
 }
