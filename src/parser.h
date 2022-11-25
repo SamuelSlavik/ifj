@@ -22,6 +22,8 @@ bool f_fn_call_l(tToken *token, tDynamicBuffer *instruction, DLList *instruction
 
 bool f_fn_call_lc(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list);
 
+bool f_fn_call_lparam(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list);
+
 bool f_func(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list);
 
 bool f_func_dedf(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list);
