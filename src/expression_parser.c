@@ -140,14 +140,180 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     instruction = dynamicBuffer_RESET(instruction);
                     break;
                 case T_MUL_EXPR:
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHFRAME\n");
+                    dynamicBuffer_ADD_STRING(instruction, "CREATEFRAME\n");
+
+                    tDynamicBuffer *mul_operand_1_float = label_name_gen("mul_operand_1_float");
+                    tDynamicBuffer *mul_operand_1_int = label_name_gen("mul_operand_1_int");
+                    tDynamicBuffer *mul_operand_1_null = label_name_gen("mul_operand_1_null");
+                    tDynamicBuffer *mul_operand_1_float_operand_2_null = label_name_gen("mul_operand_1_float_operand_2_null");
+                    tDynamicBuffer *mul_operand_1_int_operand_2_null = label_name_gen("mul_operand_1_int_operand_2_null");
+                    tDynamicBuffer *mul_operand_2_int2float = label_name_gen("mul_operand_2_int2float");
+                    tDynamicBuffer *mul_operand_1_int2float = label_name_gen("mul_operand_1_int2float");
+                    tDynamicBuffer *mul_calc = label_name_gen("mul_calc");
+
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_1_TYPE\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_2_TYPE\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "POPS TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "POPS TF@$TMP_2\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_1_TYPE TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_2_TYPE TF@$TMP_2\n");
+
+                    // IF OPERAND 1 IS FLOAT JUMP TO OPERAND_1_float
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, mul_operand_1_float->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@float TF@$TMP_1_TYPE\n");
+
+                    // IF OPERAND 1 IS INT JUMP TO OPERAND_1_int
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, mul_operand_1_int->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@int TF@$TMP_1_TYPE\n");
+
+                    // IF OPERAND 1 IS NULL JUMP TO OPERAND_1_null
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, mul_operand_1_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@nil TF@$TMP_1_TYPE\n");
+
+                    // mul_operand_1_float
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, mul_operand_1_float->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // FLOAT * FLOAT
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, mul_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@float TF@$TMP_2_TYPE\n");
+
+                    // FLOAT * INT
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, mul_operand_2_int2float->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@int TF@$TMP_2_TYPE\n");
+
+                    // FLOAT * NULL
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, mul_operand_1_float_operand_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@nil TF@$TMP_2_TYPE\n");
+
+                    // FLOAT * [STRING, BOOL]
+                    dynamicBuffer_ADD_STRING(instruction, "EXIT int@7\n");
+
+                    // mul_operand_1_int
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, mul_operand_1_int->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // INT * FLOAT
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, mul_operand_1_int2float->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@float TF@$TMP_2_TYPE\n");
+
+                    // INT * INT
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, mul_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@int TF@$TMP_2_TYPE\n");
+
+                    // INT * NULL
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, mul_operand_1_int_operand_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@nil TF@$TMP_2_TYPE\n");
+
+                    // INT * [STRING, BOOL]
+                    dynamicBuffer_ADD_STRING(instruction, "EXIT int@7\n");
+
+                    // mul_operand_1_null
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, mul_operand_1_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // NULL * FLOAT
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, mul_operand_1_float_operand_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@float TF@$TMP_2_TYPE\n");
+
+                    // NULL * INT
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, mul_operand_1_int_operand_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@int TF@$TMP_2_TYPE\n");
+
+                    // NULL * NULL
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, mul_operand_1_int_operand_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@nil TF@$TMP_2_TYPE\n");
+
+                    // NULL * [STRING, BOOL]
+                    dynamicBuffer_ADD_STRING(instruction, "EXIT int@7\n");
+
+                    // mul_operand_1_int2float
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, mul_operand_1_int2float->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "INT2FLOAT TF@$TMP_1 TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, mul_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // mul_operand_2_int2float
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, mul_operand_2_int2float->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "INT2FLOAT TF@$TMP_2 TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, mul_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // mul_operand_1_int_operand_2_null
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, mul_operand_1_int_operand_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_1 int@\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_2 int@\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, mul_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // mul_operand_1_float_operand_2_null
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, mul_operand_1_float_operand_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_1 float@0x0p+0\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_2 float@0x0p+0\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, mul_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+
+                    // mul_calc
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, mul_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "POPFRAME\n");
+
                     dynamicBuffer_ADD_STRING(instruction, "MULS");
                     DLL_InsertAfter(instruction_list, instruction);
                     DLL_Next(instruction_list);
                     instruction = dynamicBuffer_RESET(instruction);
+                    dynamicBufferFREE(mul_operand_1_float);
+                    dynamicBufferFREE(mul_operand_1_int);
+                    dynamicBufferFREE(mul_operand_1_null);
+                    dynamicBufferFREE(mul_operand_1_int2float);
+                    dynamicBufferFREE(mul_operand_1_float_operand_2_null);
+                    dynamicBufferFREE(mul_operand_1_int_operand_2_null);
+                    dynamicBufferFREE(mul_operand_2_int2float);
+                    dynamicBufferFREE(mul_calc);
                     break;
                 case T_DIV_EXPR:
                     dynamicBuffer_ADD_STRING(instruction, "PUSHFRAME\n");
                     dynamicBuffer_ADD_STRING(instruction, "CREATEFRAME\n");
+
+                    tDynamicBuffer *label_div_1 = label_name_gen("OPERAND_1_OK");
+                    tDynamicBuffer *label_div_2 = label_name_gen("OPERAND_2_OK");
 
                     dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_1\n");
                     dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_2\n");
@@ -156,40 +322,37 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     dynamicBuffer_ADD_STRING(instruction, "POPS TF@$TMP_1\n");
                     dynamicBuffer_ADD_STRING(instruction, "POPS TF@$TMP_2\n");
 
-                    tDynamicBuffer *label_1 = label_name_gen("OPERAND_1_OK");
-                    tDynamicBuffer *label_2 = label_name_gen("OPERAND_2_OK");
-
                     dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_TYPE TF@$TMP_1\n");
 
                     dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-                    dynamicBuffer_ADD_STRING(instruction, label_1->data);
+                    dynamicBuffer_ADD_STRING(instruction, label_div_1->data);
                     dynamicBuffer_ADD_STRING(instruction, " string@float TF@$TMP_TYPE\n");
 
                     dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-                    dynamicBuffer_ADD_STRING(instruction, label_1->data);
+                    dynamicBuffer_ADD_STRING(instruction, label_div_1->data);
                     dynamicBuffer_ADD_STRING(instruction, " string@int TF@$TMP_TYPE\n");
 
                     dynamicBuffer_ADD_STRING(instruction, "EXIT int@7\n");
 
                     dynamicBuffer_ADD_STRING(instruction, "LABEL ");
-                    dynamicBuffer_ADD_STRING(instruction, label_1->data);
+                    dynamicBuffer_ADD_STRING(instruction, label_div_1->data);
                     dynamicBuffer_ADD_STRING(instruction, "\n");
                     dynamicBuffer_ADD_STRING(instruction, "INT2FLOAT TF@$TMP_1 TF@$TMP_1\n");
 
                     dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_TYPE TF@$TMP_2\n");
 
                     dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-                    dynamicBuffer_ADD_STRING(instruction, label_2->data);
+                    dynamicBuffer_ADD_STRING(instruction, label_div_2->data);
                     dynamicBuffer_ADD_STRING(instruction, " string@float TF@$TMP_TYPE\n");
 
                     dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-                    dynamicBuffer_ADD_STRING(instruction, label_2->data);
+                    dynamicBuffer_ADD_STRING(instruction, label_div_2->data);
                     dynamicBuffer_ADD_STRING(instruction, " string@int TF@$TMP_TYPE\n");
 
                     dynamicBuffer_ADD_STRING(instruction, "EXIT int@7\n");
 
                     dynamicBuffer_ADD_STRING(instruction, "LABEL ");
-                    dynamicBuffer_ADD_STRING(instruction, label_2->data);
+                    dynamicBuffer_ADD_STRING(instruction, label_div_2->data);
                     dynamicBuffer_ADD_STRING(instruction, "\n");
                     dynamicBuffer_ADD_STRING(instruction, "INT2FLOAT TF@$TMP_2 TF@$TMP_2\n");
 
@@ -201,8 +364,547 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     DLL_InsertAfter(instruction_list, instruction);
                     DLL_Next(instruction_list);
                     instruction = dynamicBuffer_RESET(instruction);
-                    dynamicBufferFREE(label_1);
-                    dynamicBufferFREE(label_2);
+                    dynamicBufferFREE(label_div_1);
+                    dynamicBufferFREE(label_div_2);
+                    break;
+                case T_ADD_EXPR:
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHFRAME\n");
+                    dynamicBuffer_ADD_STRING(instruction, "CREATEFRAME\n");
+
+                    tDynamicBuffer *add_operand_1_float = label_name_gen("add_operand_1_float");
+                    tDynamicBuffer *add_operand_1_int = label_name_gen("add_operand_1_int");
+                    tDynamicBuffer *add_operand_1_null = label_name_gen("add_operand_1_null");
+                    tDynamicBuffer *add_operand_1_float_operand_2_null = label_name_gen("add_operand_1_float_operand_2_null");
+                    tDynamicBuffer *add_operand_1_int_operand_2_null = label_name_gen("add_operand_1_int_operand_2_null");
+                    tDynamicBuffer *add_operand_1_null_operand_2_null = label_name_gen("add_operand_1_null_operand_2_null");
+                    tDynamicBuffer *add_operand_2_int_operand_1_null = label_name_gen("add_operand_2_int_operand_1_null");
+                    tDynamicBuffer *add_operand_2_float_operand_1_null = label_name_gen("add_operand_2_float_operand_1_null");
+                    tDynamicBuffer *add_operand_2_int2float = label_name_gen("add_operand_2_int2float");
+                    tDynamicBuffer *add_operand_1_int2float = label_name_gen("add_operand_1_int2float");
+                    tDynamicBuffer *add_calc = label_name_gen("add_calc");
+
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_1_TYPE\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_2_TYPE\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "POPS TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "POPS TF@$TMP_2\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_1_TYPE TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_2_TYPE TF@$TMP_2\n");
+
+                    // IF OPERAND 1 IS FLOAT JUMP TO OPERAND_1_float
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, add_operand_1_float->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@float TF@$TMP_1_TYPE\n");
+
+                    // IF OPERAND 1 IS INT JUMP TO OPERAND_1_int
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, add_operand_1_int->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@int TF@$TMP_1_TYPE\n");
+
+                    // IF OPERAND 1 IS NULL JUMP TO OPERAND_1_null
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, add_operand_1_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@nil TF@$TMP_1_TYPE\n");
+
+                    // add_operand_1_float
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, add_operand_1_float->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // FLOAT + FLOAT
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, add_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@float TF@$TMP_2_TYPE\n");
+
+                    // FLOAT + INT
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, add_operand_2_int2float->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@int TF@$TMP_2_TYPE\n");
+
+                    // FLOAT + NULL
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, add_operand_1_float_operand_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@nil TF@$TMP_2_TYPE\n");
+
+                    // FLOAT + [STRING, BOOL]
+                    dynamicBuffer_ADD_STRING(instruction, "EXIT int@7\n");
+
+                    // add_operand_1_int
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, add_operand_1_int->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // INT + FLOAT
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, add_operand_1_int2float->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@float TF@$TMP_2_TYPE\n");
+
+                    // INT + INT
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, add_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@int TF@$TMP_2_TYPE\n");
+
+                    // INT + NULL
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, add_operand_1_int_operand_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@nil TF@$TMP_2_TYPE\n");
+
+                    // INT + [STRING, BOOL]
+                    dynamicBuffer_ADD_STRING(instruction, "EXIT int@7\n");
+
+                    // add_operand_1_null
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, add_operand_1_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // NULL + FLOAT
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, add_operand_2_float_operand_1_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@float TF@$TMP_2_TYPE\n");
+
+                    // NULL + INT
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, add_operand_2_int_operand_1_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@int TF@$TMP_2_TYPE\n");
+
+                    // NULL + NULL
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, add_operand_1_null_operand_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@nil TF@$TMP_2_TYPE\n");
+
+                    // NULL + [STRING, BOOL]
+                    dynamicBuffer_ADD_STRING(instruction, "EXIT int@7\n");
+
+                    // add_operand_1_int2float
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, add_operand_1_int2float->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "INT2FLOAT TF@$TMP_1 TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, add_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // add_operand_2_int2float
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, add_operand_2_int2float->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "INT2FLOAT TF@$TMP_2 TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, add_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // add_operand_1_int_operand_2_null
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, add_operand_1_int_operand_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_2 int@\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, add_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // add_operand_1_float_operand_2_null
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, add_operand_1_float_operand_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_2 float@0x0p+0\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, add_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // add_operand_2_int_operand_1_null
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, add_operand_2_int_operand_1_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_1 int@\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, add_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // add_operand_2_float_operand_1_null
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, add_operand_2_float_operand_1_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_1 float@0x0p+0\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, add_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // add_operand_1_null_operand_2_null
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, add_operand_1_null_operand_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_1 int@\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_2 int@\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, add_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+
+                    // add_calc
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, add_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "POPFRAME\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "ADDS");
+                    DLL_InsertAfter(instruction_list, instruction);
+                    DLL_Next(instruction_list);
+                    instruction = dynamicBuffer_RESET(instruction);
+                    dynamicBufferFREE(add_operand_1_float);
+                    dynamicBufferFREE(add_operand_1_int);
+                    dynamicBufferFREE(add_operand_1_null);
+                    dynamicBufferFREE(add_operand_1_int2float);
+                    dynamicBufferFREE(add_operand_1_float_operand_2_null);
+                    dynamicBufferFREE(add_operand_1_int_operand_2_null);
+                    dynamicBufferFREE(add_operand_2_int2float);
+                    dynamicBufferFREE(add_calc);
+                    break;
+                case T_SUB_EXPR:
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHFRAME\n");
+                    dynamicBuffer_ADD_STRING(instruction, "CREATEFRAME\n");
+
+                    tDynamicBuffer *sub_operand_1_float = label_name_gen("sub_operand_1_float");
+                    tDynamicBuffer *sub_operand_1_int = label_name_gen("sub_operand_1_int");
+                    tDynamicBuffer *sub_operand_1_null = label_name_gen("sub_operand_1_null");
+                    tDynamicBuffer *sub_operand_1_float_operand_2_null = label_name_gen("sub_operand_1_float_operand_2_null");
+                    tDynamicBuffer *sub_operand_1_int_operand_2_null = label_name_gen("sub_operand_1_int_operand_2_null");
+                    tDynamicBuffer *sub_operand_1_null_operand_2_null = label_name_gen("sub_operand_1_null_operand_2_null");
+                    tDynamicBuffer *sub_operand_2_int_operand_1_null = label_name_gen("sub_operand_2_int_operand_1_null");
+                    tDynamicBuffer *sub_operand_2_float_operand_1_null = label_name_gen("sub_operand_2_float_operand_1_null");
+                    tDynamicBuffer *sub_operand_2_int2float = label_name_gen("sub_operand_2_int2float");
+                    tDynamicBuffer *sub_operand_1_int2float = label_name_gen("sub_operand_1_int2float");
+                    tDynamicBuffer *sub_calc = label_name_gen("sub_calc");
+
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_1_TYPE\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_2_TYPE\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "POPS TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "POPS TF@$TMP_2\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_1_TYPE TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_2_TYPE TF@$TMP_2\n");
+
+                    // IF OPERAND 1 IS FLOAT JUMP TO OPERAND_1_float
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_operand_1_float->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@float TF@$TMP_1_TYPE\n");
+
+                    // IF OPERAND 1 IS INT JUMP TO OPERAND_1_int
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_operand_1_int->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@int TF@$TMP_1_TYPE\n");
+
+                    // IF OPERAND 1 IS NULL JUMP TO OPERAND_1_null
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_operand_1_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@nil TF@$TMP_1_TYPE\n");
+
+                    // sub_operand_1_float
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_operand_1_float->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // FLOAT + FLOAT
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@float TF@$TMP_2_TYPE\n");
+
+                    // FLOAT + INT
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_operand_2_int2float->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@int TF@$TMP_2_TYPE\n");
+
+                    // FLOAT + NULL
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_operand_1_float_operand_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@nil TF@$TMP_2_TYPE\n");
+
+                    // FLOAT + [STRING, BOOL]
+                    dynamicBuffer_ADD_STRING(instruction, "EXIT int@7\n");
+
+                    // sub_operand_1_int
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_operand_1_int->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // INT + FLOAT
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_operand_1_int2float->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@float TF@$TMP_2_TYPE\n");
+
+                    // INT + INT
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@int TF@$TMP_2_TYPE\n");
+
+                    // INT + NULL
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_operand_1_int_operand_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@nil TF@$TMP_2_TYPE\n");
+
+                    // INT + [STRING, BOOL]
+                    dynamicBuffer_ADD_STRING(instruction, "EXIT int@7\n");
+
+                    // sub_operand_1_null
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_operand_1_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // NULL + FLOAT
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_operand_2_float_operand_1_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@float TF@$TMP_2_TYPE\n");
+
+                    // NULL + INT
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_operand_2_int_operand_1_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@int TF@$TMP_2_TYPE\n");
+
+                    // NULL + NULL
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_operand_1_null_operand_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@nil TF@$TMP_2_TYPE\n");
+
+                    // NULL + [STRING, BOOL]
+                    dynamicBuffer_ADD_STRING(instruction, "EXIT int@7\n");
+
+                    // sub_operand_1_int2float
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_operand_1_int2float->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "INT2FLOAT TF@$TMP_1 TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // sub_operand_2_int2float
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_operand_2_int2float->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "INT2FLOAT TF@$TMP_2 TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // sub_operand_1_int_operand_2_null
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_operand_1_int_operand_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_2 int@\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // sub_operand_1_float_operand_2_null
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_operand_1_float_operand_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_2 float@0x0p+0\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // sub_operand_2_int_operand_1_null
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_operand_2_int_operand_1_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_1 int@\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // sub_operand_2_float_operand_1_null
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_operand_2_float_operand_1_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_1 float@0x0p+0\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // sub_operand_1_null_operand_2_null
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_operand_1_null_operand_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_1 int@\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_2 int@\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+
+                    // sub_calc
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, sub_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "POPFRAME\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "SUBS");
+                    DLL_InsertAfter(instruction_list, instruction);
+                    DLL_Next(instruction_list);
+                    instruction = dynamicBuffer_RESET(instruction);
+                    dynamicBufferFREE(sub_operand_1_float);
+                    dynamicBufferFREE(sub_operand_1_int);
+                    dynamicBufferFREE(sub_operand_1_null);
+                    dynamicBufferFREE(sub_operand_1_int2float);
+                    dynamicBufferFREE(sub_operand_1_float_operand_2_null);
+                    dynamicBufferFREE(sub_operand_1_int_operand_2_null);
+                    dynamicBufferFREE(sub_operand_2_int2float);
+                    dynamicBufferFREE(sub_calc);
+                    break;
+                case T_CONCAT_EXPR:
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHFRAME\n");
+                    dynamicBuffer_ADD_STRING(instruction, "CREATEFRAME\n");
+
+                    tDynamicBuffer *concat_operand_1_str = label_name_gen("concat_operand_1_str");
+                    tDynamicBuffer *concat_operand_1_null = label_name_gen("concat_operand_1_null");
+                    tDynamicBuffer *concat_operand_1_null2str = label_name_gen("concat_operand_1_null2str");
+                    tDynamicBuffer *concat_operand_2_null2str = label_name_gen("concat_operand_2_null2str");
+                    tDynamicBuffer *concat_operands_null2str = label_name_gen("concat_operands_null2str");
+                    tDynamicBuffer *concat_calc = label_name_gen("concat_calc");
+
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_1_TYPE\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_2_TYPE\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "POPS TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "POPS TF@$TMP_2\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_1_TYPE TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_2_TYPE TF@$TMP_2\n");
+
+                    // IF OPERAND 1 IS STRING JUMP TO concat_operand_1_str
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, concat_operand_1_str->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@string TF@$TMP_1_TYPE\n");
+
+                    // IF OPERAND 1 IS NULL JUMP TO concat_operand_1_null
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, concat_operand_1_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@nil TF@$TMP_1_TYPE\n");
+
+                    // concat_operand_1_str
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, concat_operand_1_str->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // STRING . STRING
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, concat_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@string TF@$TMP_2_TYPE\n");
+
+                    // STRING . NULL
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, concat_operand_2_null2str->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@nil TF@$TMP_2_TYPE\n");
+
+                    // STRING . [INT, FLOAT. BOOL]
+                    dynamicBuffer_ADD_STRING(instruction, "EXIT int@7\n");
+
+                    // concat_operand_1_null
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, concat_operand_1_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // NULL . STRING
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, concat_operand_1_null2str->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@string TF@$TMP_2_TYPE\n");
+
+                    // NULL . NULL
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, concat_operands_null2str->data);
+                    dynamicBuffer_ADD_STRING(instruction, " string@nil TF@$TMP_2_TYPE\n");
+
+                    // STRING . [INT, FLOAT. BOOL]
+                    dynamicBuffer_ADD_STRING(instruction, "EXIT int@7\n");
+
+                    // concat_operand_2_null2str
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, concat_operand_2_null2str->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_2 string@\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, concat_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // concat_operand_1_null2str
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, concat_operand_1_null2str->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_1 string@\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, concat_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // concat_operands_null2str
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, concat_operands_null2str->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_1 string@\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_2 string@\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, concat_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // concat_calc
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, concat_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "CONCAT TF@$TMP_1 TF@$TMP_2 TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "POPFRAME");
+                    DLL_InsertAfter(instruction_list, instruction);
+                    DLL_Next(instruction_list);
+                    instruction = dynamicBuffer_RESET(instruction);
+                    break;
+                case T_LT_EXPR:
+                    break;
+                case T_GT_EXPR:
+                    break;
+                case T_LTE_EXPR:
+                    break;
+                case T_GTE_EXPR:
+                    break;
+                case T_EQ_EXPR:
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHFRAME\n");
+                    dynamicBuffer_ADD_STRING(instruction, "CREATEFRAME\n");
+                    /*
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_1_TYPE\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_2_TYPE\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "POPS TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "POPS TF@$TMP_2\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_1_TYPE TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_2_TYPE TF@$TMP_2\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@$TMP_1\n");
+                    */
+                    // IF NOT SAME TYPE RETURN FALSE
+
+                    dynamicBuffer_ADD_STRING(instruction, "POPFRAME\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "EQS");
+                    DLL_InsertAfter(instruction_list, instruction);
+                    DLL_Next(instruction_list);
+                    instruction = dynamicBuffer_RESET(instruction);
                     break;
                 case T_NEQ_EXPR:
                     dynamicBuffer_ADD_STRING(instruction, "EQS");
