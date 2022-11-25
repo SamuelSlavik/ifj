@@ -76,6 +76,6 @@ enum expr_item_type token_to_preced_idx(enum token_type token_type, bool is_end)
 
 void clean_expr_stack(tStack *expr_stack);
 
-void print_stack(tStack *expr_stack);
+//void print_stack(tStack *expr_stack);
 
 #endif //IFJ_EXPRESSION_PARSER_H
