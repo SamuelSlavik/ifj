@@ -34,9 +34,7 @@
 <fn_call_lparam>    => [T_STRING, T_NUM_INT, T_NUM_FLOAT, T_VAR_ID] <fn_call_lc>
 
 // BODY OF STATEMENTS
-<body>       =>  [T_VAR_ID] <body_as>
-<body_as>    =>  [T_ASSIGN] <body_var>
-<body_as>    =>  [T_SEMICOLON]
+<body>       =>  [T_VAR_ID] [T_ASSIGN] <body_var>
 <body_var>   =>  [T_NUM_INT, T_NUM_FLOAT, T_STRING] [T_SEMICOLON]
 <body_var>   =>  <expr> [T_SEMICOLON]
 <body_var>   =>  [T_FUN_ID] [T_L_PAR] <fn_call_l> [T_SEMICOLON]

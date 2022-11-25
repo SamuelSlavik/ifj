@@ -34,6 +34,6 @@ bool f_in_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_l
 
 bool f_func_param(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list);
 
-bool f_func_mparam(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list);
-
+bool f_func_dedf_param_type(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list);
+bool f_func_dedf_param_var(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list);
 #endif //__PARSER_H__
