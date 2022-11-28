@@ -24,7 +24,6 @@ tDynamicBuffer* dynamicBuffer_INIT() {
     else {
         buffer->data = calloc(BUFFER_SIZE, sizeof(char));
         if (buffer->data == NULL) {
-            printf("failed to alloc buffer data");
             free(buffer);
             return NULL;
         }
