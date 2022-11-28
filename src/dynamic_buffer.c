@@ -75,6 +75,7 @@ void dynamicBuffer_ADD_STRING(tDynamicBuffer* buffer, const char *c){ // magia s
     size_t len = strlen(c); 
     if (buffer->allocated_size <= buffer->size + len + 1){
         buffer->data = realloc(buffer->data, buffer->allocated_size + len + 1);
+        //todo nejako skontrolovat nulu
         buffer->allocated_size += len + 1;
     }
     buffer->size += len + 1;
