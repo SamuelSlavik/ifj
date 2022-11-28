@@ -8,7 +8,9 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include "error.h"
+#include "scanner.h"
 
 int error_handle(int code){
     static int err_code = NO_ERROR;
@@ -51,4 +53,40 @@ int error_handle(int code){
     }
     
     return err_code;
+}
+
+int error_exit(tToken *token,int code){
+        switch (code)
+        {
+        case LEX_ERROR:
+            fprintf(stderr, "ERROR: A lexical error has occurred! At line TODO\n");
+            break;
+        case SYNTAX_ERROR:
+            fprintf(stderr, "ERROR: Wrong syntax! At line TODO\n");
+            break;
+        case RE_DEF_ERROR:
+            fprintf(stderr, "ERROR: Using an undefined function! At line TODO\n");
+            break;
+        case PARAM_ERROR:
+            fprintf(stderr, "ERROR: Wrong number of parameters in function! At line TODO\n");
+            break;
+        case UN_DEF_VAR_ERROR:
+            fprintf(stderr, "ERROR: Using an undefined variable! At line TODO\n");
+            break;
+        case RETURN_ERROR:
+            fprintf(stderr, "ERROR: Wrong type or number of return paramters! At line TODO\n");
+            break;
+        case EXPRESSION_ERROR:
+            fprintf(stderr, "ERROR: Wrong expression entered! At line TODO\n");
+            break;
+        case OTHER_ERROR:
+            fprintf(stderr, "ERROR: Error during compilation! At line TODO\n");
+            break;
+        case ERROR:
+            fprintf(stderr, "ERROR: Some unexpected error occured! At line TODO\n");
+            break;
+        default:
+            break;
+        }
+    exit(code);
 }
