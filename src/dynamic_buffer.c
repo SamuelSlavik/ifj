@@ -24,6 +24,7 @@ tDynamicBuffer* dynamicBuffer_INIT() {
     else {
         buffer->data = calloc(BUFFER_SIZE, sizeof(char));
         if (buffer->data == NULL) {
+            printf("failed to alloc buffer data");
             free(buffer);
             return NULL;
         }
@@ -74,10 +75,13 @@ void dynamicBufferFREE(tDynamicBuffer* buffer){
 void dynamicBuffer_ADD_STRING(tDynamicBuffer* buffer, const char *c){ // magia skontrolovat
     size_t len = strlen(c); 
     if (buffer->allocated_size <= buffer->size + len + 1){
-        buffer->data = realloc(buffer->data, buffer->allocated_size + len + 1);
-        buffer->allocated_size += len + 1;
+        buffer->data = realloc(buffer->data, (buffer->size + len + 1) * 2);
+        if (buffer->data == NULL){
+            exit(99);
+        }
+        buffer->allocated_size = (buffer->size + len + 1) * 2;
     }
-    buffer->size += len + 1;
+    buffer->size += len;
     strcat(buffer->data, c);
     
 }
