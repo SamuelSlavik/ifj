@@ -7,10 +7,10 @@
  * 
  */
 
-#include <stdio.h>
-
 #ifndef ERROR_H
 #define ERROR_H
+#include <stdio.h>
+#include "scanner.h"
 
 #define NO_ERROR 0
 #define LEX_ERROR 1
@@ -39,5 +39,7 @@
  * @return int number of error code that occures
  */
 int error_handle(int code);
+
+int error_exit(tToken *token,int code);
 
 #endif // ERROR_H
