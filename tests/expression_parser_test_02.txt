@@ -1,5 +1,8 @@
 <?php
 declare(strict_types=1);
-$a = 5;
-$b = $a + 1;
-?>
+
+function foo(?string $str, ?int $b) : ?int {
+    $res = 5+5;
+    return $res;
+}
+foo(10,42);

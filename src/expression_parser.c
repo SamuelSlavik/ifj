@@ -19,8 +19,10 @@
 #include "dll_instruction_list.h"
 
 extern htab_t *symtable;
+// TODO string to IFJcode22 format function
 
 tDynamicBuffer *label_name_gen(char* name){
+    // TODO repair idstr buffer alloc size
     static long int id;
     char *idstr = malloc(sizeof(id+1));
     tDynamicBuffer *buffer = dynamicBuffer_INIT();
@@ -58,6 +60,7 @@ tDynamicBuffer *long_2_string(long int num){
     return long_str;
 }
 
+// TODO check extra token not NULL, if not do not call gettoken
 bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instruction_list, tToken *extra_token){
     PRECED_TAB;
     tStack expr_stack;
@@ -172,7 +175,7 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     }
                     DLL_InsertAfter(instruction_list, instruction);
                     DLL_Next(instruction_list);
-                    instruction = dynamicBuffer_RESET(instruction);
+                    dynamicBufferFREE(instruction);
                     break;
                 case T_MUL_EXPR:
                     dynamicBuffer_ADD_STRING(instruction, "PUSHFRAME\n");
@@ -333,7 +336,7 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     dynamicBuffer_ADD_STRING(instruction, "MULS");
                     DLL_InsertAfter(instruction_list, instruction);
                     DLL_Next(instruction_list);
-                    instruction = dynamicBuffer_RESET(instruction);
+                    dynamicBufferFREE(instruction);
                     dynamicBufferFREE(mul_operand_1_float);
                     dynamicBufferFREE(mul_operand_1_int);
                     dynamicBufferFREE(mul_operand_1_null);
@@ -398,7 +401,7 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     dynamicBuffer_ADD_STRING(instruction, "DIVS");
                     DLL_InsertAfter(instruction_list, instruction);
                     DLL_Next(instruction_list);
-                    instruction = dynamicBuffer_RESET(instruction);
+                    dynamicBufferFREE(instruction);
                     dynamicBufferFREE(label_div_1);
                     dynamicBufferFREE(label_div_2);
                     break;
@@ -590,7 +593,7 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     dynamicBuffer_ADD_STRING(instruction, "ADDS");
                     DLL_InsertAfter(instruction_list, instruction);
                     DLL_Next(instruction_list);
-                    instruction = dynamicBuffer_RESET(instruction);
+                    dynamicBufferFREE(instruction);
                     dynamicBufferFREE(add_operand_1_float);
                     dynamicBufferFREE(add_operand_1_int);
                     dynamicBufferFREE(add_operand_1_null);
@@ -788,7 +791,7 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     dynamicBuffer_ADD_STRING(instruction, "SUBS");
                     DLL_InsertAfter(instruction_list, instruction);
                     DLL_Next(instruction_list);
-                    instruction = dynamicBuffer_RESET(instruction);
+                    dynamicBufferFREE(instruction);
                     dynamicBufferFREE(sub_operand_1_float);
                     dynamicBufferFREE(sub_operand_1_int);
                     dynamicBufferFREE(sub_operand_1_null);
@@ -904,9 +907,16 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     dynamicBuffer_ADD_STRING(instruction, "POPFRAME");
                     DLL_InsertAfter(instruction_list, instruction);
                     DLL_Next(instruction_list);
-                    instruction = dynamicBuffer_RESET(instruction);
+                    dynamicBufferFREE(instruction);
+                    dynamicBufferFREE(concat_calc);
+                    dynamicBufferFREE(concat_operand_2_null2str);
+                    dynamicBufferFREE(concat_operand_1_null2str);
+                    dynamicBufferFREE(concat_operands_null2str);
+                    dynamicBufferFREE(concat_operand_1_str);
+                    dynamicBufferFREE(concat_operand_1_null);
                     break;
                 case T_LT_EXPR:
+
                     break;
                 case T_GT_EXPR:
                     break;
@@ -919,7 +929,6 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     dynamicBuffer_ADD_STRING(instruction, "CREATEFRAME\n");
 
                     tDynamicBuffer *eq_neq_type = label_name_gen("eq_neq_type");
-                    tDynamicBuffer *calc_eq = label_name_gen("calc_eq");
                     tDynamicBuffer *eq_end = label_name_gen("eq_end");
 
                     dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_1\n");
@@ -939,23 +948,20 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE TF@$TMP_2_TYPE\n");
 
                     // calc_eq
-                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
-                    dynamicBuffer_ADD_STRING(instruction, calc_eq->data);
-                    dynamicBuffer_ADD_STRING(instruction, "\n");
-
                     dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@$TMP_2\n");
                     dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@$TMP_1\n");
 
-                    dynamicBuffer_ADD_STRING(instruction, "POPFRAME\n");
-
-                    dynamicBuffer_ADD_STRING(instruction, "EQS");
+                    dynamicBuffer_ADD_STRING(instruction, "EQS\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, eq_end->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
 
                     // eq_neq_type
                     dynamicBuffer_ADD_STRING(instruction, "LABEL ");
                     dynamicBuffer_ADD_STRING(instruction, eq_neq_type->data);
                     dynamicBuffer_ADD_STRING(instruction, "\n");
 
-                    dynamicBuffer_ADD_STRING(instruction, "PUSHS bool@false");
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHS bool@false\n");
                     dynamicBuffer_ADD_STRING(instruction, "JUMP ");
                     dynamicBuffer_ADD_STRING(instruction, eq_end->data);
                     dynamicBuffer_ADD_STRING(instruction, "\n");
@@ -965,19 +971,70 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     dynamicBuffer_ADD_STRING(instruction, eq_end->data);
                     dynamicBuffer_ADD_STRING(instruction, "\n");
 
+                    dynamicBuffer_ADD_STRING(instruction, "POPFRAME");
+
                     DLL_InsertAfter(instruction_list, instruction);
                     DLL_Next(instruction_list);
-                    instruction = dynamicBuffer_RESET(instruction);
+                    dynamicBufferFREE(instruction);
+                    dynamicBufferFREE(eq_neq_type);
+                    dynamicBufferFREE(eq_end);
                     break;
                 case T_NEQ_EXPR:
-                    dynamicBuffer_ADD_STRING(instruction, "EQS");
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHFRAME\n");
+                    dynamicBuffer_ADD_STRING(instruction, "CREATEFRAME\n");
+
+                    tDynamicBuffer *neq_neq_type = label_name_gen("neq_neq_type");
+                    tDynamicBuffer *neq_end = label_name_gen("neq_end");
+
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_1_TYPE\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_2_TYPE\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "POPS TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "POPS TF@$TMP_2\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_1_TYPE TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_2_TYPE TF@$TMP_2\n");
+
+                    // IF NOT SAME TYPE SET EQUALITY TO FALSE
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFNEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, neq_neq_type->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE TF@$TMP_2_TYPE\n");
+
+                    // calc_neq
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@$TMP_1\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "EQS\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, neq_end->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // neq_neq_type
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, neq_neq_type->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHS bool@false\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, neq_end->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // neq_end
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, neq_end->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "NOTS\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "POPFRAME");
+
                     DLL_InsertAfter(instruction_list, instruction);
                     DLL_Next(instruction_list);
-                    instruction = dynamicBuffer_RESET(instruction);
-                    dynamicBuffer_ADD_STRING(instruction, "NOTS");
-                    DLL_InsertAfter(instruction_list, instruction);
-                    DLL_Next(instruction_list);
-                    instruction = dynamicBuffer_RESET(instruction);
+                    dynamicBufferFREE(instruction);
+                    dynamicBufferFREE(neq_neq_type);
+                    dynamicBufferFREE(neq_end);
                     break;
                 default:
                     break;
