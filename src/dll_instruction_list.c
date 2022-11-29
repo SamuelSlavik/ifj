@@ -9,6 +9,9 @@ void DLL_Init( DLList *list ) {
 	list->first = NULL;
 	list->active = NULL;
 	list->last = NULL;
+    list->called_from=NULL;
+    list->curr_fun = NULL;
+    list->curr_var = NULL;
 }
 
 void DLL_Dispose( DLList *list ) {
@@ -63,6 +66,10 @@ void DLL_InsertLast( DLList *list, tDynamicBuffer *instruction ) {
 
 void DLL_First( DLList *list ) {
 	list->active = list->first;
+}
+
+void DLL_First_main( DLList *list ) {
+	list->main_body = list->first;
 }
 
 void DLL_Last( DLList *list ) {
@@ -191,6 +198,30 @@ void DLL_InsertAfter( DLList *list, tDynamicBuffer *instruction ) {
     }
 }
 
+void DLL_InsertAfter_main( DLList *list, tDynamicBuffer *instruction ) {
+    // If list has no active element do nothing
+    if (list->main_body != NULL){
+        // Allocate space for new element and check whether it was successful
+        DLL_instruction *new_element = malloc(sizeof(DLL_instruction));
+        if (new_element == NULL){
+            
+            return;
+        }
+        new_element->instruction = dynamicBuffer_INIT();
+        dynamicBuffer_ADD_STRING(new_element->instruction, instruction->data);
+        new_element->nextElement = list->main_body->nextElement;
+        new_element->previousElement = list->main_body;
+        list->main_body->nextElement = new_element;
+
+        // If active element was also last move pointer to last element
+        if (list->main_body == list->last){
+            list->last = new_element;
+        } else{
+            new_element->nextElement->previousElement = new_element;
+        }
+    }
+}
+
 void DLL_InsertBefore( DLList *list, tDynamicBuffer *instruction ) {
     // If list has no active element do nothing
     if (list->active != NULL){
@@ -238,7 +269,12 @@ void DLL_Next( DLList *list ) {
         list->active = list->active->nextElement;
     }
 }
-
+void DLL_Next_main( DLList *list ) {
+    // If list has no active element do nothing
+	if (list->main_body != NULL){
+        list->main_body = list->main_body->nextElement;
+    }
+}
 void DLL_Previous( DLList *list ) {
     // If list has no active element do nothing
     if (list->active != NULL){
