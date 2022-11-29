@@ -216,6 +216,9 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     dynamicBuffer_ADD_STRING(instruction, mul_operand_1_null->data);
                     dynamicBuffer_ADD_STRING(instruction, " string@nil TF@$TMP_1_TYPE\n");
 
+                    // OPERAND 1 IS OF ILLEGAL TYPE
+                    dynamicBuffer_ADD_STRING(instruction, "EXIT int@7\n");
+
                     // mul_operand_1_float
                     dynamicBuffer_ADD_STRING(instruction, "LABEL ");
                     dynamicBuffer_ADD_STRING(instruction, mul_operand_1_float->data);
@@ -446,6 +449,9 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
                     dynamicBuffer_ADD_STRING(instruction, add_operand_1_null->data);
                     dynamicBuffer_ADD_STRING(instruction, " string@nil TF@$TMP_1_TYPE\n");
+
+                    // OPERAND 1 IS INVALID
+                    dynamicBuffer_ADD_STRING(instruction, "EXIT int@7\n");
 
                     // add_operand_1_float
                     dynamicBuffer_ADD_STRING(instruction, "LABEL ");
@@ -916,13 +922,1354 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     dynamicBufferFREE(concat_operand_1_null);
                     break;
                 case T_LT_EXPR:
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHFRAME\n");
+                    dynamicBuffer_ADD_STRING(instruction, "CREATEFRAME\n");
 
+                    tDynamicBuffer *lt_calc = label_name_gen("lt_calc");
+                    tDynamicBuffer *lt_op_error = label_name_gen("lt_op_error");
+                    tDynamicBuffer *lt_op_1_null = label_name_gen("lt_op_1_null");
+                    tDynamicBuffer *lt_op_2_null = label_name_gen("lt_op_2_null");
+                    tDynamicBuffer *lt_op_1_null2str = label_name_gen("lt_op_1_null2str");
+                    tDynamicBuffer *lt_op_1_null2bool = label_name_gen("lt_op_1_null2bool");
+                    tDynamicBuffer *lt_op_2_2bool = label_name_gen("lt_op_2_2bool");
+                    tDynamicBuffer *lt_op_2_null2str = label_name_gen("lt_op_2_null2str");
+                    tDynamicBuffer *lt_op_2_null2bool = label_name_gen("lt_op_2_null2bool");
+                    tDynamicBuffer *lt_op_1_2bool = label_name_gen("lt_op_1_2bool");
+                    tDynamicBuffer *lt_op_1_int2float = label_name_gen("lt_op_1_int2float");
+                    tDynamicBuffer *lt_op_1_null_op_2_int2bool = label_name_gen("lt_op_1_null_op_2_int2bool");
+                    tDynamicBuffer *lt_op_2_set_false_calc = label_name_gen("lt_op_2_set_false_calc");
+                    tDynamicBuffer *lt_op_2_set_true_calc = label_name_gen("lt_op_2_set_true_calc");
+                    tDynamicBuffer *lt_op_1_null_op_2_float2bool = label_name_gen("lt_op_1_null_op_2_float2bool");
+                    tDynamicBuffer *lt_op_1_set_false_calc = label_name_gen("lt_op_1_set_false_calc");
+                    tDynamicBuffer *lt_op_1_set_true_calc = label_name_gen("lt_op_1_set_true_calc");
+                    tDynamicBuffer *lt_op_2_null_op_1_int2bool = label_name_gen("lt_op_2_null_op_1_int2bool");
+                    tDynamicBuffer *lt_op_2_null_op_1_float2bool = label_name_gen("lt_op_2_null_op_1_float2bool");
+
+
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_1_TYPE\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_2_TYPE\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "POPS TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "POPS TF@$TMP_1\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_1_TYPE TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_2_TYPE TF@$TMP_2\n");
+
+                    // CONDITIONS FOLLOWED BY FALSE BRANCHES
+
+                    // if(OPERAND_1_TYPE == null)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_1_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@nil\n");
+
+                    // if(OPERAND_2_TYPE == null)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@nil\n");
+
+                    // if(OPERAND_1_TYPE == bool)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_2_2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@bool\n");
+
+                    // if(OPERAND_2_TYPE == bool)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_1_2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@bool\n");
+
+                    // if(OPERAND_1_TYPE == OPERAND_2_TYPE)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE TF@$TMP_2_TYPE\n");
+
+                    // if(OPERAND_1_TYPE == string)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_error->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@string\n");
+
+                    // if(OPERAND_2_TYPE == string)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_error->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@string\n");
+
+                    // if(OPERAND_1_TYPE == int)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_1_int2float->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@int\n");
+
+                    // OPERAND 2 INT TO FLOAT
+                    dynamicBuffer_ADD_STRING(instruction, "INT2FLOAT TF@$TMP_2 TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // TRUE BRANCHES OF CONDITIONS ABOVE
+
+                    // OPERAND_1_TYPE == null
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_1_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_1_null2str->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@string\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_1_null2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // OPERAND_2_TYPE == null
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_2_null2str->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@string\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_2_null2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // lt_op_1_null2str
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_1_null2str->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_1 string@\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // lt_op_1_null2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_1_null2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_1 bool@false\n");
+
+                    // lt_op_2_2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_2_2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_2_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@null\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_1_null_op_2_int2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@int\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_1_null_op_2_float2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@float\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@bool\n");
+
+                    // OPERAND 2 IS INVALID
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_error->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // lt_op_1_null_op_2_int2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_1_null_op_2_int2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_2_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2 int@0\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_2_set_true_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // lt_op_1_null_op_2_float2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_1_null_op_2_float2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_2_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2 float@0x0p+0\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_2_set_true_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // lt_op_2_set_false_calc
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_2_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_2 bool@false\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // lt_op_2_set_true_calc
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_2_set_true_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_2 bool@true\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // lt_op_2_null2str
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_2_null2str->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_2 string@\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // lt_op_2_null2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_2_null2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_2 bool@false\n");
+
+                    // lt_op_1_2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_1_2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_1_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@null\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_2_null_op_1_int2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@int\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_2_null_op_1_float2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@float\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@bool\n");
+
+                    // OPERAND 1 IS INVALID
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_error->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // lt_op_2_null_op_1_int2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_2_null_op_1_int2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_1_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1 int@0\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_1_set_true_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // lt_op_2_null_op_1_float2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_2_null_op_1_float2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_1_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1 float@0x0p+0\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_1_set_true_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // lt_op_1_set_false_calc
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_1_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_1 bool@false\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // lt_op_1_set_true_calc
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_1_set_true_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_1 bool@true\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // OPERAND 1 INT TO FLOAT
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_1_int2float->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "INT2FLOAT TF@$TMP_1 TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // lt_op_error
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_op_error->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "EXIT int@7\n");
+
+                    // lt_calc
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lt_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@$TMP_2\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "LTS\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "POPFRAME");
+
+                    DLL_InsertAfter(instruction_list, instruction);
+                    DLL_Next(instruction_list);
+                    dynamicBufferFREE(instruction);
+
+                    dynamicBufferFREE(lt_calc);
+                    dynamicBufferFREE(lt_op_error);
+                    dynamicBufferFREE(lt_op_1_null);
+                    dynamicBufferFREE(lt_op_2_null);
+                    dynamicBufferFREE(lt_op_1_null2str);
+                    dynamicBufferFREE(lt_op_1_null2bool);
+                    dynamicBufferFREE(lt_op_2_2bool);
+                    dynamicBufferFREE(lt_op_2_null2str);
+                    dynamicBufferFREE(lt_op_2_null2bool);
+                    dynamicBufferFREE(lt_op_1_2bool);
+                    dynamicBufferFREE(lt_op_1_int2float);
+                    dynamicBufferFREE(lt_op_1_null_op_2_int2bool);
+                    dynamicBufferFREE(lt_op_2_set_false_calc);
+                    dynamicBufferFREE(lt_op_2_set_true_calc);
+                    dynamicBufferFREE(lt_op_1_null_op_2_float2bool);
+                    dynamicBufferFREE(lt_op_1_set_false_calc);
+                    dynamicBufferFREE(lt_op_1_set_true_calc);
+                    dynamicBufferFREE(lt_op_2_null_op_1_int2bool);
+                    dynamicBufferFREE(lt_op_2_null_op_1_float2bool);
                     break;
                 case T_GT_EXPR:
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHFRAME\n");
+                    dynamicBuffer_ADD_STRING(instruction, "CREATEFRAME\n");
+
+                    tDynamicBuffer *gt_calc = label_name_gen("gt_calc");
+                    tDynamicBuffer *gt_op_error = label_name_gen("gt_op_error");
+                    tDynamicBuffer *gt_op_1_null = label_name_gen("gt_op_1_null");
+                    tDynamicBuffer *gt_op_2_null = label_name_gen("gt_op_2_null");
+                    tDynamicBuffer *gt_op_1_null2str = label_name_gen("gt_op_1_null2str");
+                    tDynamicBuffer *gt_op_1_null2bool = label_name_gen("gt_op_1_null2bool");
+                    tDynamicBuffer *gt_op_2_2bool = label_name_gen("gt_op_2_2bool");
+                    tDynamicBuffer *gt_op_2_null2str = label_name_gen("gt_op_2_null2str");
+                    tDynamicBuffer *gt_op_2_null2bool = label_name_gen("gt_op_2_null2bool");
+                    tDynamicBuffer *gt_op_1_2bool = label_name_gen("gt_op_1_2bool");
+                    tDynamicBuffer *gt_op_1_int2float = label_name_gen("gt_op_1_int2float");
+                    tDynamicBuffer *gt_op_1_null_op_2_int2bool = label_name_gen("gt_op_1_null_op_2_int2bool");
+                    tDynamicBuffer *gt_op_2_set_false_calc = label_name_gen("gt_op_2_set_false_calc");
+                    tDynamicBuffer *gt_op_2_set_true_calc = label_name_gen("gt_op_2_set_true_calc");
+                    tDynamicBuffer *gt_op_1_null_op_2_float2bool = label_name_gen("gt_op_1_null_op_2_float2bool");
+                    tDynamicBuffer *gt_op_1_set_false_calc = label_name_gen("gt_op_1_set_false_calc");
+                    tDynamicBuffer *gt_op_1_set_true_calc = label_name_gen("gt_op_1_set_true_calc");
+                    tDynamicBuffer *gt_op_2_null_op_1_int2bool = label_name_gen("gt_op_2_null_op_1_int2bool");
+                    tDynamicBuffer *gt_op_2_null_op_1_float2bool = label_name_gen("gt_op_2_null_op_1_float2bool");
+
+
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_1_TYPE\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_2_TYPE\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "POPS TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "POPS TF@$TMP_1\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_1_TYPE TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_2_TYPE TF@$TMP_2\n");
+
+                    // CONDITIONS FOLLOWED BY FALSE BRANCHES
+
+                    // if(OPERAND_1_TYPE == null)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_1_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@nil\n");
+
+                    // if(OPERAND_2_TYPE == null)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@nil\n");
+
+                    // if(OPERAND_1_TYPE == bool)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_2_2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@bool\n");
+
+                    // if(OPERAND_2_TYPE == bool)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_1_2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@bool\n");
+
+                    // if(OPERAND_1_TYPE == OPERAND_2_TYPE)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE TF@$TMP_2_TYPE\n");
+
+                    // if(OPERAND_1_TYPE == string)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_error->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@string\n");
+
+                    // if(OPERAND_2_TYPE == string)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_error->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@string\n");
+
+                    // if(OPERAND_1_TYPE == int)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_1_int2float->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@int\n");
+
+                    // OPERAND 2 INT TO FLOAT
+                    dynamicBuffer_ADD_STRING(instruction, "INT2FLOAT TF@$TMP_2 TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // TRUE BRANCHES OF CONDITIONS ABOVE
+
+                    // OPERAND_1_TYPE == null
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_1_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_1_null2str->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@string\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_1_null2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // OPERAND_2_TYPE == null
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_2_null2str->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@string\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_2_null2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // gt_op_1_null2str
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_1_null2str->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_1 string@\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // gt_op_1_null2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_1_null2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_1 bool@false\n");
+
+                    // gt_op_2_2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_2_2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_2_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@null\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_1_null_op_2_int2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@int\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_1_null_op_2_float2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@float\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@bool\n");
+
+                    // OPERAND 2 IS INVALID
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_error->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // gt_op_1_null_op_2_int2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_1_null_op_2_int2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_2_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2 int@0\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_2_set_true_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // gt_op_1_null_op_2_float2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_1_null_op_2_float2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_2_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2 float@0x0p+0\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_2_set_true_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // gt_op_2_set_false_calc
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_2_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_2 bool@false\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // gt_op_2_set_true_calc
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_2_set_true_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_2 bool@true\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // gt_op_2_null2str
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_2_null2str->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_2 string@\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // gt_op_2_null2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_2_null2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_2 bool@false\n");
+
+                    // gt_op_1_2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_1_2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_1_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@null\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_2_null_op_1_int2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@int\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_2_null_op_1_float2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@float\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@bool\n");
+
+                    // OPERAND 1 IS INVALID
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_error->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // gt_op_2_null_op_1_int2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_2_null_op_1_int2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_1_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1 int@0\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_1_set_true_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // gt_op_2_null_op_1_float2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_2_null_op_1_float2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_1_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1 float@0x0p+0\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_1_set_true_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // gt_op_1_set_false_calc
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_1_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_1 bool@false\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // gt_op_1_set_true_calc
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_1_set_true_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_1 bool@true\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // OPERAND 1 INT TO FLOAT
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_1_int2float->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "INT2FLOAT TF@$TMP_1 TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // gt_op_error
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_op_error->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "EXIT int@7\n");
+
+                    // gt_calc
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gt_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@$TMP_2\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "GTS\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "POPFRAME");
+
+                    DLL_InsertAfter(instruction_list, instruction);
+                    DLL_Next(instruction_list);
+                    dynamicBufferFREE(instruction);
+
+                    dynamicBufferFREE(gt_calc);
+                    dynamicBufferFREE(gt_op_error);
+                    dynamicBufferFREE(gt_op_1_null);
+                    dynamicBufferFREE(gt_op_2_null);
+                    dynamicBufferFREE(gt_op_1_null2str);
+                    dynamicBufferFREE(gt_op_1_null2bool);
+                    dynamicBufferFREE(gt_op_2_2bool);
+                    dynamicBufferFREE(gt_op_2_null2str);
+                    dynamicBufferFREE(gt_op_2_null2bool);
+                    dynamicBufferFREE(gt_op_1_2bool);
+                    dynamicBufferFREE(gt_op_1_int2float);
+                    dynamicBufferFREE(gt_op_1_null_op_2_int2bool);
+                    dynamicBufferFREE(gt_op_2_set_false_calc);
+                    dynamicBufferFREE(gt_op_2_set_true_calc);
+                    dynamicBufferFREE(gt_op_1_null_op_2_float2bool);
+                    dynamicBufferFREE(gt_op_1_set_false_calc);
+                    dynamicBufferFREE(gt_op_1_set_true_calc);
+                    dynamicBufferFREE(gt_op_2_null_op_1_int2bool);
+                    dynamicBufferFREE(gt_op_2_null_op_1_float2bool);
                     break;
                 case T_LTE_EXPR:
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHFRAME\n");
+                    dynamicBuffer_ADD_STRING(instruction, "CREATEFRAME\n");
+
+                    tDynamicBuffer *lte_calc = label_name_gen("lte_calc");
+                    tDynamicBuffer *lte_op_error = label_name_gen("lte_op_error");
+                    tDynamicBuffer *lte_op_1_null = label_name_gen("lte_op_1_null");
+                    tDynamicBuffer *lte_op_2_null = label_name_gen("lte_op_2_null");
+                    tDynamicBuffer *lte_op_1_null2str = label_name_gen("lte_op_1_null2str");
+                    tDynamicBuffer *lte_op_1_null2bool = label_name_gen("lte_op_1_null2bool");
+                    tDynamicBuffer *lte_op_2_2bool = label_name_gen("lte_op_2_2bool");
+                    tDynamicBuffer *lte_op_2_null2str = label_name_gen("lte_op_2_null2str");
+                    tDynamicBuffer *lte_op_2_null2bool = label_name_gen("lte_op_2_null2bool");
+                    tDynamicBuffer *lte_op_1_2bool = label_name_gen("lte_op_1_2bool");
+                    tDynamicBuffer *lte_op_1_int2float = label_name_gen("lte_op_1_int2float");
+                    tDynamicBuffer *lte_op_1_null_op_2_int2bool = label_name_gen("lte_op_1_null_op_2_int2bool");
+                    tDynamicBuffer *lte_op_2_set_false_calc = label_name_gen("lte_op_2_set_false_calc");
+                    tDynamicBuffer *lte_op_2_set_true_calc = label_name_gen("lte_op_2_set_true_calc");
+                    tDynamicBuffer *lte_op_1_null_op_2_float2bool = label_name_gen("lte_op_1_null_op_2_float2bool");
+                    tDynamicBuffer *lte_op_1_set_false_calc = label_name_gen("lte_op_1_set_false_calc");
+                    tDynamicBuffer *lte_op_1_set_true_calc = label_name_gen("lte_op_1_set_true_calc");
+                    tDynamicBuffer *lte_op_2_null_op_1_int2bool = label_name_gen("lte_op_2_null_op_1_int2bool");
+                    tDynamicBuffer *lte_op_2_null_op_1_float2bool = label_name_gen("lte_op_2_null_op_1_float2bool");
+
+
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_1_TYPE\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_2_TYPE\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "POPS TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "POPS TF@$TMP_1\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_1_TYPE TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_2_TYPE TF@$TMP_2\n");
+
+                    // CONDITIONS FOLLOWED BY FALSE BRANCHES
+
+                    // if(OPERAND_1_TYPE == null)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_1_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@nil\n");
+
+                    // if(OPERAND_2_TYPE == null)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@nil\n");
+
+                    // if(OPERAND_1_TYPE == bool)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_2_2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@bool\n");
+
+                    // if(OPERAND_2_TYPE == bool)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_1_2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@bool\n");
+
+                    // if(OPERAND_1_TYPE == OPERAND_2_TYPE)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE TF@$TMP_2_TYPE\n");
+
+                    // if(OPERAND_1_TYPE == string)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_error->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@string\n");
+
+                    // if(OPERAND_2_TYPE == string)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_error->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@string\n");
+
+                    // if(OPERAND_1_TYPE == int)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_1_int2float->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@int\n");
+
+                    // OPERAND 2 INT TO FLOAT
+                    dynamicBuffer_ADD_STRING(instruction, "INT2FLOAT TF@$TMP_2 TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // TRUE BRANCHES OF CONDITIONS ABOVE
+
+                    // OPERAND_1_TYPE == null
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_1_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_1_null2str->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@string\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_1_null2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // OPERAND_2_TYPE == null
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_2_null2str->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@string\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_2_null2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // lte_op_1_null2str
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_1_null2str->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_1 string@\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // lte_op_1_null2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_1_null2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_1 bool@false\n");
+
+                    // lte_op_2_2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_2_2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_2_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@null\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_1_null_op_2_int2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@int\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_1_null_op_2_float2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@float\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@bool\n");
+
+                    // OPERAND 2 IS INVALID
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_error->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // lte_op_1_null_op_2_int2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_1_null_op_2_int2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_2_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2 int@0\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_2_set_true_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // lte_op_1_null_op_2_float2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_1_null_op_2_float2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_2_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2 float@0x0p+0\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_2_set_true_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // lte_op_2_set_false_calc
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_2_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_2 bool@false\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // lte_op_2_set_true_calc
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_2_set_true_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_2 bool@true\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // lte_op_2_null2str
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_2_null2str->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_2 string@\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // lte_op_2_null2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_2_null2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_2 bool@false\n");
+
+                    // lte_op_1_2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_1_2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_1_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@null\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_2_null_op_1_int2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@int\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_2_null_op_1_float2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@float\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@bool\n");
+
+                    // OPERAND 1 IS INVALID
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_error->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // lte_op_2_null_op_1_int2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_2_null_op_1_int2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_1_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1 int@0\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_1_set_true_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // lte_op_2_null_op_1_float2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_2_null_op_1_float2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_1_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1 float@0x0p+0\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_1_set_true_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // lte_op_1_set_false_calc
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_1_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_1 bool@false\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // lte_op_1_set_true_calc
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_1_set_true_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_1 bool@true\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // OPERAND 1 INT TO FLOAT
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_1_int2float->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "INT2FLOAT TF@$TMP_1 TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // lte_op_error
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_op_error->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "EXIT int@7\n");
+
+                    // lte_calc
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, lte_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@$TMP_2\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "GTS\n");
+                    dynamicBuffer_ADD_STRING(instruction, "NOTS\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "POPFRAME");
+
+                    DLL_InsertAfter(instruction_list, instruction);
+                    DLL_Next(instruction_list);
+                    dynamicBufferFREE(instruction);
+
+                    dynamicBufferFREE(lte_calc);
+                    dynamicBufferFREE(lte_op_error);
+                    dynamicBufferFREE(lte_op_1_null);
+                    dynamicBufferFREE(lte_op_2_null);
+                    dynamicBufferFREE(lte_op_1_null2str);
+                    dynamicBufferFREE(lte_op_1_null2bool);
+                    dynamicBufferFREE(lte_op_2_2bool);
+                    dynamicBufferFREE(lte_op_2_null2str);
+                    dynamicBufferFREE(lte_op_2_null2bool);
+                    dynamicBufferFREE(lte_op_1_2bool);
+                    dynamicBufferFREE(lte_op_1_int2float);
+                    dynamicBufferFREE(lte_op_1_null_op_2_int2bool);
+                    dynamicBufferFREE(lte_op_2_set_false_calc);
+                    dynamicBufferFREE(lte_op_2_set_true_calc);
+                    dynamicBufferFREE(lte_op_1_null_op_2_float2bool);
+                    dynamicBufferFREE(lte_op_1_set_false_calc);
+                    dynamicBufferFREE(lte_op_1_set_true_calc);
+                    dynamicBufferFREE(lte_op_2_null_op_1_int2bool);
+                    dynamicBufferFREE(lte_op_2_null_op_1_float2bool);
                     break;
                 case T_GTE_EXPR:
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHFRAME\n");
+                    dynamicBuffer_ADD_STRING(instruction, "CREATEFRAME\n");
+
+                    tDynamicBuffer *gte_calc = label_name_gen("gte_calc");
+                    tDynamicBuffer *gte_op_error = label_name_gen("gte_op_error");
+                    tDynamicBuffer *gte_op_1_null = label_name_gen("gte_op_1_null");
+                    tDynamicBuffer *gte_op_2_null = label_name_gen("gte_op_2_null");
+                    tDynamicBuffer *gte_op_1_null2str = label_name_gen("gte_op_1_null2str");
+                    tDynamicBuffer *gte_op_1_null2bool = label_name_gen("gte_op_1_null2bool");
+                    tDynamicBuffer *gte_op_2_2bool = label_name_gen("gte_op_2_2bool");
+                    tDynamicBuffer *gte_op_2_null2str = label_name_gen("gte_op_2_null2str");
+                    tDynamicBuffer *gte_op_2_null2bool = label_name_gen("gte_op_2_null2bool");
+                    tDynamicBuffer *gte_op_1_2bool = label_name_gen("gte_op_1_2bool");
+                    tDynamicBuffer *gte_op_1_int2float = label_name_gen("gte_op_1_int2float");
+                    tDynamicBuffer *gte_op_1_null_op_2_int2bool = label_name_gen("gte_op_1_null_op_2_int2bool");
+                    tDynamicBuffer *gte_op_2_set_false_calc = label_name_gen("gte_op_2_set_false_calc");
+                    tDynamicBuffer *gte_op_2_set_true_calc = label_name_gen("gte_op_2_set_true_calc");
+                    tDynamicBuffer *gte_op_1_null_op_2_float2bool = label_name_gen("gte_op_1_null_op_2_float2bool");
+                    tDynamicBuffer *gte_op_1_set_false_calc = label_name_gen("gte_op_1_set_false_calc");
+                    tDynamicBuffer *gte_op_1_set_true_calc = label_name_gen("gte_op_1_set_true_calc");
+                    tDynamicBuffer *gte_op_2_null_op_1_int2bool = label_name_gen("gte_op_2_null_op_1_int2bool");
+                    tDynamicBuffer *gte_op_2_null_op_1_float2bool = label_name_gen("gte_op_2_null_op_1_float2bool");
+
+
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_1_TYPE\n");
+                    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_2_TYPE\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "POPS TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "POPS TF@$TMP_1\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_1_TYPE TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_2_TYPE TF@$TMP_2\n");
+
+                    // CONDITIONS FOLLOWED BY FALSE BRANCHES
+
+                    // if(OPERAND_1_TYPE == null)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_1_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@nil\n");
+
+                    // if(OPERAND_2_TYPE == null)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@nil\n");
+
+                    // if(OPERAND_1_TYPE == bool)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_2_2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@bool\n");
+
+                    // if(OPERAND_2_TYPE == bool)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_1_2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@bool\n");
+
+                    // if(OPERAND_1_TYPE == OPERAND_2_TYPE)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE TF@$TMP_2_TYPE\n");
+
+                    // if(OPERAND_1_TYPE == string)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_error->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@string\n");
+
+                    // if(OPERAND_2_TYPE == string)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_error->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@string\n");
+
+                    // if(OPERAND_1_TYPE == int)
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_1_int2float->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@int\n");
+
+                    // OPERAND 2 INT TO FLOAT
+                    dynamicBuffer_ADD_STRING(instruction, "INT2FLOAT TF@$TMP_2 TF@$TMP_2\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // TRUE BRANCHES OF CONDITIONS ABOVE
+
+                    // OPERAND_1_TYPE == null
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_1_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_1_null2str->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@string\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_1_null2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // OPERAND_2_TYPE == null
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_2_null->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_2_null2str->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@string\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_2_null2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // gte_op_1_null2str
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_1_null2str->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_1 string@\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // gte_op_1_null2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_1_null2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_1 bool@false\n");
+
+                    // gte_op_2_2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_2_2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_2_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@null\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_1_null_op_2_int2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@int\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_1_null_op_2_float2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@float\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@bool\n");
+
+                    // OPERAND 2 IS INVALID
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_error->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // gte_op_1_null_op_2_int2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_1_null_op_2_int2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_2_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2 int@0\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_2_set_true_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // gte_op_1_null_op_2_float2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_1_null_op_2_float2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_2_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2 float@0x0p+0\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_2_set_true_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // gte_op_2_set_false_calc
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_2_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_2 bool@false\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // gte_op_2_set_true_calc
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_2_set_true_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_2 bool@true\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // gte_op_2_null2str
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_2_null2str->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_2 string@\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // gte_op_2_null2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_2_null2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_2 bool@false\n");
+
+                    // gte_op_1_2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_1_2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_1_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@null\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_2_null_op_1_int2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@int\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_2_null_op_1_float2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@float\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1_TYPE string@bool\n");
+
+                    // OPERAND 1 IS INVALID
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_error->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // gte_op_2_null_op_1_int2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_2_null_op_1_int2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_1_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1 int@0\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_1_set_true_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // gte_op_2_null_op_1_float2bool
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_2_null_op_1_float2bool->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_1_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_1 float@0x0p+0\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_1_set_true_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // gte_op_1_set_false_calc
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_1_set_false_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_1 bool@false\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // gte_op_1_set_true_calc
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_1_set_true_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "MOVE TF@$TMP_1 bool@true\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // OPERAND 1 INT TO FLOAT
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_1_int2float->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "INT2FLOAT TF@$TMP_1 TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "JUMP ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    // gte_op_error
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_op_error->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+                    dynamicBuffer_ADD_STRING(instruction, "EXIT int@7\n");
+
+                    // gte_calc
+                    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+                    dynamicBuffer_ADD_STRING(instruction, gte_calc->data);
+                    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@$TMP_1\n");
+                    dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@$TMP_2\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "LTS\n");
+                    dynamicBuffer_ADD_STRING(instruction, "NOTS\n");
+
+                    dynamicBuffer_ADD_STRING(instruction, "POPFRAME");
+
+                    DLL_InsertAfter(instruction_list, instruction);
+                    DLL_Next(instruction_list);
+                    dynamicBufferFREE(instruction);
+
+                    dynamicBufferFREE(gte_calc);
+                    dynamicBufferFREE(gte_op_error);
+                    dynamicBufferFREE(gte_op_1_null);
+                    dynamicBufferFREE(gte_op_2_null);
+                    dynamicBufferFREE(gte_op_1_null2str);
+                    dynamicBufferFREE(gte_op_1_null2bool);
+                    dynamicBufferFREE(gte_op_2_2bool);
+                    dynamicBufferFREE(gte_op_2_null2str);
+                    dynamicBufferFREE(gte_op_2_null2bool);
+                    dynamicBufferFREE(gte_op_1_2bool);
+                    dynamicBufferFREE(gte_op_1_int2float);
+                    dynamicBufferFREE(gte_op_1_null_op_2_int2bool);
+                    dynamicBufferFREE(gte_op_2_set_false_calc);
+                    dynamicBufferFREE(gte_op_2_set_true_calc);
+                    dynamicBufferFREE(gte_op_1_null_op_2_float2bool);
+                    dynamicBufferFREE(gte_op_1_set_false_calc);
+                    dynamicBufferFREE(gte_op_1_set_true_calc);
+                    dynamicBufferFREE(gte_op_2_null_op_1_int2bool);
+                    dynamicBufferFREE(gte_op_2_null_op_1_float2bool);
                     break;
                 case T_EQ_EXPR:
                     dynamicBuffer_ADD_STRING(instruction, "PUSHFRAME\n");
