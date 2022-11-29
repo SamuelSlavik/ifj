@@ -59,31 +59,31 @@ int error_exit(tToken *token,int code){
         switch (code)
         {
         case LEX_ERROR:
-            fprintf(stderr, "ERROR: A lexical error has occurred! At line TODO\n");
+            fprintf(stderr, "ERROR: A lexical error has occurred! At line %ld.\n",token->line);
             break;
         case SYNTAX_ERROR:
-            fprintf(stderr, "ERROR: Wrong syntax! At line TODO\n");
+            fprintf(stderr, "ERROR: Wrong syntax! At line %ld.\n",token->line);
             break;
         case RE_DEF_ERROR:
-            fprintf(stderr, "ERROR: Using an undefined function! At line TODO\n");
+            fprintf(stderr, "ERROR: Using an undefined function! At line %ld.\n",token->line);
             break;
         case PARAM_ERROR:
-            fprintf(stderr, "ERROR: Wrong number of parameters in function! At line TODO\n");
+            fprintf(stderr, "ERROR: Wrong number of parameters in function! At line %ld.\n",token->line);
             break;
         case UN_DEF_VAR_ERROR:
-            fprintf(stderr, "ERROR: Using an undefined variable! At line TODO\n");
+            fprintf(stderr, "ERROR: Using an undefined variable! At line %ld.\n",token->line);
             break;
         case RETURN_ERROR:
-            fprintf(stderr, "ERROR: Wrong type or number of return paramters! At line TODO\n");
+            fprintf(stderr, "ERROR: Wrong type or number of return paramters! At line %ld.\n",token->line);
             break;
         case EXPRESSION_ERROR:
-            fprintf(stderr, "ERROR: Wrong expression entered! At line TODO\n");
+            fprintf(stderr, "ERROR: Wrong expression entered! At line %ld.\n",token->line);
             break;
         case OTHER_ERROR:
-            fprintf(stderr, "ERROR: Error during compilation! At line TODO\n");
+            fprintf(stderr, "ERROR: Error during compilation! At line %ld.\n",token->line);
             break;
         case ERROR:
-            fprintf(stderr, "ERROR: Some unexpected error occured! At line TODO\n");
+            fprintf(stderr, "ERROR: Some unexpected error occured! At line %ld.\n",token->line);
             break;
         default:
             break;
