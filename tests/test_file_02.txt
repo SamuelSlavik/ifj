@@ -1,10 +1,22 @@
 <?php
 declare(strict_types=1);
 
-function foo(?string $str) : ?int {
-    null
-    //body
-    /* more body */
+$var = lol;
+/* comment1 */
+// comment2
+
+/* 
+
+    comment3*
+
+*/
+
+function foo(
+    ?string str,
+    ?int num,
+)
+{
+    123
 }
 
 ?>

@@ -138,6 +138,7 @@ typedef struct Token
 {
     enum token_type type;
     tToken_value data;
+    unsigned long line;
 } tToken;
 
 /**
