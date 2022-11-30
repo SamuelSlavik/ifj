@@ -21,12 +21,40 @@
 extern htab_t *symtable;
 // TODO string to IFJcode22 format function
 
+void print_stack_1(tStack *expr_stack){
+    // PRINT STACK
+    tStack print_stack;
+    StackInit(&print_stack);
+
+    while (!StackIsEmpty(expr_stack)){
+        tExprItem *stack_top_itm = ((tExprItem*) StackTop(expr_stack));
+        printf("stack item: %d\n", stack_top_itm->type);
+        StackPush(&print_stack, stack_top_itm);
+        StackPop(expr_stack);
+    }
+    while (!StackIsEmpty(&print_stack)){
+        tExprItem *stack_top_itm = ((tExprItem*) StackTop(&print_stack));
+        StackPush(expr_stack, stack_top_itm);
+        StackPop(&print_stack);
+    }
+    // END PRINT STACK
+}
+
 tDynamicBuffer *label_name_gen(char* name){
-    // TODO repair idstr buffer alloc size
     static long int id;
-    char *idstr = malloc(sizeof(id+1));
-    tDynamicBuffer *buffer = dynamicBuffer_INIT();
+
+    long long int digit_count = 0;
+    long int tmp_id = id;
+
+    while (tmp_id != 0){
+        tmp_id /= 10;
+        digit_count++;
+    }
+
+    char *idstr = malloc(sizeof(char) * digit_count + 1);
     sprintf(idstr,"%ld",id);
+
+    tDynamicBuffer *buffer = dynamicBuffer_INIT();
     dynamicBuffer_ADD_STRING(buffer,name);
     dynamicBuffer_ADD_STRING(buffer,idstr);
     free(idstr);
@@ -60,12 +88,10 @@ tDynamicBuffer *long_2_string(long int num){
     return long_str;
 }
 
-// TODO check extra token not NULL, if not do not call gettoken
 bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instruction_list, tToken *extra_token){
     PRECED_TAB;
     tStack expr_stack;
     StackInit(&expr_stack);
-
     tExprItem end_item = {.token=end_token, .type=T_END_EXPR, .is_terminal=true, .handle=false};
     StackPush(&expr_stack, &end_item);
 
@@ -73,7 +99,17 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
     if (current_token == NULL){
         exit(99);
     }
-    tToken tmp_token = {.type=start_token->type, .data=start_token->data};
+
+    tToken tmp_token;
+    if (extra_token == NULL){
+        tmp_token.type = start_token->type;
+        tmp_token.data = start_token->data;
+        start_token = NULL;
+    } else {
+        tmp_token.type = extra_token->type;
+        tmp_token.data = extra_token->data;
+        extra_token = NULL;
+    }
     current_token->type = tmp_token.type;
     current_token->data = tmp_token.data;
     size_t par_level = 0;
@@ -110,7 +146,13 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
             if (current_token == NULL){
                 exit(99);
             }
-            tmp_token = get_token(1);
+            if (start_token == NULL){
+                tmp_token = get_token(1);
+            } else {
+                tmp_token.type = start_token->type;
+                tmp_token.data = start_token->data;
+                start_token = NULL;
+            }
             current_token->type = tmp_token.type;
             current_token->data = tmp_token.data;
         } else if (preced_tab[top_terminal_idx][input_token_idx] == '<'){
@@ -133,7 +175,13 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
             if (current_token == NULL){
                 exit(99);
             }
-            tmp_token = get_token(1);
+            if (start_token == NULL){
+                tmp_token = get_token(1);
+            } else {
+                tmp_token.type = start_token->type;
+                tmp_token.data = start_token->data;
+                start_token = NULL;
+            }
             current_token->type = tmp_token.type;
             current_token->data = tmp_token.data;
         } else if (preced_tab[top_terminal_idx][input_token_idx] == '>'){
@@ -173,8 +221,14 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                         default:
                             break;
                     }
-                    DLL_InsertAfter(instruction_list, instruction);
-                    DLL_Next(instruction_list);
+
+                    if(!strcmp(instruction_list->called_from->key,"$$main")){
+                        DLL_InsertAfter_main(instruction_list, instruction);
+                        DLL_Next_main(instruction_list);
+                    } else {
+                        DLL_InsertAfter(instruction_list, instruction);
+                        DLL_Next(instruction_list);
+                    }
                     dynamicBufferFREE(instruction);
                     break;
                 case T_MUL_EXPR:
@@ -337,9 +391,16 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     dynamicBuffer_ADD_STRING(instruction, "POPFRAME\n");
 
                     dynamicBuffer_ADD_STRING(instruction, "MULS");
-                    DLL_InsertAfter(instruction_list, instruction);
-                    DLL_Next(instruction_list);
+
+                    if(!strcmp(instruction_list->called_from->key,"$$main")){
+                        DLL_InsertAfter_main(instruction_list, instruction);
+                        DLL_Next_main(instruction_list);
+                    } else {
+                        DLL_InsertAfter(instruction_list, instruction);
+                        DLL_Next(instruction_list);
+                    }
                     dynamicBufferFREE(instruction);
+
                     dynamicBufferFREE(mul_operand_1_float);
                     dynamicBufferFREE(mul_operand_1_int);
                     dynamicBufferFREE(mul_operand_1_null);
@@ -402,8 +463,15 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     dynamicBuffer_ADD_STRING(instruction, "POPFRAME\n");
 
                     dynamicBuffer_ADD_STRING(instruction, "DIVS");
-                    DLL_InsertAfter(instruction_list, instruction);
-                    DLL_Next(instruction_list);
+
+                    if(!strcmp(instruction_list->called_from->key,"$$main")){
+                        DLL_InsertAfter_main(instruction_list, instruction);
+                        DLL_Next_main(instruction_list);
+                    } else {
+                        DLL_InsertAfter(instruction_list, instruction);
+                        DLL_Next(instruction_list);
+                    }
+
                     dynamicBufferFREE(instruction);
                     dynamicBufferFREE(label_div_1);
                     dynamicBufferFREE(label_div_2);
@@ -597,9 +665,16 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     dynamicBuffer_ADD_STRING(instruction, "POPFRAME\n");
 
                     dynamicBuffer_ADD_STRING(instruction, "ADDS");
-                    DLL_InsertAfter(instruction_list, instruction);
-                    DLL_Next(instruction_list);
+
+                    if(!strcmp(instruction_list->called_from->key,"$$main")){
+                        DLL_InsertAfter_main(instruction_list, instruction);
+                        DLL_Next_main(instruction_list);
+                    } else {
+                        DLL_InsertAfter(instruction_list, instruction);
+                        DLL_Next(instruction_list);
+                    }
                     dynamicBufferFREE(instruction);
+
                     dynamicBufferFREE(add_operand_1_float);
                     dynamicBufferFREE(add_operand_1_int);
                     dynamicBufferFREE(add_operand_1_null);
@@ -795,9 +870,16 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     dynamicBuffer_ADD_STRING(instruction, "POPFRAME\n");
 
                     dynamicBuffer_ADD_STRING(instruction, "SUBS");
-                    DLL_InsertAfter(instruction_list, instruction);
-                    DLL_Next(instruction_list);
+
+                    if(!strcmp(instruction_list->called_from->key,"$$main")){
+                        DLL_InsertAfter_main(instruction_list, instruction);
+                        DLL_Next_main(instruction_list);
+                    } else {
+                        DLL_InsertAfter(instruction_list, instruction);
+                        DLL_Next(instruction_list);
+                    }
                     dynamicBufferFREE(instruction);
+
                     dynamicBufferFREE(sub_operand_1_float);
                     dynamicBufferFREE(sub_operand_1_int);
                     dynamicBufferFREE(sub_operand_1_null);
@@ -911,9 +993,16 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     dynamicBuffer_ADD_STRING(instruction, "CONCAT TF@$TMP_1 TF@$TMP_2 TF@$TMP_1\n");
                     dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@$TMP_1\n");
                     dynamicBuffer_ADD_STRING(instruction, "POPFRAME");
-                    DLL_InsertAfter(instruction_list, instruction);
-                    DLL_Next(instruction_list);
+
+                    if(!strcmp(instruction_list->called_from->key,"$$main")){
+                        DLL_InsertAfter_main(instruction_list, instruction);
+                        DLL_Next_main(instruction_list);
+                    } else {
+                        DLL_InsertAfter(instruction_list, instruction);
+                        DLL_Next(instruction_list);
+                    }
                     dynamicBufferFREE(instruction);
+
                     dynamicBufferFREE(concat_calc);
                     dynamicBufferFREE(concat_operand_2_null2str);
                     dynamicBufferFREE(concat_operand_1_null2str);
@@ -1234,8 +1323,13 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
 
                     dynamicBuffer_ADD_STRING(instruction, "POPFRAME");
 
-                    DLL_InsertAfter(instruction_list, instruction);
-                    DLL_Next(instruction_list);
+                    if(!strcmp(instruction_list->called_from->key,"$$main")){
+                        DLL_InsertAfter_main(instruction_list, instruction);
+                        DLL_Next_main(instruction_list);
+                    } else {
+                        DLL_InsertAfter(instruction_list, instruction);
+                        DLL_Next(instruction_list);
+                    }
                     dynamicBufferFREE(instruction);
 
                     dynamicBufferFREE(lt_calc);
@@ -1571,8 +1665,13 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
 
                     dynamicBuffer_ADD_STRING(instruction, "POPFRAME");
 
-                    DLL_InsertAfter(instruction_list, instruction);
-                    DLL_Next(instruction_list);
+                    if(!strcmp(instruction_list->called_from->key,"$$main")){
+                        DLL_InsertAfter_main(instruction_list, instruction);
+                        DLL_Next_main(instruction_list);
+                    } else {
+                        DLL_InsertAfter(instruction_list, instruction);
+                        DLL_Next(instruction_list);
+                    }
                     dynamicBufferFREE(instruction);
 
                     dynamicBufferFREE(gt_calc);
@@ -1909,8 +2008,13 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
 
                     dynamicBuffer_ADD_STRING(instruction, "POPFRAME");
 
-                    DLL_InsertAfter(instruction_list, instruction);
-                    DLL_Next(instruction_list);
+                    if(!strcmp(instruction_list->called_from->key,"$$main")){
+                        DLL_InsertAfter_main(instruction_list, instruction);
+                        DLL_Next_main(instruction_list);
+                    } else {
+                        DLL_InsertAfter(instruction_list, instruction);
+                        DLL_Next(instruction_list);
+                    }
                     dynamicBufferFREE(instruction);
 
                     dynamicBufferFREE(lte_calc);
@@ -2247,8 +2351,13 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
 
                     dynamicBuffer_ADD_STRING(instruction, "POPFRAME");
 
-                    DLL_InsertAfter(instruction_list, instruction);
-                    DLL_Next(instruction_list);
+                    if(!strcmp(instruction_list->called_from->key,"$$main")){
+                        DLL_InsertAfter_main(instruction_list, instruction);
+                        DLL_Next_main(instruction_list);
+                    } else {
+                        DLL_InsertAfter(instruction_list, instruction);
+                        DLL_Next(instruction_list);
+                    }
                     dynamicBufferFREE(instruction);
 
                     dynamicBufferFREE(gte_calc);
@@ -2320,9 +2429,15 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
 
                     dynamicBuffer_ADD_STRING(instruction, "POPFRAME");
 
-                    DLL_InsertAfter(instruction_list, instruction);
-                    DLL_Next(instruction_list);
+                    if(!strcmp(instruction_list->called_from->key,"$$main")){
+                        DLL_InsertAfter_main(instruction_list, instruction);
+                        DLL_Next_main(instruction_list);
+                    } else {
+                        DLL_InsertAfter(instruction_list, instruction);
+                        DLL_Next(instruction_list);
+                    }
                     dynamicBufferFREE(instruction);
+
                     dynamicBufferFREE(eq_neq_type);
                     dynamicBufferFREE(eq_end);
                     break;
@@ -2377,8 +2492,13 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
 
                     dynamicBuffer_ADD_STRING(instruction, "POPFRAME");
 
-                    DLL_InsertAfter(instruction_list, instruction);
-                    DLL_Next(instruction_list);
+                    if(!strcmp(instruction_list->called_from->key,"$$main")){
+                        DLL_InsertAfter_main(instruction_list, instruction);
+                        DLL_Next_main(instruction_list);
+                    } else {
+                        DLL_InsertAfter(instruction_list, instruction);
+                        DLL_Next(instruction_list);
+                    }
                     dynamicBufferFREE(instruction);
                     dynamicBufferFREE(neq_neq_type);
                     dynamicBufferFREE(neq_end);
@@ -2499,30 +2619,6 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
     //clean_expr_stack(&expr_stack);
     return true;
 }
-/*
-
-void print_stack(tStack *expr_stack){
-    // PRINT STACK
-    tStack print_stack;
-    StackInit(&print_stack);
-
-    while (!StackIsEmpty(expr_stack)){
-        tExprItem *stack_top_itm = ((tExprItem*) StackTop(expr_stack));
-        print_token_type(stack_top_itm->type);
-        StackPush(&print_stack, stack_top_itm);
-        StackPop(expr_stack);
-    }
-    while (!StackIsEmpty(&print_stack)){
-        tExprItem *stack_top_itm = ((tExprItem*) StackTop(&print_stack));
-        StackPush(expr_stack, stack_top_itm);
-        StackPop(&print_stack);
-    }
-    // END PRINT STACK
-}
-
-*/
-
-
 
 void clean_expr_stack(tStack *expr_stack){
     //printf("Cleaning stack!\n");
