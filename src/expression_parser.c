@@ -71,6 +71,7 @@ tDynamicBuffer *long_2_string(long int num){
 
 // TODO check extra token not NULL, if not do not call gettoken
 bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instruction_list, tToken *extra_token){
+    printf("hello\n");
     PRECED_TAB;
     tStack expr_stack;
     StackInit(&expr_stack);
@@ -86,9 +87,12 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
     if (extra_token == NULL){
         tmp_token.type = start_token->type;
         tmp_token.data = start_token->data;
+        start_token = NULL;
     } else {
+        printf("%d\n", extra_token->type);
         tmp_token.type = extra_token->type;
         tmp_token.data = extra_token->data;
+        extra_token = NULL;
     }
     current_token->type = tmp_token.type;
     current_token->data = tmp_token.data;
@@ -126,7 +130,12 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
             if (current_token == NULL){
                 exit(99);
             }
-            tmp_token = get_token(1);
+            if (start_token == NULL){
+                tmp_token = get_token(1);
+            } else {
+                tmp_token = *start_token;
+                start_token = NULL;
+            }
             current_token->type = tmp_token.type;
             current_token->data = tmp_token.data;
         } else if (preced_tab[top_terminal_idx][input_token_idx] == '<'){
@@ -149,7 +158,12 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
             if (current_token == NULL){
                 exit(99);
             }
-            tmp_token = get_token(1);
+            if (start_token == NULL){
+                tmp_token = get_token(1);
+            } else {
+                tmp_token = *start_token;
+                start_token = NULL;
+            }
             current_token->type = tmp_token.type;
             current_token->data = tmp_token.data;
         } else if (preced_tab[top_terminal_idx][input_token_idx] == '>'){
