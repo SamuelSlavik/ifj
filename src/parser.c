@@ -128,6 +128,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
             end_token.type = T_SEMICOLON;
             tmp_token.data.STRINGval= dynamicBuffer_INIT();
             dynamicBuffer_ADD_STRING(tmp_token.data.STRINGval,instruction_list->curr_var->key);
+            printf("sssssssssssssssss%s",tmp_token.data.STRINGval->data);
             body = check_expr_syntax(token, &end_token,instruction_list, &tmp_token);
             ERROR_EXIT(body,token,SYNTAX_ERROR);
         }
@@ -616,17 +617,18 @@ int main(){
     tDynamicBuffer *instruction = dynamicBuffer_INIT();
     symtable = htab_init(HTAB_SIZE);
     DLList instruction_list;
-    dynamicBuffer_ADD_STRING(instruction,"$$main");
-    instruction_list.curr_fun = st_fun_create(symtable,instruction->data);
-    dynamicBufferFREE(instruction);
     StackInit(&frames);
-    instruction = dynamicBuffer_INIT();
     dynamicBuffer_ADD_STRING(instruction,".IFJcode22");
     DLL_Init(&instruction_list);
     DLL_InsertFirst(&instruction_list, instruction);
     dynamicBufferFREE(instruction);
     DLL_First_main(&instruction_list);
     DLL_First(&instruction_list);
+    instruction = dynamicBuffer_INIT();    
+    dynamicBuffer_ADD_STRING(instruction,"$$main");
+    instruction_list.curr_fun = st_fun_create(symtable,instruction->data);
+    instruction_list.called_from = htab_find(symtable, "$$main");
+    dynamicBufferFREE(instruction);
     instruction = dynamicBuffer_INIT();
     dynamicBuffer_ADD_STRING(instruction,"CREATEFRAME");
     DLL_InsertAfter(&instruction_list,instruction);
