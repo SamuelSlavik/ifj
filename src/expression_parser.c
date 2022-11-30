@@ -22,11 +22,20 @@ extern htab_t *symtable;
 // TODO string to IFJcode22 format function
 
 tDynamicBuffer *label_name_gen(char* name){
-    // TODO repair idstr buffer alloc size
     static long int id;
-    char *idstr = malloc(sizeof(id+1));
-    tDynamicBuffer *buffer = dynamicBuffer_INIT();
+
+    long long int digit_count = 0;
+    long int tmp_id = id;
+
+    while (tmp_id != 0){
+        tmp_id /= 10;
+        digit_count++;
+    }
+
+    char *idstr = malloc(sizeof(char) * digit_count + 1);
     sprintf(idstr,"%ld",id);
+
+    tDynamicBuffer *buffer = dynamicBuffer_INIT();
     dynamicBuffer_ADD_STRING(buffer,name);
     dynamicBuffer_ADD_STRING(buffer,idstr);
     free(idstr);
@@ -65,7 +74,6 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
     PRECED_TAB;
     tStack expr_stack;
     StackInit(&expr_stack);
-
     tExprItem end_item = {.token=end_token, .type=T_END_EXPR, .is_terminal=true, .handle=false};
     StackPush(&expr_stack, &end_item);
 
@@ -73,7 +81,15 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
     if (current_token == NULL){
         exit(99);
     }
-    tToken tmp_token = {.type=start_token->type, .data=start_token->data};
+
+    tToken tmp_token;
+    if (extra_token == NULL){
+        tmp_token.type = start_token->type;
+        tmp_token.data = start_token->data;
+    } else {
+        tmp_token.type = extra_token->type;
+        tmp_token.data = extra_token->data;
+    }
     current_token->type = tmp_token.type;
     current_token->data = tmp_token.data;
     size_t par_level = 0;
