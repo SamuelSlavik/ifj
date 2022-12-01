@@ -58,6 +58,10 @@ bool dynamicBuffer_ADD_CHAR(tDynamicBuffer* buffer ,char c) {
             buffer->allocated_size *= 2;
             buffer->data[buffer->size] = c;
             buffer->size++;
+
+            for (size_t i = buffer->size; i < buffer->allocated_size; ++i) {
+                buffer->data[i] = 0;
+            }
             return true;
         }
     }
@@ -79,6 +83,10 @@ void dynamicBuffer_ADD_STRING(tDynamicBuffer* buffer, const char *c){ // magia s
             exit(99);
         }
         buffer->allocated_size = (buffer->size + len + 1) * 2;
+
+        for (size_t i = buffer->size; i < buffer->allocated_size; ++i) {
+            buffer->data[i] = 0;
+        }
     }
     buffer->size += len;
     strcat(buffer->data, c);

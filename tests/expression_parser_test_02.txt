@@ -1,5 +1,4 @@
 <?php
 declare(strict_types=1);
-$a = 2;
-$b = $a - 3;
+$a = "retezec s lomitkem \\ a\nnovym#radkem\x6A";
 ?>

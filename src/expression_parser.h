@@ -62,6 +62,8 @@ typedef struct expr_item{
     bool handle;
 }tExprItem;
 
+void string_to_ifj_fmt(tDynamicBuffer **string);
+
 tDynamicBuffer *label_name_gen(char* name);
 
 tDynamicBuffer *double_2_string(double num);
