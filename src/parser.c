@@ -128,9 +128,9 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
             end_token.type = T_SEMICOLON;
             tmp_token.data.STRINGval= dynamicBuffer_INIT();
             dynamicBuffer_ADD_STRING(tmp_token.data.STRINGval,instruction_list->curr_var->key);
-            printf("sssssssssssssssss%s",tmp_token.data.STRINGval->data);
             body = check_expr_syntax(token, &end_token,instruction_list, &tmp_token);
             ERROR_EXIT(body,token,SYNTAX_ERROR);
+            *token = get_token(1);
         }
         break;
     case T_FUN_ID:
