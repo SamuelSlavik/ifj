@@ -19,7 +19,11 @@
 #include "error.h"
 
 #define ERROR_EXIT(flag,token,errcode) if (!(flag)){error_exit(token,errcode);}
-#define DETECT_MAIN(instruction_list,instruction,key) if(!strcmp(key,"$$main")){DLL_InsertAfter_main(instruction_list,instruction); DLL_Next_main(instruction_list);}else{DLL_InsertAfter(instruction_list,instruction); DLL_Next(instruction_list);}
+#define DETECT_MAIN(instruction_list,instruction,key) if(!strcmp(key,"$$main")){DLL_InsertAfter_main(instruction_list,instruction);\
+if(instruction_list->active==instruction_list->main_body)\
+{DLL_Next(instruction_list);}\
+DLL_Next_main(instruction_list);}\
+else{DLL_InsertAfter(instruction_list,instruction); DLL_Next(instruction_list);}
 tStack frames;
 htab_t *local_sym;
 extern htab_t *symtable;
@@ -106,7 +110,12 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
             dynamicBuffer_ADD_STRING(instruction, "DEFVAR ");
             dynamicBuffer_ADD_STRING(instruction, "LF@");
             dynamicBuffer_ADD_STRING(instruction, token->data.STRINGval->data);
-            DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
+            if (instruction_list->if_while != NULL){
+                DLL_InsertBefore_if_while(instruction_list,instruction);
+            }
+            else{
+                DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
+            }
             dynamicBufferFREE(instruction);
         }
         instruction_list->curr_var=st_var_create(symtable, token->data.STRINGval->data);
@@ -198,18 +207,38 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
         }
     break;
     case T_WHILE:
+        char *labelname = label_name_gen(token->data.STRINGval->data)->data;
+        instruction = dynamicBuffer_INIT();
+        dynamicBuffer_ADD_STRING(instruction, "LABEL while_");
+        dynamicBuffer_ADD_STRING(instruction, labelname);
+        DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
+        if (instruction_list->if_while == NULL){
+            instruction_list->label = labelname;
+        DLL_Set_if_while(instruction_list);
+        }
+        dynamicBufferFREE(instruction);
         *token = get_token(1);
+        
         if(token->type == T_L_PAR){
             *token = get_token(1);
             end_token.type = T_R_PAR;
             body = check_expr_syntax(token, &end_token,instruction_list,NULL);
             ERROR_EXIT(body,token,SYNTAX_ERROR);
-            if (body == false) return body; //znova magia skontrolovat
             *token = get_token(1);
             if (token->type == T_L_BRAC){
                 *token = get_token(1);
                 body = f_in_body(token,instruction, instruction_list);
                 ERROR_EXIT(body,token,SYNTAX_ERROR);
+                instruction = dynamicBuffer_INIT();
+                dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQS while_");
+                dynamicBuffer_ADD_STRING(instruction, labelname);
+                DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
+                dynamicBufferFREE(instruction);
+                //poriesit pre vnorene loopy
+                if (!strcmp(instruction_list->label,labelname)){
+                    printf("sdsdsdsdsdsdsds\n");
+                    instruction_list->if_while=NULL; 
+                }          
             }
         }
     break;
@@ -440,21 +469,20 @@ bool f_func(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list)
         *token = get_token(1);
         if(token->type == T_FUN_ID){
             if (htab_find(symtable,token->data.STRINGval->data) == NULL ){
+                instruction_list->curr_fun=st_fun_create(symtable, token->data.STRINGval->data);
+                instruction_list->called_from=st_fun_create(symtable, token->data.STRINGval->data);
                 instruction = dynamicBuffer_INIT();
                 dynamicBuffer_ADD_STRING(instruction, "LABEL ");
                 label_name_gen(token->data.STRINGval->data);
-                DLL_InsertAfter(instruction_list,instruction);
-                DLL_Next(instruction_list);
+                DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
                 dynamicBufferFREE(instruction);
                 instruction = dynamicBuffer_INIT();
                 dynamicBuffer_ADD_STRING(instruction, "PUSHFRAME");
-                DLL_InsertAfter(instruction_list,instruction);
-                DLL_Next(instruction_list);
+                DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
                 dynamicBufferFREE(instruction);
                 instruction = dynamicBuffer_INIT();
                 dynamicBuffer_ADD_STRING(instruction, "CREATEFRAME");
-                DLL_InsertAfter(instruction_list,instruction);
-                DLL_Next(instruction_list);
+                DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
                 dynamicBufferFREE(instruction);
             //TODO IFJCODE
             }
