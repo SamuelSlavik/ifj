@@ -181,23 +181,58 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
         ERROR_EXIT(body,token,SYNTAX_ERROR);
     break;
     case T_IF:
+        char *labelnameif = label_name_gen(token->data.STRINGval->data)->data;
+        instruction = dynamicBuffer_INIT();
+        dynamicBuffer_ADD_STRING(instruction, "LABEL if_");
+        dynamicBuffer_ADD_STRING(instruction, labelnameif);
+        DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
+        if (instruction_list->if_while == NULL){
+            instruction_list->label = labelnameif;
+        DLL_Set_if_while(instruction_list);
+        }
+        dynamicBufferFREE(instruction);
         *token = get_token(1);
         if(token->type == T_L_PAR){
             *token = get_token(1);
             end_token.type = T_R_PAR;
             body = check_expr_syntax(token, &end_token,instruction_list,NULL);
-            ERROR_EXIT(body,token,SYNTAX_ERROR); //znova magia skontrolovat
+            instruction = dynamicBuffer_INIT();
+            dynamicBuffer_ADD_STRING(instruction, "JUMPIFNEQ false_"); // poriesit podmienene jumpy
+            dynamicBuffer_ADD_STRING(instruction, labelnameif);
+            DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
+            dynamicBufferFREE(instruction);
+            ERROR_EXIT(body,token,SYNTAX_ERROR);
             *token = get_token(1);
             if (token->type == T_L_BRAC){
                 *token = get_token(1);
                 body = f_in_body(token,instruction, instruction_list);
-                ERROR_EXIT(body,token,SYNTAX_ERROR);
+                ERROR_EXIT(body,token,SYNTAX_ERROR);            
+                instruction = dynamicBuffer_INIT();
+                dynamicBuffer_ADD_STRING(instruction, "JUMP end_");
+                dynamicBuffer_ADD_STRING(instruction, labelnameif);
+                DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
+                dynamicBufferFREE(instruction);
                 if (token->type == T_ELSE){
                     *token = get_token(1);
                     if(token->type == T_L_BRAC){
+                        instruction = dynamicBuffer_INIT();
+                        dynamicBuffer_ADD_STRING(instruction, "LABEL false_");
+                        dynamicBuffer_ADD_STRING(instruction, labelnameif);
+                        DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
+                        dynamicBufferFREE(instruction);
                         *token = get_token(1);
                         body = f_in_body(token,instruction, instruction_list);
                         ERROR_EXIT(body,token,SYNTAX_ERROR);
+                        
+                        instruction = dynamicBuffer_INIT();
+                        dynamicBuffer_ADD_STRING(instruction, "LABEL end_");
+                        dynamicBuffer_ADD_STRING(instruction, labelnameif);
+                        DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
+                        dynamicBufferFREE(instruction);
+                        if (!strcmp(instruction_list->label,labelnameif)){
+                            printf("sdsdsdsdsdsdsds\n");
+                            instruction_list->if_while=NULL; 
+                            }
                     }
                 }
                 else{
