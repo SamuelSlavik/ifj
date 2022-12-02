@@ -18,6 +18,8 @@ typedef struct {
 	DLL_instruction *active;
 	DLL_instruction *main_body;
 	DLL_instruction *last;
+	DLL_instruction *if_while;
+	char *label;
 } DLList;
 
 void DLL_Init( DLList * );
@@ -58,6 +60,8 @@ void DLL_Previous( DLList * );
 
 int DLL_IsActive( DLList * );
 void DLL_InsertAfter_main( DLList *, tDynamicBuffer *);
+void DLL_InsertBefore_if_while( DLList *, tDynamicBuffer *);
+void DLL_Set_if_while( DLList *);
 void DLL_First_main( DLList * );
 void DLL_Next_main( DLList * );
 

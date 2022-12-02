@@ -12,6 +12,7 @@ void DLL_Init( DLList *list ) {
     list->called_from=NULL;
     list->curr_fun = NULL;
     list->curr_var = NULL;
+    list->if_while = NULL;
 }
 
 void DLL_Dispose( DLList *list ) {
@@ -245,6 +246,33 @@ void DLL_InsertBefore( DLList *list, tDynamicBuffer *instruction ) {
         }
     }
 }
+void DLL_InsertBefore_if_while( DLList *list, tDynamicBuffer *instruction ) {
+    // If list has no active element do nothing
+    if (list->if_while != NULL){
+        // Allocate space for new element and check whether it was successful
+        DLL_instruction *new_element = malloc(sizeof(DLL_instruction));
+        if (new_element == NULL){
+            
+            return;
+        }
+        new_element->instruction = dynamicBuffer_INIT();
+        dynamicBuffer_ADD_STRING(new_element->instruction, instruction->data);
+        new_element->nextElement = list->if_while;
+        new_element->previousElement = list->if_while->previousElement;
+        list->if_while->previousElement = new_element;
+
+        // If active element was also first move pointer to last element
+        if (list->if_while == list->first){
+            list->first = new_element;
+        } else{
+            new_element->previousElement->nextElement = new_element;
+        }
+    }
+}
+void DLL_Set_if_while( DLList *list){
+    list->if_while = list->active;
+}
+
 
 void DLL_GetValue( DLList *list, tDynamicBuffer *instruction ) {
     // If list has no active element return with error
