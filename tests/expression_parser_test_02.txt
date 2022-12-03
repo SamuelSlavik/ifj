@@ -1,4 +1,6 @@
 <?php
 declare(strict_types=1);
-$a = "retezec s lomitkem \\ a\nnovym#radkem\x6A";
+$a = "retezec s lomitkem \\ a\nnovym#radkem\x6A\1a52";
+$a = $a . "ABC";
+
 ?>

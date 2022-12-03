@@ -19,7 +19,7 @@
 #include "dll_instruction_list.h"
 
 extern htab_t *symtable;
-// TODO string to IFJcode22 format function
+
 void string_to_ifj_fmt(tDynamicBuffer **string){
     tDynamicBuffer *tmp_copy = dynamicBuffer_INIT();
     dynamicBuffer_ADD_STRING(tmp_copy, (*string)->data);
@@ -51,12 +51,12 @@ void string_to_ifj_fmt(tDynamicBuffer **string){
                 dynamicBuffer_ADD_CHAR(hex_str, tmp_copy->data[i+1]);
                 dynamicBuffer_ADD_CHAR(hex_str, tmp_copy->data[i+2]);
 
-                char *end_ptr = NULL;
-                long int_val = strtol(hex_str->data, &end_ptr, 16);
-                if (*end_ptr != '\0'){
+                char *hex_end_ptr = NULL;
+                long hex_int_val = strtol(hex_str->data, &hex_end_ptr, 16);
+                if (*hex_end_ptr != '\0'){
                     dynamicBuffer_ADD_STRING(*string, "\\092x");
                 } else {
-                    tDynamicBuffer *int_val_str = long_2_string(int_val);
+                    tDynamicBuffer *int_val_str = long_2_string(hex_int_val);
                     dynamicBuffer_ADD_STRING(*string, "\\");
                     dynamicBuffer_ADD_STRING(*string, int_val_str->data);
                     dynamicBufferFREE(int_val_str);
@@ -64,7 +64,24 @@ void string_to_ifj_fmt(tDynamicBuffer **string){
                 }
                 dynamicBufferFREE(hex_str);
             } else if(current_char >= '0' && current_char <= '3'){
-                dynamicBuffer_ADD_STRING(*string, "\\009");
+                tDynamicBuffer *oct_str = dynamicBuffer_INIT();
+                dynamicBuffer_ADD_CHAR(oct_str, (char) current_char);
+                dynamicBuffer_ADD_CHAR(oct_str, tmp_copy->data[i+1]);
+                dynamicBuffer_ADD_CHAR(oct_str, tmp_copy->data[i+2]);
+
+                char *oct_end_ptr = NULL;
+                long oct_int_val = strtol(oct_str->data, &oct_end_ptr, 8);
+                if (*oct_end_ptr != '\0'){
+                    dynamicBuffer_ADD_STRING(*string, "\\092");
+                    dynamicBuffer_ADD_CHAR(*string, (char) current_char);
+                } else {
+                    tDynamicBuffer *int_val_str = long_2_string(oct_int_val);
+                    dynamicBuffer_ADD_STRING(*string, "\\");
+                    dynamicBuffer_ADD_STRING(*string, int_val_str->data);
+                    dynamicBufferFREE(int_val_str);
+                    i += 2;
+                }
+                dynamicBufferFREE(oct_str);
             } else {
                 dynamicBuffer_ADD_STRING(*string, "\\092");
                 dynamicBuffer_ADD_CHAR(*string, (char) current_char);
@@ -107,7 +124,7 @@ tDynamicBuffer *label_name_gen(char* name){
         digit_count++;
     }
 
-    char *idstr = malloc(sizeof(char) * digit_count + 1);
+    char *idstr = calloc(sizeof(char), digit_count + 2);
     sprintf(idstr,"%ld",id);
 
     tDynamicBuffer *buffer = dynamicBuffer_INIT();
@@ -171,8 +188,6 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
     size_t par_level = 0;
 
     while (!is_expr_end_token(current_token, end_token, &par_level) || !is_stack_end_state(&expr_stack, end_token)){
-        printf("ITER!!!!!!!!!\n");
-        print_stack_1(&expr_stack);
         if (current_token->type == T_L_PAR){
             par_level++;
         }
@@ -183,8 +198,6 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
         size_t input_token_idx = token_to_preced_idx(current_token->type, is_expr_end_token(current_token, end_token, &par_level) && top_terminal_idx != T_LPAR_EXPR);
 
         if (input_token_idx == T_UNKNOW_EXPR){
-            printf("UNKNOWN TOKEN ERROR\n");
-            printf("token: %d\n", current_token->type);
             return false;
         }
 
@@ -256,13 +269,12 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     dynamicBuffer_ADD_STRING(instruction, "PUSHS ");
                     switch (top_terminal->token->type) {
                         case T_VAR_ID:
+                            // TODO check if var is defined
                             dynamicBuffer_ADD_STRING(instruction, "LF@");
                             dynamicBuffer_ADD_STRING(instruction, top_terminal->token->data.STRINGval->data);
                             break;
                         case T_STRING:
-                            printf("initial: %s\n", top_terminal->token->data.STRINGval->data);
                             string_to_ifj_fmt(&top_terminal->token->data.STRINGval);
-                            printf("final: %s\n", top_terminal->token->data.STRINGval->data);
                             dynamicBuffer_ADD_STRING(instruction, "string@");
                             dynamicBuffer_ADD_STRING(instruction, top_terminal->token->data.STRINGval->data);
                             break;
@@ -288,9 +300,15 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     if(!strcmp(instruction_list->called_from->key,"$$main")){
                         DLL_InsertAfter_main(instruction_list, instruction);
                         DLL_Next_main(instruction_list);
+                        if (instruction_list->active == instruction_list->main_body){
+                            DLL_Next(instruction_list);
+                        }
                     } else {
                         DLL_InsertAfter(instruction_list, instruction);
                         DLL_Next(instruction_list);
+                        if (instruction_list->active == instruction_list->main_body){
+                            DLL_Next_main(instruction_list);
+                        }
                     }
                     dynamicBufferFREE(instruction);
                     break;
@@ -2620,16 +2638,13 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                             StackPush(&expr_stack, new_expr_item);
                         } else {
                             free(tmp_stack_item);
-                            printf("(OPERAND!) TOKEN ERROR\n");
                             return false;
                         }
                     } else {
-                        printf("(!OPERAND TOKEN ERROR\n");
                         free(tmp_stack_item);
                         return false;
                     }
                 } else {
-                    printf("!(&&!OPERAND TOKEN ERROR\n");
                     free(tmp_stack_item);
                     return false;
                 }
@@ -2665,29 +2680,24 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
 
                             StackPush(&expr_stack, new_expr_item);
                         } else {
-                            printf("OPERAND OP !OPERAND TOKEN ERROR\n");
                             free(current_token);
                             free(new_expr_item);
                             return false;
                         }
                         break;
                     default:
-                        printf("OPERAND !OP TOKEN ERROR\n");
                         free(current_token);
                         free(new_expr_item);
                         return false;
                 }
             } else {
-                printf("!OPERAND && !TERMINAL TOKEN ERROR\n");
                 return false;
             }
         } else if (preced_tab[top_terminal_idx][input_token_idx] == '\0'){
-            printf("INVALID TOKEN SEQUENCE ERROR\n");
             return false;
         }
     }
     //clean_expr_stack(&expr_stack);
-    printf("NA JA GUT\n");
     return true;
 }
 
