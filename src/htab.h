@@ -75,6 +75,7 @@ typedef struct data_fun
     tStack *TaV;                    // stack of types and variables in parameter of function
     enum token_type return_type;    // return type of function
     htab_t *localST;                // pointer to local symbol table for this function
+    tDynamicBuffer *label_name;
 } tData_fun;
 
 
