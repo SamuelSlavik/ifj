@@ -263,7 +263,7 @@ void st_fun_definition(htab_data_t *data);
 
 
 /**
- * @brief Create new frame for function and place it to stack.
+ * @brief Create new symbol table for function.
  * New frame (symbol table) will have pointer to global table
  * 
  * @param global_ST global symbol table
@@ -271,7 +271,7 @@ void st_fun_definition(htab_data_t *data);
  * @param fun_name the name of function for which frame is set
  * @return htab_t* pointer to new local symbol table or NULL if fail
  */
-htab_t *st_fun_call(htab_t *global_ST, tStack *s, char *fun_name);
+htab_t *st_fun_table_create(htab_t *global_ST, char *fun_name);
 
 
 /**
@@ -306,11 +306,11 @@ void st_var_set(htab_t *t, char *name, enum token_type type);
 
 
 /**
- * @brief Free function parameters and stack of parameters
+ * @brief Free function parameters, stack of parameters and symbol table
  * 
  * @param data pointer to data
  */
-void st_fun_param_free(htab_data_t *data);
+void st_fun_free(htab_data_t *data);
 
 
 

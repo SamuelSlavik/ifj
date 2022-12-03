@@ -107,12 +107,12 @@ void st_fun_definition(htab_data_t *data){
 
 
 
-htab_t *st_fun_call(htab_t *global_ST, tStack *s, char *fun_name){
+htab_t *st_fun_table_create(htab_t *global_ST, char *fun_name){
 
     /* Find function data */
     htab_data_t *data = htab_find(global_ST, fun_name);
     if (data == NULL){ // not found
-        /* TODO: "Function was not defined" err handle */
+        /* TODO: "Function was not declared" err handle */
         return NULL;
     }
 
@@ -124,10 +124,6 @@ htab_t *st_fun_call(htab_t *global_ST, tStack *s, char *fun_name){
     data->data.fun_data.localST = local_ST;
     local_ST->globalST = global_ST;
 
-    if (!StackPush(s, (void *) local_ST)){
-        htab_free(local_ST);
-        return NULL;
-    }
     return local_ST;
 }
 
@@ -181,7 +177,7 @@ void st_var_set(htab_t *t, char *name, enum token_type type){
 
 
 
-void st_fun_param_free(htab_data_t *data){
+void st_fun_free(htab_data_t *data){
     if (data->isfun){
         while (!StackIsEmpty(data->data.fun_data.TaV)){
             free(((tVar_TaV *)StackTop(data->data.fun_data.TaV))->var);
@@ -189,5 +185,6 @@ void st_fun_param_free(htab_data_t *data){
             StackPop(data->data.fun_data.TaV);
         }                
         free(data->data.fun_data.TaV);
+        free(data->data.fun_data.localST);
     }
 }
