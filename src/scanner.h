@@ -113,7 +113,6 @@ enum token_type {
     //
     T_EOF,
     T_UNKNOW,
-    T_COMMENT_ERROR,        // incomplete block of comment
     T_ERROR,
 };
 
@@ -215,6 +214,28 @@ enum token_type is_reserved_id(tDynamicBuffer* string);
  * @param init_count control parameter for initialization
  */
 void load_letter(tToken* token, char c, unsigned long *init_count);
+
+
+/**
+ * @brief Function for loading input after getting epilog
+ * 
+ * @param token pointer to token where data will be loaded
+ * @param c current char
+ * @param line_count pointer to static variable in which lines are counted
+ * @return tToken Token T_EOF or T_ERROR if fail
+ */
+tToken automat_state_epilog(tToken *token, char c, unsigned long *line_count);
+
+
+/**
+ * @brief Function for loading prolog
+ * 
+ * @param token pointer to token where data will be loaded
+ * @param c current char
+ * @param line_count pointer to static variable in which lines are counted
+ * @return tToken Token T_PROLOG or T_ERROR if fail
+ */
+tToken automat_state_prolog(tToken *token, char c, unsigned long *line_count);
 
 
 /**

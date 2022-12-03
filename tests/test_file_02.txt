@@ -1,22 +1,8 @@
 <?php
 declare(strict_types=1);
 
-$var = lol;
-/* comment1 */
-// comment2
 
-/* 
+1.2e-
 
-    comment3*
-
-*/
-
-function foo(
-    ?string str,
-    ?int num,
-)
-{
-    123
-}
 
 ?>
