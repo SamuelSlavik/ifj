@@ -1,6 +1,9 @@
 <?php
 declare(strict_types=1);
-$a = "retezec s lomitkem \\ a\nnovym#radkem\x6A\1a52";
-$a = $a < "ABC";
+$a = 5;
+function foo(?int $b): void{
+
+}
+foo($a);
 
 ?>
