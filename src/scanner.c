@@ -107,8 +107,8 @@ void load_string(tToken* token, char c, unsigned long *init_count){
         }
         *init_count = 1;
     }
-    /* PROCESS */
-    if (c != '"'){
+    /* PROCESS skip first '"' */
+    if (c != '"' || token->data.STRINGval->size > 0){
         bool err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
         if (err == false){
             error_handle(ERROR);
@@ -210,13 +210,17 @@ void string_to_num(tToken* token){
     
     /* IF FLOAT */
 
-    tmp_double = strtod(token->data.STRINGval->data, &err);
+    /* check for missing decimal */
+    if (token->data.STRINGval->data[token->data.STRINGval->size - 1] != '.'){
+
+        tmp_double = strtod(token->data.STRINGval->data, &err);
     
-    if (*err == '\0'){
-        token->type = T_NUM_FLOAT;
-        dynamicBufferFREE(token->data.STRINGval);
-        token->data.FLOATval = tmp_double;
-        return;
+        if (*err == '\0'){
+            token->type = T_NUM_FLOAT;
+            dynamicBufferFREE(token->data.STRINGval);
+            token->data.FLOATval = tmp_double;
+            return;
+        }
     }
 
     /* ELSE */
@@ -226,40 +230,18 @@ void string_to_num(tToken* token){
 
 
 enum token_type is_reserved_id(tDynamicBuffer* string){
+
+    char *reserved_words[] =  {"string", "int", "float", "while", "if", "else", "function", "return", "void", "null"};
+    enum token_type types[] = {T_STRING_TYPE, T_INT_TYPE, T_FLOAT_TYPE, T_WHILE, T_IF, T_ELSE, T_FUNCTION, T_RETURN, T_VOID, T_NULL};
+
+    /* Loop through reserved words array which have 10 members */
+    for (size_t i = 0; i < 10; i++){
+        if ((strcmp(string->data, reserved_words[i])) == 0){
+            return types[i];
+        }
+    }
     
-    if ((strcmp(string->data, "string")) == 0){
-        return T_STRING_TYPE;
-    }
-    else if ((strcmp(string->data, "int")) == 0){
-        return T_INT_TYPE;
-    }
-    else if ((strcmp(string->data, "float")) == 0){
-        return T_FLOAT_TYPE;
-    }
-    else if ((strcmp(string->data, "while")) == 0){
-        return T_WHILE;
-    }
-    else if ((strcmp(string->data, "if")) == 0){
-        return T_IF;
-    }
-    else if ((strcmp(string->data, "else")) == 0){
-        return T_ELSE;
-    }
-    else if ((strcmp(string->data, "function")) == 0){
-        return T_FUNCTION;
-    }
-    else if ((strcmp(string->data, "return")) == 0){
-        return T_RETURN;
-    }
-    else if ((strcmp(string->data, "void")) == 0){
-        return T_VOID;
-    }
-    else if ((strcmp(string->data, "null") == 0)){
-        return T_NULL;
-    }
-    else {
-        return T_FUN_ID;
-    }
+    return T_FUN_ID;
 }
 
 
@@ -284,15 +266,159 @@ void load_letter(tToken* token, char c, unsigned long *init_count){
 }
 
 
-/**
- * @brief Create the token object loaded from stdin
- * @param automat_state there are 3 possible automat states
- * 0 => WAITING ON PROLOG
- * 1 => PROCESS PROGRAM (normall token loading)
- * 2 => CHECKING CORRECT END (after epilog occures)
- * 
- * @return Loaded Token
- */
+tToken automat_state_prolog(tToken *token, char c, unsigned long *line_count){
+
+    bool err = true;
+    token->type = T_ERROR;
+
+    /* initialize line count */
+    *line_count = 1;
+
+    /* initialize buffer */
+    token->data.STRINGval = dynamicBuffer_INIT();
+    if (token->data.STRINGval == NULL){
+        /* @todo: error handle */
+    }
+
+    /* LOAD FIRST PART <?php */
+    for (size_t i = 0; i < strlen("<?php"); i++){
+        err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
+        if (err == false){
+            /* @todo: error handle*/
+        }
+        c = getchar();
+        if (c == EOF){
+            return *token;
+        }
+    }
+
+    /* Check first part of prolog */
+    if ((strcmp(token->data.STRINGval->data, "<?php")) != 0){
+        return *token;
+    }
+
+    /* LOAD SECOND PART declare(strict_types=1); */
+    enum automat_state STATE = change_state(c);
+    do
+    {
+        switch (STATE)
+        {
+        case S_START:
+            if (c == '\n'){
+                (*line_count)++;
+            }
+            STATE = change_state(c);
+            if (STATE != S_START){
+                ungetc(c, stdin);
+            }
+            else{
+                err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
+                if (err == false){
+                    /* @todo: error handle*/
+                }
+            }
+            break;
+        case S_LETTER:
+        case S_INT_NUM:
+        case S_EQUAL:
+        case S_R_PAR:
+        case S_L_PAR:
+            /* Add symbol */
+            err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
+            if (err == false){
+                /* @todo: error handle*/
+            }
+            STATE = S_START;
+            break;
+        case S_SEMICOLON:
+            /* Check if correct */
+            if (isspace(token->data.STRINGval->data[5])){
+                /* 29 is leng of prolog without white spaces + 1 */
+                char tmp[29] = {'\0'};
+                for (unsigned long i = 0, k = 0; i < token->data.STRINGval->size; i++){
+                    if (!isspace(token->data.STRINGval->data[i]) && k < 28){
+                        tmp[k] = token->data.STRINGval->data[i];
+                        k++;
+                    }
+                }
+                if (!strcmp(tmp, "<?phpdeclare(strict_types=1)")){
+                    token->type = T_PROLOG;
+                }
+            }
+            return *token;
+        case S_SLASH:
+            STATE = S_COMMENT;
+            break;
+        case S_COMMENT:
+            if (c == '*'){
+                STATE = S_BLOCK_COMMENT;
+            }
+            else if (c == '/')
+            {
+                STATE = S_LINE_COMMENT;
+            }
+            else{
+                return *token;
+            }
+            break;
+        case S_BLOCK_COMMENT:
+            if (c == '*'){
+                STATE = S_B_C_END;
+            }
+            else if (c == '\n'){
+                (*line_count)++;
+            }
+            break;
+        case S_B_C_END:
+            if (c == '/'){
+                STATE = S_START;
+            }
+            else{
+                if (c == '\n'){
+                    (*line_count)++;
+                }
+                if (c != '*'){
+                    STATE = S_BLOCK_COMMENT;
+                }
+            }
+            break;
+        case S_LINE_COMMENT:
+            if (c == '\n'){
+                (*line_count)++;
+                STATE = S_START;
+            }
+            break;
+        default:
+            return *token;
+            break;
+        }
+    } while ((c = getchar()) != EOF);
+
+    return *token;
+}
+
+
+tToken automat_state_epilog(tToken *token, char c, unsigned long *line_count){
+
+    token->type = T_EOF;
+
+    // One \n is accepted
+    if (c != '\n'){
+        token->type = T_ERROR;
+    }
+
+    *line_count += 1;
+    token->line = *line_count;
+
+    c = getchar();
+    if (c != EOF){
+        token->type = T_ERROR;
+    }
+
+    return *token;
+}
+
+
 tToken get_token(short automat_state){
 
     tToken token;
@@ -310,23 +436,7 @@ tToken get_token(short automat_state){
     /* AUTOMAT STATE 2 => CHECKING CORRECT END */
 
     if (automat_state == 2){
-
-        token.type = T_EOF;
-
-        // One \n is accepted
-        if (c != '\n'){
-            token.type = T_ERROR;
-        }
-
-        line_count++;
-        token.line = line_count;
-
-        c = getchar();
-        if (c != EOF){
-            token.type = T_ERROR;
-        }
-
-        return token;
+        return automat_state_epilog(&token, c, &line_count);
     }
 
     enum automat_state STATE = change_state(c);
@@ -335,135 +445,10 @@ tToken get_token(short automat_state){
     /* AUTOMAT STATE 0 => WAITING ON PROLOG */
 
     if (automat_state == 0){
-
-        /* set line count to 1 */
-        line_count++;
-
-        token.data.STRINGval = dynamicBuffer_INIT();
-        if (token.data.STRINGval == NULL){
-            /* err handle */
-        }
-
-        do{
-            switch (STATE)
-            {
-            /* LOAD <?php */
-            case S_LESS_THAN:
-                if (token.data.STRINGval->size >= 5){
-                   STATE = S_START;
-                   ungetc(c, stdin);
-                }
-                else{
-                    bool err = dynamicBuffer_ADD_CHAR(token.data.STRINGval, c);
-                    if (err == false){
-                        /*err handle*/
-                    }
-                }
-                break;
-            /* PROLOG OR COMMENT */
-            case S_START:
-                if (c == '/'){
-                    STATE = S_COMMENT;
-                }
-                else if (isspace(c)){
-                    if (c == '\n'){
-                        line_count++;
-                        token.line = line_count;
-                    }
-                    STATE = S_PROLOG;
-                }
-                else{
-                    dynamicBufferFREE(token.data.STRINGval);
-                    token.type = T_ERROR;
-                    return token;
-                }
-                break;
-            /* PROLOG PROCESS */
-            case S_PROLOG:
-                if (!isspace(c)){
-                    bool err = dynamicBuffer_ADD_CHAR(token.data.STRINGval, c);
-                    if (err == false){
-                        /*err handle*/
-                    }
-                }
-                else if (c == '\n'){
-                    line_count++;
-                    token.line = line_count;
-                }
-                
-                if (c == ';'){
-                    if (!strcmp(token.data.STRINGval->data, "<?phpdeclare(strict_types=1);")){
-                        token.type = T_PROLOG;
-                    }
-                    else{
-                        token.type = T_ERROR;
-                    }
-                    dynamicBufferFREE(token.data.STRINGval);
-                    return token;
-                }
-
-                /* Check too many loaded chars */
-                if (token.data.STRINGval->size > 30){
-                    dynamicBufferFREE(token.data.STRINGval);
-                    token.type = T_ERROR;
-                    return token;
-                }
-                break;
-
-            /* COMMENT PROCESS */
-            case S_COMMENT:
-                if (c == '/'){
-                    STATE = S_LINE_COMMENT;
-                }
-                else if (c == '*'){
-                    STATE = S_BLOCK_COMMENT;
-                }
-                else{
-                    dynamicBufferFREE(token.data.STRINGval);
-                    token.type = T_ERROR;
-                    return token;
-                }
-                break;
-            /* LINE COMMENT */
-            case S_LINE_COMMENT:
-                if (c == '\n'){
-                    token.type = T_ERROR;
-                    STATE = S_START;
-                    ungetc(c, stdin);
-                }
-                break;
-            /* BLOCK COMMENT */            
-            case S_BLOCK_COMMENT:
-                token.type = T_ERROR;
-                if (c == '*'){
-                    STATE = S_B_C_END;
-                }
-                else if(c == '\n'){
-                    line_count++;
-                    token.line = line_count;
-                }
-                break;
-            /* BLOCK COMMENT END */
-            case S_B_C_END:
-                if (c == '/'){
-                    token.type = T_ERROR;
-                    STATE = S_START;
-                }
-                else {
-                    if (c == '\n'){
-                        line_count++;
-                        token.line = line_count;
-                    }
-                    STATE = S_BLOCK_COMMENT;
-                }
-                break;
-            
-            default:
-                token.type = T_ERROR;
-                return token;
-            }
-
-        } while((c = getchar()) != EOF);
+        token = automat_state_prolog(&token, c, &line_count);
+        dynamicBufferFREE(token.data.STRINGval);
+        token.line = line_count;
+        return token;
     }
 
     /* AUTOMAT STATE 1 => PROCESS PROGRAM */
@@ -620,7 +605,9 @@ tToken get_token(short automat_state){
                     line_count++;
                     token.line = line_count;
                 }
-                STATE = S_BLOCK_COMMENT;
+                if (c != '*'){
+                    STATE = S_BLOCK_COMMENT;
+                }
             }
             break;
         /* + */
@@ -634,9 +621,24 @@ tToken get_token(short automat_state){
         /* "..." */
         case S_QUOTE:
             if ((init_count) && c == '"'){
-                init_count = 0;
-                token.type = T_STRING;
-                return token;
+                /* check for \" */
+                if (token.data.STRINGval->size > 0){
+                    if (token.data.STRINGval->data[token.data.STRINGval->size-1] != '\\'){
+                        /* remove last '"' */
+                        token.data.STRINGval->data[token.data.STRINGval->size] = '\0';
+                        init_count = 0;
+                        token.type = T_STRING;
+                        return token;
+                    }
+                }
+                /* return empty string */
+                else{
+                    /* remove last '"' */
+                    token.data.STRINGval->data[token.data.STRINGval->size] = '\0';
+                    init_count = 0;
+                    token.type = T_STRING;
+                    return token;
+                }
             }
             load_string(&token, c, &init_count);
             if(CHECK_ERROR) return token;
@@ -970,9 +972,6 @@ void print_token_type(enum token_type type){
     case T_UNKNOW:
         printf(ANSI_COLOR_YELLOW "[T_UNKNOW]" ANSI_COLOR_RESET "\n");
         break;
-    case T_COMMENT_ERROR:
-        printf(ANSI_COLOR_RED "[T_COMMENT_ERROR]" ANSI_COLOR_RESET "\n");
-        break;
     case T_ERROR:
         printf(ANSI_COLOR_RED "[T_ERROR]" ANSI_COLOR_RESET "\n");
         break;
@@ -998,12 +997,6 @@ int main(){
         if (token.type == T_EPILOG){
             print_token_type(token.type);
             printf("line: %ld\n", token.line);
-            break;
-        }
-
-        if (token.type == T_COMMENT_ERROR){
-            print_token_type(token.type);
-            /* ! there is incomplete bolck of comment ! */
             break;
         }
         print_token_type(token.type);
