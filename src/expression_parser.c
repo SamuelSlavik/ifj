@@ -300,10 +300,10 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
 
                     if(!strcmp(instruction_list->called_from->key,"$$main")){
                         DLL_InsertAfter_main(instruction_list, instruction);
-                        DLL_Next_main(instruction_list);
                         if (instruction_list->active == instruction_list->main_body){
                             DLL_Next(instruction_list);
                         }
+                        DLL_Next_main(instruction_list);
                     } else {
                         DLL_InsertAfter(instruction_list, instruction);
                         DLL_Next(instruction_list);
@@ -482,10 +482,10 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
 
                     if(!strcmp(instruction_list->called_from->key,"$$main")){
                         DLL_InsertAfter_main(instruction_list, instruction);
-                        DLL_Next_main(instruction_list);
                         if (instruction_list->active == instruction_list->main_body){
                             DLL_Next(instruction_list);
                         }
+                        DLL_Next_main(instruction_list);
                     } else {
                         DLL_InsertAfter(instruction_list, instruction);
                         DLL_Next(instruction_list);
@@ -548,10 +548,10 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
 
                     if(!strcmp(instruction_list->called_from->key,"$$main")){
                         DLL_InsertAfter_main(instruction_list, instruction);
-                        DLL_Next_main(instruction_list);
                         if (instruction_list->active == instruction_list->main_body){
                             DLL_Next(instruction_list);
                         }
+                        DLL_Next_main(instruction_list);
                     } else {
                         DLL_InsertAfter(instruction_list, instruction);
                         DLL_Next(instruction_list);
@@ -753,10 +753,10 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
 
                     if(!strcmp(instruction_list->called_from->key,"$$main")){
                         DLL_InsertAfter_main(instruction_list, instruction);
-                        DLL_Next_main(instruction_list);
                         if (instruction_list->active == instruction_list->main_body){
                             DLL_Next(instruction_list);
                         }
+                        DLL_Next_main(instruction_list);
                     } else {
                         DLL_InsertAfter(instruction_list, instruction);
                         DLL_Next(instruction_list);
@@ -961,10 +961,10 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
 
                     if(!strcmp(instruction_list->called_from->key,"$$main")){
                         DLL_InsertAfter_main(instruction_list, instruction);
-                        DLL_Next_main(instruction_list);
                         if (instruction_list->active == instruction_list->main_body){
                             DLL_Next(instruction_list);
                         }
+                        DLL_Next_main(instruction_list);
                     } else {
                         DLL_InsertAfter(instruction_list, instruction);
                         DLL_Next(instruction_list);
@@ -1087,10 +1087,10 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
 
                     if(!strcmp(instruction_list->called_from->key,"$$main")){
                         DLL_InsertAfter_main(instruction_list, instruction);
-                        DLL_Next_main(instruction_list);
                         if (instruction_list->active == instruction_list->main_body){
                             DLL_Next(instruction_list);
                         }
+                        DLL_Next_main(instruction_list);
                     } else {
                         DLL_InsertAfter(instruction_list, instruction);
                         DLL_Next(instruction_list);
@@ -1419,10 +1419,10 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
 
                     if(!strcmp(instruction_list->called_from->key,"$$main")){
                         DLL_InsertAfter_main(instruction_list, instruction);
-                        DLL_Next_main(instruction_list);
                         if (instruction_list->active == instruction_list->main_body){
                             DLL_Next(instruction_list);
                         }
+                        DLL_Next_main(instruction_list);
                     } else {
                         DLL_InsertAfter(instruction_list, instruction);
                         DLL_Next(instruction_list);
@@ -1764,10 +1764,10 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
 
                     if(!strcmp(instruction_list->called_from->key,"$$main")){
                         DLL_InsertAfter_main(instruction_list, instruction);
-                        DLL_Next_main(instruction_list);
                         if (instruction_list->active == instruction_list->main_body){
                             DLL_Next(instruction_list);
                         }
+                        DLL_Next_main(instruction_list);
                     } else {
                         DLL_InsertAfter(instruction_list, instruction);
                         DLL_Next(instruction_list);
@@ -2110,10 +2110,10 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
 
                     if(!strcmp(instruction_list->called_from->key,"$$main")){
                         DLL_InsertAfter_main(instruction_list, instruction);
-                        DLL_Next_main(instruction_list);
                         if (instruction_list->active == instruction_list->main_body){
                             DLL_Next(instruction_list);
                         }
+                        DLL_Next_main(instruction_list);
                     } else {
                         DLL_InsertAfter(instruction_list, instruction);
                         DLL_Next(instruction_list);
@@ -2456,10 +2456,10 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
 
                     if(!strcmp(instruction_list->called_from->key,"$$main")){
                         DLL_InsertAfter_main(instruction_list, instruction);
-                        DLL_Next_main(instruction_list);
                         if (instruction_list->active == instruction_list->main_body){
                             DLL_Next(instruction_list);
                         }
+                        DLL_Next_main(instruction_list);
                     } else {
                         DLL_InsertAfter(instruction_list, instruction);
                         DLL_Next(instruction_list);
@@ -2537,10 +2537,10 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
 
                     if(!strcmp(instruction_list->called_from->key,"$$main")){
                         DLL_InsertAfter_main(instruction_list, instruction);
-                        DLL_Next_main(instruction_list);
                         if (instruction_list->active == instruction_list->main_body){
                             DLL_Next(instruction_list);
                         }
+                        DLL_Next_main(instruction_list);
                     } else {
                         DLL_InsertAfter(instruction_list, instruction);
                         DLL_Next(instruction_list);
@@ -2603,10 +2603,10 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
 
                     if(!strcmp(instruction_list->called_from->key,"$$main")){
                         DLL_InsertAfter_main(instruction_list, instruction);
-                        DLL_Next_main(instruction_list);
                         if (instruction_list->active == instruction_list->main_body){
                             DLL_Next(instruction_list);
                         }
+                        DLL_Next_main(instruction_list);
                     } else {
                         DLL_InsertAfter(instruction_list, instruction);
                         DLL_Next(instruction_list);
