@@ -124,7 +124,7 @@ tDynamicBuffer *label_name_gen(char* name){
         digit_count++;
     }
 
-    char *idstr = malloc(sizeof(char) * digit_count + 1);
+    char *idstr = calloc(sizeof(char), digit_count + 2);
     sprintf(idstr,"%ld",id);
 
     tDynamicBuffer *buffer = dynamicBuffer_INIT();
@@ -269,6 +269,7 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     dynamicBuffer_ADD_STRING(instruction, "PUSHS ");
                     switch (top_terminal->token->type) {
                         case T_VAR_ID:
+                            // TODO check if var is defined
                             dynamicBuffer_ADD_STRING(instruction, "LF@");
                             dynamicBuffer_ADD_STRING(instruction, top_terminal->token->data.STRINGval->data);
                             break;
@@ -299,9 +300,15 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     if(!strcmp(instruction_list->called_from->key,"$$main")){
                         DLL_InsertAfter_main(instruction_list, instruction);
                         DLL_Next_main(instruction_list);
+                        if (instruction_list->active == instruction_list->main_body){
+                            DLL_Next(instruction_list);
+                        }
                     } else {
                         DLL_InsertAfter(instruction_list, instruction);
                         DLL_Next(instruction_list);
+                        if (instruction_list->active == instruction_list->main_body){
+                            DLL_Next_main(instruction_list);
+                        }
                     }
                     dynamicBufferFREE(instruction);
                     break;
