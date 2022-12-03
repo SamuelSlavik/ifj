@@ -37,10 +37,10 @@ htab_data_t *st_fun_create(htab_t *global_ST, char *fun_name){
     data_ST->isfun = true;
 
     /* Set declared to true and defined to false and return to to Unknow*/
-    data_ST->data.fun_data.declared = true;
     data_ST->data.fun_data.defined = false;
     data_ST->data.fun_data.return_type = T_UNKNOW;
     data_ST->data.fun_data.label_name = NULL;
+    data_ST->data.fun_data.number_of_params = 0;
 
     /* Create stack of parameters */
     tStack *param_stack = malloc(sizeof(tStack));
@@ -98,7 +98,6 @@ bool st_fun_param_name(tStack *s, char *name){
 void st_fun_retrun_type(htab_data_t *data, enum token_type type){
     data->data.fun_data.return_type = type;
 }
-
 
 
 void st_fun_definition(htab_data_t *data){
