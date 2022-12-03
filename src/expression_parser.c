@@ -17,7 +17,6 @@
 #include "scanner.h"
 #include "htab.h"
 #include "dll_instruction_list.h"
-#include "expression_codegen.h"
 
 extern htab_t *symtable;
 
