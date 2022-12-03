@@ -20,6 +20,7 @@ typedef struct {
 	DLL_instruction *last;
 	DLL_instruction *if_while;
 	char *label;
+	size_t num_of_params_called;
 } DLList;
 
 void DLL_Init( DLList * );

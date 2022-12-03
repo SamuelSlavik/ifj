@@ -70,6 +70,7 @@ typedef struct fun_TaV
  */
 typedef struct data_fun
 {
+    size_t number_of_params;
     bool declared;                  // true if function was declared false if not
     bool defined;                   // true if function was defined false if not
     tStack *TaV;                    // stack of types and variables in parameter of function
