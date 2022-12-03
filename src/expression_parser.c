@@ -17,6 +17,7 @@
 #include "scanner.h"
 #include "htab.h"
 #include "dll_instruction_list.h"
+#include "expression_codegen.h"
 
 extern htab_t *symtable;
 
@@ -306,24 +307,12 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     } else {
                         DLL_InsertAfter(instruction_list, instruction);
                         DLL_Next(instruction_list);
-                        if (instruction_list->active == instruction_list->main_body){
-                            DLL_Next_main(instruction_list);
-                        }
                     }
                     dynamicBufferFREE(instruction);
                     break;
                 case T_MUL_EXPR:
                     dynamicBuffer_ADD_STRING(instruction, "PUSHFRAME\n");
                     dynamicBuffer_ADD_STRING(instruction, "CREATEFRAME\n");
-
-                    tDynamicBuffer *mul_operand_1_float = label_name_gen("mul_operand_1_float");
-                    tDynamicBuffer *mul_operand_1_int = label_name_gen("mul_operand_1_int");
-                    tDynamicBuffer *mul_operand_1_null = label_name_gen("mul_operand_1_null");
-                    tDynamicBuffer *mul_operand_1_float_operand_2_null = label_name_gen("mul_operand_1_float_operand_2_null");
-                    tDynamicBuffer *mul_operand_1_int_operand_2_null = label_name_gen("mul_operand_1_int_operand_2_null");
-                    tDynamicBuffer *mul_operand_2_int2float = label_name_gen("mul_operand_2_int2float");
-                    tDynamicBuffer *mul_operand_1_int2float = label_name_gen("mul_operand_1_int2float");
-                    tDynamicBuffer *mul_calc = label_name_gen("mul_calc");
 
                     dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_1\n");
                     dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@$TMP_2\n");
@@ -335,6 +324,15 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
 
                     dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_1_TYPE TF@$TMP_1\n");
                     dynamicBuffer_ADD_STRING(instruction, "TYPE TF@$TMP_2_TYPE TF@$TMP_2\n");
+
+                    tDynamicBuffer *mul_operand_1_float = label_name_gen("mul_operand_1_float");
+                    tDynamicBuffer *mul_operand_1_int = label_name_gen("mul_operand_1_int");
+                    tDynamicBuffer *mul_operand_1_null = label_name_gen("mul_operand_1_null");
+                    tDynamicBuffer *mul_operand_1_float_operand_2_null = label_name_gen("mul_operand_1_float_operand_2_null");
+                    tDynamicBuffer *mul_operand_1_int_operand_2_null = label_name_gen("mul_operand_1_int_operand_2_null");
+                    tDynamicBuffer *mul_operand_2_int2float = label_name_gen("mul_operand_2_int2float");
+                    tDynamicBuffer *mul_operand_1_int2float = label_name_gen("mul_operand_1_int2float");
+                    tDynamicBuffer *mul_calc = label_name_gen("mul_calc");
 
                     // IF OPERAND 1 IS FLOAT JUMP TO OPERAND_1_float
                     dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
@@ -473,15 +471,6 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
 
                     dynamicBuffer_ADD_STRING(instruction, "MULS");
 
-                    if(!strcmp(instruction_list->called_from->key,"$$main")){
-                        DLL_InsertAfter_main(instruction_list, instruction);
-                        DLL_Next_main(instruction_list);
-                    } else {
-                        DLL_InsertAfter(instruction_list, instruction);
-                        DLL_Next(instruction_list);
-                    }
-                    dynamicBufferFREE(instruction);
-
                     dynamicBufferFREE(mul_operand_1_float);
                     dynamicBufferFREE(mul_operand_1_int);
                     dynamicBufferFREE(mul_operand_1_null);
@@ -490,6 +479,18 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     dynamicBufferFREE(mul_operand_1_int_operand_2_null);
                     dynamicBufferFREE(mul_operand_2_int2float);
                     dynamicBufferFREE(mul_calc);
+
+                    if(!strcmp(instruction_list->called_from->key,"$$main")){
+                        DLL_InsertAfter_main(instruction_list, instruction);
+                        DLL_Next_main(instruction_list);
+                        if (instruction_list->active == instruction_list->main_body){
+                            DLL_Next(instruction_list);
+                        }
+                    } else {
+                        DLL_InsertAfter(instruction_list, instruction);
+                        DLL_Next(instruction_list);
+                    }
+                    dynamicBufferFREE(instruction);
                     break;
                 case T_DIV_EXPR:
                     dynamicBuffer_ADD_STRING(instruction, "PUSHFRAME\n");
@@ -548,6 +549,9 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     if(!strcmp(instruction_list->called_from->key,"$$main")){
                         DLL_InsertAfter_main(instruction_list, instruction);
                         DLL_Next_main(instruction_list);
+                        if (instruction_list->active == instruction_list->main_body){
+                            DLL_Next(instruction_list);
+                        }
                     } else {
                         DLL_InsertAfter(instruction_list, instruction);
                         DLL_Next(instruction_list);
@@ -750,6 +754,9 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     if(!strcmp(instruction_list->called_from->key,"$$main")){
                         DLL_InsertAfter_main(instruction_list, instruction);
                         DLL_Next_main(instruction_list);
+                        if (instruction_list->active == instruction_list->main_body){
+                            DLL_Next(instruction_list);
+                        }
                     } else {
                         DLL_InsertAfter(instruction_list, instruction);
                         DLL_Next(instruction_list);
@@ -955,6 +962,9 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     if(!strcmp(instruction_list->called_from->key,"$$main")){
                         DLL_InsertAfter_main(instruction_list, instruction);
                         DLL_Next_main(instruction_list);
+                        if (instruction_list->active == instruction_list->main_body){
+                            DLL_Next(instruction_list);
+                        }
                     } else {
                         DLL_InsertAfter(instruction_list, instruction);
                         DLL_Next(instruction_list);
@@ -1078,6 +1088,9 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     if(!strcmp(instruction_list->called_from->key,"$$main")){
                         DLL_InsertAfter_main(instruction_list, instruction);
                         DLL_Next_main(instruction_list);
+                        if (instruction_list->active == instruction_list->main_body){
+                            DLL_Next(instruction_list);
+                        }
                     } else {
                         DLL_InsertAfter(instruction_list, instruction);
                         DLL_Next(instruction_list);
@@ -1407,6 +1420,9 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     if(!strcmp(instruction_list->called_from->key,"$$main")){
                         DLL_InsertAfter_main(instruction_list, instruction);
                         DLL_Next_main(instruction_list);
+                        if (instruction_list->active == instruction_list->main_body){
+                            DLL_Next(instruction_list);
+                        }
                     } else {
                         DLL_InsertAfter(instruction_list, instruction);
                         DLL_Next(instruction_list);
@@ -1749,6 +1765,9 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     if(!strcmp(instruction_list->called_from->key,"$$main")){
                         DLL_InsertAfter_main(instruction_list, instruction);
                         DLL_Next_main(instruction_list);
+                        if (instruction_list->active == instruction_list->main_body){
+                            DLL_Next(instruction_list);
+                        }
                     } else {
                         DLL_InsertAfter(instruction_list, instruction);
                         DLL_Next(instruction_list);
@@ -2092,6 +2111,9 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     if(!strcmp(instruction_list->called_from->key,"$$main")){
                         DLL_InsertAfter_main(instruction_list, instruction);
                         DLL_Next_main(instruction_list);
+                        if (instruction_list->active == instruction_list->main_body){
+                            DLL_Next(instruction_list);
+                        }
                     } else {
                         DLL_InsertAfter(instruction_list, instruction);
                         DLL_Next(instruction_list);
@@ -2435,6 +2457,9 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     if(!strcmp(instruction_list->called_from->key,"$$main")){
                         DLL_InsertAfter_main(instruction_list, instruction);
                         DLL_Next_main(instruction_list);
+                        if (instruction_list->active == instruction_list->main_body){
+                            DLL_Next(instruction_list);
+                        }
                     } else {
                         DLL_InsertAfter(instruction_list, instruction);
                         DLL_Next(instruction_list);
@@ -2513,6 +2538,9 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     if(!strcmp(instruction_list->called_from->key,"$$main")){
                         DLL_InsertAfter_main(instruction_list, instruction);
                         DLL_Next_main(instruction_list);
+                        if (instruction_list->active == instruction_list->main_body){
+                            DLL_Next(instruction_list);
+                        }
                     } else {
                         DLL_InsertAfter(instruction_list, instruction);
                         DLL_Next(instruction_list);
@@ -2576,6 +2604,9 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     if(!strcmp(instruction_list->called_from->key,"$$main")){
                         DLL_InsertAfter_main(instruction_list, instruction);
                         DLL_Next_main(instruction_list);
+                        if (instruction_list->active == instruction_list->main_body){
+                            DLL_Next(instruction_list);
+                        }
                     } else {
                         DLL_InsertAfter(instruction_list, instruction);
                         DLL_Next(instruction_list);
