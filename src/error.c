@@ -12,47 +12,10 @@
 #include "error.h"
 #include "scanner.h"
 
-int error_handle(int code){
-    static int err_code = NO_ERROR;
+int error_handle(){
 
-    if (code != NO_ERROR && err_code == NO_ERROR){
-        err_code = code;
-
-        switch (err_code)
-        {
-        case LEX_ERROR:
-            fprintf(stderr, "ERROR: A lexical error has occurred !\n");
-            break;
-        case SYNTAX_ERROR:
-            fprintf(stderr, "ERROR: Wrong syntax !\n");
-            break;
-        case RE_DEF_ERROR:
-            fprintf(stderr, "ERROR: Using an undefined function !\n");
-            break;
-        case PARAM_ERROR:
-            fprintf(stderr, "ERROR: Wrong number of parameters in function \n");
-            break;
-        case UN_DEF_VAR_ERROR:
-            fprintf(stderr, "ERROR: Using an undefined variable !\n");
-            break;
-        case RETURN_ERROR:
-            fprintf(stderr, "ERROR: Wrong type or number of return paramters !\n");
-            break;
-        case EXPRESSION_ERROR:
-            fprintf(stderr, "ERROR: Wrong expression entered !\n");
-            break;
-        case OTHER_ERROR:
-            fprintf(stderr, "ERROR: Error during compilation !\n");
-            break;
-        case ERROR:
-            fprintf(stderr, "ERROR: Some unexpected error occured !\n");
-            break;
-        default:
-            break;
-        }
-    }
-    
-    return err_code;
+    fprintf(stderr, "ERROR: Some unexpected error occured !\n");
+    exit(ERROR);
 }
 
 int error_exit(tToken *token,int code){
