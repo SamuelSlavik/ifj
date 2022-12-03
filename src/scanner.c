@@ -102,7 +102,7 @@ void load_string(tToken* token, char c, unsigned long *init_count){
     if (!(*init_count)){
         token->data.STRINGval = dynamicBuffer_INIT();
         if (token->data.STRINGval == NULL){
-            error_handle(ERROR);
+            error_handle();
             return;
         }
         *init_count = 1;
@@ -111,7 +111,7 @@ void load_string(tToken* token, char c, unsigned long *init_count){
     if (c != '"' || token->data.STRINGval->size > 0){
         bool err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
         if (err == false){
-            error_handle(ERROR);
+            error_handle();
             return;
         }
     }
@@ -124,7 +124,7 @@ void load_var_id(tToken* token, char c, unsigned long *init_count){
     if (!(*init_count)){
         token->data.STRINGval = dynamicBuffer_INIT();
         if (token->data.STRINGval == NULL){
-            error_handle(ERROR);
+            error_handle();
             return;
         }
         *init_count = 1;
@@ -132,7 +132,7 @@ void load_var_id(tToken* token, char c, unsigned long *init_count){
     /* PROCESS */
     bool err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
     if (err == false){
-        error_handle(ERROR);
+        error_handle();
         return;
     }
     token->type = T_VAR_ID;
@@ -144,7 +144,7 @@ void load_type_id(tToken* token, char c, unsigned long *init_count){
     if (!(*init_count)){
         token->data.STRINGval = dynamicBuffer_INIT();
         if (token->data.STRINGval == NULL){
-            error_handle(ERROR);
+            error_handle();
             return;
         }
         *init_count = 1;
@@ -152,7 +152,7 @@ void load_type_id(tToken* token, char c, unsigned long *init_count){
     /* PROCESS */
     bool err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
     if (err == false){
-        error_handle(ERROR);
+        error_handle();
         return;
     }
     /* SET TOKEN TYPE */
@@ -176,7 +176,7 @@ void load_num(tToken* token, char c, unsigned long *init_count){
     if (!(*init_count)){
         token->data.STRINGval = dynamicBuffer_INIT();
         if (token->data.STRINGval == NULL){
-            error_handle(ERROR);
+            error_handle();
             return;
         }
         *init_count = 1;
@@ -184,7 +184,7 @@ void load_num(tToken* token, char c, unsigned long *init_count){
     /* PROCESS */
     bool err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
     if (err == false){
-        error_handle(ERROR);
+        error_handle();
         return;
     }
 }
@@ -250,7 +250,7 @@ void load_letter(tToken* token, char c, unsigned long *init_count){
     if (!(*init_count)){
         token->data.STRINGval = dynamicBuffer_INIT();
         if (token->data.STRINGval == NULL){
-            error_handle(ERROR);
+            error_handle();
             return;
         }
         *init_count = 1;
@@ -258,11 +258,9 @@ void load_letter(tToken* token, char c, unsigned long *init_count){
     /* PROCESS */
     bool err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
     if (err == false){
-        error_handle(ERROR);
+        error_handle();
         return;
     }
-    /* SET TOKEN TYPE */
-    token->type = is_reserved_id(token->data.STRINGval);
 }
 
 
@@ -277,14 +275,14 @@ tToken automat_state_prolog(tToken *token, char c, unsigned long *line_count){
     /* initialize buffer */
     token->data.STRINGval = dynamicBuffer_INIT();
     if (token->data.STRINGval == NULL){
-        /* @todo: error handle */
+        error_handle();
     }
 
     /* LOAD FIRST PART <?php */
     for (size_t i = 0; i < strlen("<?php"); i++){
         err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
         if (err == false){
-            /* @todo: error handle*/
+            error_handle();
         }
         c = getchar();
         if (c == EOF){
@@ -314,7 +312,7 @@ tToken automat_state_prolog(tToken *token, char c, unsigned long *line_count){
             else{
                 err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
                 if (err == false){
-                    /* @todo: error handle*/
+                    error_handle();
                 }
             }
             break;
@@ -326,7 +324,7 @@ tToken automat_state_prolog(tToken *token, char c, unsigned long *line_count){
             /* Add symbol */
             err = dynamicBuffer_ADD_CHAR(token->data.STRINGval, c);
             if (err == false){
-                /* @todo: error handle*/
+                error_handle();
             }
             STATE = S_START;
             break;
@@ -641,14 +639,12 @@ tToken get_token(short automat_state){
                 }
             }
             load_string(&token, c, &init_count);
-            if(CHECK_ERROR) return token;
             break;
         /* $ */
         case S_DOLLAR:
             if ((c == '_') || (isalpha(c))){
                 init_count = 0;
                 load_var_id(&token, c, &init_count);
-                if(CHECK_ERROR) return token;
                 STATE = S_V_ID;
             }
             else if ((!init_count) && (c == '$')){ // skip first $
@@ -667,7 +663,6 @@ tToken get_token(short automat_state){
         case S_V_ID:
             if((c == '_') || (isalpha(c)) || (isdigit(c))){
                 load_var_id(&token, c, &init_count);
-                if(CHECK_ERROR) return token;
             }
             else {
                 init_count = 0;
@@ -701,7 +696,6 @@ tToken get_token(short automat_state){
         case S_TYPE_ID:
             if (isalpha(c)){
                 load_type_id(&token, c, &init_count);
-                if(CHECK_ERROR) return token;
             }
             else{
                 dynamicBufferFREE(token.data.STRINGval);
@@ -734,27 +728,26 @@ tToken get_token(short automat_state){
         /* _a-zA-Z */
         case S_LETTER:
             if ((!isalpha(c)) && (!isdigit(c)) && (c != '_')){
+                /* check for reserved words */
+                token.type = is_reserved_id(token.data.STRINGval);
                 ungetc(c, stdin);
                 init_count = 0;
                 return token;
             }
+            token.type = T_FUN_ID;
             load_letter(&token, c, &init_count);
-            if(CHECK_ERROR) return token;
             break;
         /* 0-9 */
         case S_INT_NUM:
             if (isdigit(c)){
                 load_num(&token, c, &init_count);
-                if(CHECK_ERROR) return token;
             }
             else if (c == '.'){
                 load_num(&token, c, &init_count);
-                if(CHECK_ERROR) return token;
                 STATE = S_FLOAT_NUM;
             }
             else if ((c == 'e') || (c == 'E')){
                 load_num(&token, c, &init_count);
-                if(CHECK_ERROR) return token;
                 STATE = S_EXP_NUM;
             }
             else {
@@ -767,11 +760,9 @@ tToken get_token(short automat_state){
         case S_FLOAT_NUM:
             if (isdigit(c)){
                 load_num(&token, c, &init_count);
-                if(CHECK_ERROR) return token;
             }
             else if ((c == 'e') || (c == 'E')){
                 load_num(&token, c, &init_count);
-                if(CHECK_ERROR) return token;
                 STATE = S_EXP_NUM;
             }
             else {
@@ -784,12 +775,10 @@ tToken get_token(short automat_state){
         case S_EXP_NUM:
             if (isdigit(c)){
                 load_num(&token, c, &init_count);
-                if(CHECK_ERROR) return token;
                 STATE = S_FLOAT_NUM;
             }
             else if ((c == '+') || (c == '-')){
                 load_num(&token, c, &init_count);
-                if(CHECK_ERROR) return token;
                 STATE = S_FLOAT_NUM;
             }
             else {
@@ -813,6 +802,11 @@ tToken get_token(short automat_state){
     if ((STATE == S_INT_NUM) || (STATE == S_FLOAT_NUM) || (STATE == S_EXP_NUM)){
         string_to_num(&token);
         init_count = 0;
+    }
+
+    if (STATE == S_LETTER){
+        /* check for reserved words */
+        token.type = is_reserved_id(token.data.STRINGval);
     }
     
     if ((init_count == 1) && 
@@ -985,14 +979,12 @@ int main(){
     tToken token;
 
     token = get_token(0);
-    if(CHECK_ERROR) return error_handle(NO_ERROR);
     print_token_type(token.type);
     printf("line: %ld\n", token.line);
 
 
     while ((token = get_token(1)).type != T_EOF)
     {
-        if(CHECK_ERROR) return error_handle(NO_ERROR);
 
         if (token.type == T_EPILOG){
             print_token_type(token.type);
@@ -1014,8 +1006,6 @@ int main(){
     }
 
     while ((token = get_token(2)).type != T_EOF){
-        if(CHECK_ERROR) return error_handle(NO_ERROR);
-
         print_token_type(token.type);
         printf("line: %ld\n", token.line);
     }
