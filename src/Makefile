@@ -41,7 +41,7 @@ error.o: error.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 ########################### PARSER #################################
-parser: parser.o scanner.o dynamic_buffer.o error.o expression_parser.o stack.o dynamic_buffer.o dll_instruction_list.o htab.o symtable.o
+parser: parser.o scanner.o dynamic_buffer.o error.o expression_parser.o stack.o dynamic_buffer.o dll_instruction_list.o htab.o symtable.o expression_codegen.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 
 parser.o: parser.c
@@ -53,6 +53,11 @@ dll_instruction_list.o: dll_instruction_list.c
 ############################## EXPRESSION PARSER ###################################
 
 expression_parser.o: expression_parser.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+############################## EXPRESSION CODGEN ###################################
+
+expression_codegen.o: expression_codegen.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 ############################### XXXXX #####################################
