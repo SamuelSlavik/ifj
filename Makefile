@@ -53,7 +53,7 @@ all: $(PROG)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 ########################### PARSER #################################
-./bin/test-parser: ./bin/parser.o ./bin/scanner.o ./bin/dynamic_buffer.o ./bin/error.o ./bin/expression_parser.o ./bin/stack.o ./bin/dynamic_buffer.o ./bin/dll_instruction_list.o ./bin/htab.o ./bin/symtable.o
+./bin/test-parser: ./bin/parser.o ./bin/scanner.o ./bin/dynamic_buffer.o ./bin/error.o ./bin/expression_parser.o ./bin/stack.o ./bin/dynamic_buffer.o ./bin/dll_instruction_list.o ./bin/htab.o ./bin/symtable.o ./bin/expression_codegen.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 
 ./bin/parser.o: ./src/parser.c
@@ -70,8 +70,13 @@ all: $(PROG)
 ./bin/test-expression_parser.o: ./src/expression_parser.c
 	$(CC) $(CFLAGS) -DTESTING -c $< -o $@
 
-./bin/test-expression_parser: ./bin/test-expression_parser.o ./bin/stack.o ./bin/scanner.o ./bin/error.o ./bin/dynamic_buffer.o ./bin/htab.o ./bin/symtable.o ./bin/dll_instruction_list.o ./bin/htab.o ./bin/symtable.o
+./bin/test-expression_parser: ./bin/test-expression_parser.o ./bin/stack.o ./bin/scanner.o ./bin/error.o ./bin/dynamic_buffer.o ./bin/htab.o ./bin/symtable.o ./bin/dll_instruction_list.o ./bin/htab.o ./bin/symtable.o ./bin/expression_codegen.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
+
+############################## EXPRESSION CODEGEN ###################################
+
+./bin/expression_codegen.o: ./src/expression_codegen.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 ############################### XXXXX #####################################
 
