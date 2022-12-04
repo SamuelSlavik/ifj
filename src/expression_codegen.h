@@ -20,5 +20,6 @@ void insert_instruction(DLList *instruction_list, tDynamicBuffer *instruction);
 void def_tmp_get_type(tDynamicBuffer *instruction);
 
 void gen_muls(DLList *instruction_list, tDynamicBuffer *instruction);
+void gen_divs(DLList *instruction_list, tDynamicBuffer *instruction);
 
 #endif //IFJ_EXPRESSION_CODEGEN_H
