@@ -221,7 +221,7 @@ void htab_clear(htab_t * t){
             item = item->next;
 
             free((void *)item_to_del->data->key);
-            st_fun_param_free(item_to_del->data);
+            st_fun_free(item_to_del->data);
             free(item_to_del->data);
             free(item_to_del);
         }

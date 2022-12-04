@@ -23,22 +23,12 @@
 #define OTHER_ERROR 8
 #define ERROR 99
 
-/**
- * @brief return 0 if there is no error or non 0 if there is some error
- * 
- */
-#define CHECK_ERROR error_handle(NO_ERROR)
 
 /**
- * @brief Function to handle the error messaging. 
- * When code is set 0 the function return error code of first error that occures.
- * When code is set to else then 0 function print error message code and
- * set program error code to given error code
+ * @brief function for handling unexpected errors like allocation fail etc...
  * 
- * @param code given error code, is set to 0 on default
- * @return int number of error code that occures
  */
-int error_handle(int code);
+int error_handle();
 
 int error_exit(tToken *token,int code);
 
