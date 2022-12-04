@@ -17,6 +17,7 @@
 #include "dll_instruction_list.h"
 #include "htab.h"
 #include "error.h"
+#include "expression_codegen.h"
 
 #define ERROR_EXIT(flag,token,errcode) if (!(flag)){error_exit(token,errcode);}
 #define DETECT_MAIN(instruction_list,instruction,key) if(!strcmp(key,"$$main")){DLL_InsertAfter_main(instruction_list,instruction);\
