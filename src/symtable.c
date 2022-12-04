@@ -41,6 +41,7 @@ htab_data_t *st_fun_create(htab_t *global_ST, char *fun_name){
     data_ST->data.fun_data.return_type = T_UNKNOW;
     data_ST->data.fun_data.label_name = NULL;
     data_ST->data.fun_data.number_of_params = 0;
+    data_ST->data.fun_data.has_ret = false;
 
     /* Create stack of parameters */
     tStack *param_stack = malloc(sizeof(tStack));
