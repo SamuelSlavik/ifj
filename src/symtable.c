@@ -185,6 +185,6 @@ void st_fun_free(htab_data_t *data){
             StackPop(data->data.fun_data.TaV);
         }                
         free(data->data.fun_data.TaV);
-        free(data->data.fun_data.localST);
+        htab_free(data->data.fun_data.localST);
     }
 }
