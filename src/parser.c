@@ -1081,7 +1081,8 @@ int main(){
     dynamicBuffer_ADD_STRING(instruction,"write"); 
     st_fun_create(symtable,instruction->data);
     dynamicBufferFREE(instruction);
-    instruction=dynamicBuffer_INIT();
+    generate_write(instruction,&instruction_list);
+    /*instruction=dynamicBuffer_INIT();
     dynamicBuffer_ADD_STRING(instruction,"LABEL functionWrite\n");
     dynamicBuffer_ADD_STRING(instruction,"PUSHFRAME\n");
     dynamicBuffer_ADD_STRING(instruction,"CREATEFRAME\n");
@@ -1101,7 +1102,7 @@ int main(){
     dynamicBuffer_ADD_STRING(instruction,"RETURN");
     DLL_InsertAfter(&instruction_list,instruction);
     DLL_Next(&instruction_list);
-    dynamicBufferFREE(instruction);
+    dynamicBufferFREE(instruction);*/
     
     if (f_start(&token,instruction,&instruction_list) == false){ //debug error print
         printf("PREBUBLALO TO AZ DO MAINU SKONTROLOVAT\n");
