@@ -109,7 +109,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
     switch (token->type)
     {
     case T_VAR_ID:
-        if (htab_find(instruction_list->curr_fun->data.fun_data.localST,token->data.STRINGval->data) == NULL ){
+        if (htab_find(instruction_list->called_from->data.fun_data.localST,token->data.STRINGval->data) == NULL ){
             instruction = dynamicBuffer_INIT();
             dynamicBuffer_ADD_STRING(instruction, "DEFVAR ");
             dynamicBuffer_ADD_STRING(instruction, "LF@");
@@ -122,7 +122,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
             }
             dynamicBufferFREE(instruction);
         }
-        instruction_list->curr_var=st_var_create(instruction_list->curr_fun->data.fun_data.localST, token->data.STRINGval->data);
+        instruction_list->curr_var=st_var_create(instruction_list->called_from->data.fun_data.localST, token->data.STRINGval->data);
         *token = get_token(1);
         
         if (token->type == T_ASSIGN){
