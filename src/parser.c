@@ -112,6 +112,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
     case T_VAR_ID:
         tmp_token2.data.STRINGval= dynamicBuffer_INIT();
         dynamicBuffer_ADD_STRING(tmp_token2.data.STRINGval,token->data.STRINGval->data);
+        tmp_token2.line = token->line;
         *token = get_token(1);
         
         if (token->type == T_ASSIGN){

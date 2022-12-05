@@ -710,6 +710,9 @@ void gen_subs(DLList *instruction_list, tDynamicBuffer *instruction){
     dynamicBufferFREE(sub_operand_1_float_operand_2_null);
     dynamicBufferFREE(sub_operand_1_int_operand_2_null);
     dynamicBufferFREE(sub_operand_2_int2float);
+    dynamicBufferFREE(sub_operand_1_null_operand_2_null);
+    dynamicBufferFREE(sub_operand_2_int_operand_1_null);
+    dynamicBufferFREE(sub_operand_2_float_operand_1_null);
     dynamicBufferFREE(sub_calc);
 
     insert_instruction(instruction_list, instruction);

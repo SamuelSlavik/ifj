@@ -18,6 +18,7 @@
 #include "htab.h"
 #include "dll_instruction_list.h"
 #include "expression_codegen.h"
+#include "error.h"
 
 extern htab_t *symtable;
 
@@ -167,18 +168,28 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
     if (extra_token == NULL){
         tmp_token.type = start_token->type;
         tmp_token.data = start_token->data;
+        tmp_token.line = start_token->line;
         start_token = NULL;
     } else {
         tmp_token.type = extra_token->type;
         tmp_token.data = extra_token->data;
+        tmp_token.line = extra_token->line;
         extra_token = NULL;
     }
     current_token->type = tmp_token.type;
     current_token->data = tmp_token.data;
+    current_token->line = tmp_token.line;
     size_t par_level = 0;
 
     while (!is_expr_end_token(current_token, end_token, &par_level) || !is_stack_end_state(&expr_stack, end_token)){
-        if (current_token->type == T_L_PAR){
+
+        if (current_token->type == T_ERROR){
+            error_exit(current_token, 1);
+        } else if (current_token->type == T_VAR_ID){
+            if (!htab_find(instruction_list->called_from->data.fun_data.localST, current_token->data.STRINGval->data)){
+                error_exit(current_token, 5);
+            }
+        } else if (current_token->type == T_L_PAR){
             par_level++;
         }
 
@@ -214,10 +225,12 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
             } else {
                 tmp_token.type = start_token->type;
                 tmp_token.data = start_token->data;
+                tmp_token.line = start_token->line;
                 start_token = NULL;
             }
             current_token->type = tmp_token.type;
             current_token->data = tmp_token.data;
+            current_token->line = tmp_token.line;
         } else if (preced_tab[top_terminal_idx][input_token_idx] == '<'){
             top_terminal->handle = true;
 
@@ -243,10 +256,12 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
             } else {
                 tmp_token.type = start_token->type;
                 tmp_token.data = start_token->data;
+                tmp_token.line = start_token->line;
                 start_token = NULL;
             }
             current_token->type = tmp_token.type;
             current_token->data = tmp_token.data;
+            current_token->line = tmp_token.line;
 
         } else if (preced_tab[top_terminal_idx][input_token_idx] == '>'){
             tStack help_stack;
@@ -260,7 +275,6 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     dynamicBuffer_ADD_STRING(instruction, "PUSHS ");
                     switch (top_terminal->token->type) {
                         case T_VAR_ID:
-                            // TODO check if variable is defined
                             dynamicBuffer_ADD_STRING(instruction, "LF@");
                             dynamicBuffer_ADD_STRING(instruction, top_terminal->token->data.STRINGval->data);
                             break;
@@ -548,11 +562,8 @@ bool is_stack_end_state(tStack *expr_stack, tToken *end_token){
 enum expr_item_type token_to_preced_idx(enum token_type token_type, bool is_end){
     switch (token_type) {
         case T_VAR_ID:
-            return T_OPERAND_EXPR;
         case T_STRING:
-            return T_OPERAND_EXPR;
         case T_NUM_INT:
-            return T_OPERAND_EXPR;
         case T_NUM_FLOAT:
             return T_OPERAND_EXPR;
         case T_CONCATENATION:
