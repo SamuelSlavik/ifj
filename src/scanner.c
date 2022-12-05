@@ -338,6 +338,13 @@ tToken automat_state_prolog(tToken *token, char c, unsigned long *line_count){
                         tmp[k] = token->data.STRINGval->data[i];
                         k++;
                     }
+                    else{
+                        if ((strcmp(tmp, "<?php")) && (strcmp(tmp, "<?phpdeclare")) && (strcmp(tmp, "<?phpdeclare(")) &&
+                            (strcmp(tmp, "<?phpdeclare(strict_types")) && (strcmp(tmp, "<?phpdeclare(strict_types=")) &&
+                            (strcmp(tmp, "<?phpdeclare(strict_types=1")) && (strcmp(tmp, "<?phpdeclare(strict_types=1)"))){
+                                return *token;
+                            }
+                    }
                 }
                 if (!strcmp(tmp, "<?phpdeclare(strict_types=1)")){
                     token->type = T_PROLOG;
