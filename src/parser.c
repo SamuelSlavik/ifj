@@ -1047,7 +1047,7 @@ bool f_func(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list)
                     func = f_func_type(token,instruction, instruction_list) && f_func_dedf(token,instruction, instruction_list);
                     ERROR_EXIT(func,token,SYNTAX_ERROR); 
                     if (instruction_list->called_from->data.fun_data.has_ret == false && instruction_list->called_from->data.fun_data.return_type !=T_VOID){
-                        error_exit(token,RETURN_ERROR);
+                        error_exit(token,PARAM_ERROR);
                     }
                     else if(instruction_list->called_from->data.fun_data.has_ret == false && instruction_list->called_from->data.fun_data.return_type ==T_VOID){
                         instruction=dynamicBuffer_INIT();
