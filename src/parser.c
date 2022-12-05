@@ -106,26 +106,30 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
     tDynamicBuffer *labelnameif;
     tToken end_token;
     tToken tmp_token;
+    tToken tmp_token2;
     switch (token->type)
     {
     case T_VAR_ID:
-        if (htab_find(instruction_list->called_from->data.fun_data.localST,token->data.STRINGval->data) == NULL ){
-            instruction = dynamicBuffer_INIT();
-            dynamicBuffer_ADD_STRING(instruction, "DEFVAR ");
-            dynamicBuffer_ADD_STRING(instruction, "LF@");
-            dynamicBuffer_ADD_STRING(instruction, token->data.STRINGval->data);
-            if (instruction_list->if_while != NULL){
-                DLL_InsertBefore_if_while(instruction_list,instruction);
-            }
-            else{
-                DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
-            }
-            dynamicBufferFREE(instruction);
-        }
-        instruction_list->curr_var=st_var_create(instruction_list->called_from->data.fun_data.localST, token->data.STRINGval->data);
+        tmp_token2.data.STRINGval= dynamicBuffer_INIT();
+        dynamicBuffer_ADD_STRING(tmp_token2.data.STRINGval,token->data.STRINGval->data);
         *token = get_token(1);
         
         if (token->type == T_ASSIGN){
+            if (htab_find(instruction_list->called_from->data.fun_data.localST,tmp_token2.data.STRINGval->data) == NULL ){
+                instruction = dynamicBuffer_INIT();
+                dynamicBuffer_ADD_STRING(instruction, "DEFVAR ");
+                dynamicBuffer_ADD_STRING(instruction, "LF@");
+                dynamicBuffer_ADD_STRING(instruction, tmp_token2.data.STRINGval->data);
+                if (instruction_list->if_while != NULL){
+                    DLL_InsertBefore_if_while(instruction_list,instruction);
+                }
+                else{
+                    DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
+                }
+                dynamicBufferFREE(instruction);
+            }
+            instruction_list->curr_var=st_var_create(instruction_list->called_from->data.fun_data.localST, tmp_token2.data.STRINGval->data);
+
             *token = get_token(1);
             body = f_body_var(token,instruction, instruction_list);
             ERROR_EXIT(body,token,SYNTAX_ERROR);
@@ -139,13 +143,11 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
         else{
             tmp_token.type = T_VAR_ID;
             end_token.type = T_SEMICOLON;
-            tmp_token.data.STRINGval= dynamicBuffer_INIT();
-            dynamicBuffer_ADD_STRING(tmp_token.data.STRINGval,instruction_list->curr_var->key);
-            body = check_expr_syntax(token, &end_token,instruction_list, &tmp_token);
-            dynamicBufferFREE(tmp_token.data.STRINGval);
+            body = check_expr_syntax(token, &end_token,instruction_list, &tmp_token2);
             ERROR_EXIT(body,token,SYNTAX_ERROR);
             *token = get_token(1);
         }
+        dynamicBufferFREE(tmp_token2.data.STRINGval);
         break;
     case T_FUN_ID:
         //local_sym = st_fun_call(symtable,&frames,token->data.STRINGval->data);
@@ -1118,7 +1120,12 @@ bool f_func_dedf_param_type(tToken *token,tDynamicBuffer *instruction, DLList *i
     bool func_param = false;
     if(token->type == T_VAR_ID){         //skontrolovat first
         st_fun_param_name(instruction_list->curr_fun->data.fun_data.TaV,token->data.STRINGval->data);
-        st_var_create(instruction_list->curr_fun->data.fun_data.localST,token->data.STRINGval->data);
+        if (htab_find(instruction_list->curr_fun->data.fun_data.localST,token->data.STRINGval->data) == NULL){
+            st_var_create(instruction_list->curr_fun->data.fun_data.localST,token->data.STRINGval->data);
+        }
+        else{
+            error_exit(token,OTHER_ERROR);
+        }
         instruction_list->curr_fun->data.fun_data.number_of_params++;
         *token = get_token(1);
         func_param = f_func_dedf_param_var(token,instruction, instruction_list);
