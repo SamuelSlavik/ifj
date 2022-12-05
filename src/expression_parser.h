@@ -79,6 +79,8 @@ tExprItem *get_stack_top_terminal(tStack *expr_stack);
 
 enum expr_item_type token_to_preced_idx(enum token_type token_type, bool is_end);
 
+void free_expr_token(tToken **token);
+
 void clean_expr_stack(tStack *expr_stack);
 
 //void print_stack(tStack *expr_stack);

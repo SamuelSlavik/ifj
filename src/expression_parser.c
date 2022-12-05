@@ -102,7 +102,6 @@ void print_stack_1(tStack *expr_stack){
 
     while (!StackIsEmpty(expr_stack)){
         tExprItem *stack_top_itm = ((tExprItem*) StackTop(expr_stack));
-        printf("stack item: %d\n", stack_top_itm->type);
         StackPush(&print_stack, stack_top_itm);
         StackPop(expr_stack);
     }
@@ -144,8 +143,20 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
     PRECED_TAB;
     tStack expr_stack;
     StackInit(&expr_stack);
-    tExprItem end_item = {.token=end_token, .type=T_END_EXPR, .is_terminal=true, .handle=false};
-    StackPush(&expr_stack, &end_item);
+    tToken *end_token_alloc = (tToken*) malloc(sizeof(tToken));
+    if (end_token_alloc == NULL){
+        exit(99);
+    }
+    end_token_alloc->type = end_token->type;
+    tExprItem *end_item = (tExprItem*) malloc(sizeof(tExprItem));
+    if (end_item == NULL){
+        exit(99);
+    }
+    end_item->token = end_token_alloc;
+    end_item->type = T_END_EXPR;
+    end_item->is_terminal = true;
+    end_item->handle = false;
+    StackPush(&expr_stack, end_item);
 
     tToken *current_token = (tToken*) malloc(sizeof(tToken));
     if (current_token == NULL){
@@ -175,8 +186,8 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
         tExprItem *top_terminal = get_stack_top_terminal(&expr_stack);
         size_t top_terminal_idx = top_terminal->type;
         size_t input_token_idx = token_to_preced_idx(current_token->type, is_expr_end_token(current_token, end_token, &par_level) && top_terminal_idx != T_LPAR_EXPR);
-
         if (input_token_idx == T_UNKNOW_EXPR){
+            printf("err4\n");
             return false;
         }
 
@@ -236,6 +247,7 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
             }
             current_token->type = tmp_token.type;
             current_token->data = tmp_token.data;
+
         } else if (preced_tab[top_terminal_idx][input_token_idx] == '>'){
             tStack help_stack;
             StackInit(&help_stack);
@@ -248,7 +260,7 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     dynamicBuffer_ADD_STRING(instruction, "PUSHS ");
                     switch (top_terminal->token->type) {
                         case T_VAR_ID:
-                            // TODO check if var is defined
+                            // TODO check if variable is defined
                             dynamicBuffer_ADD_STRING(instruction, "LF@");
                             dynamicBuffer_ADD_STRING(instruction, top_terminal->token->data.STRINGval->data);
                             break;
@@ -335,49 +347,68 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     if (new_expr_item == NULL){
                         exit(99);
                     }
-                    new_expr_item->token = current_token;
+                    new_expr_item->token = NULL;
                     new_expr_item->type = T_OPERAND_EXPR;
                     new_expr_item->is_terminal = false;
                     new_expr_item->handle = false;
 
                     StackPush(&expr_stack, new_expr_item);
-                    clean_expr_stack(&help_stack);
+
                 } else if (tmp_stack_item->type == T_LPAR_EXPR){
-                    StackPop(&help_stack);
+                    free_expr_token(&tmp_stack_item->token);
                     free(tmp_stack_item);
+                    StackPop(&help_stack);
                     tmp_stack_item = (tExprItem*) StackTop(&help_stack);
 
                     if (tmp_stack_item != NULL && tmp_stack_item->type == T_OPERAND_EXPR){
-                        StackPop(&help_stack);
+                        free_expr_token(&tmp_stack_item->token);
                         free(tmp_stack_item);
+                        StackPop(&help_stack);
                         tmp_stack_item = (tExprItem*) StackTop(&help_stack);
+
                         if (tmp_stack_item != NULL && tmp_stack_item->type == T_RPAR_EXPR){
                             // Create new stack item and push it
                             tExprItem *new_expr_item = (tExprItem*) malloc(sizeof(tExprItem));
                             if (new_expr_item == NULL){
                                 exit(99);
                             }
-                            new_expr_item->token = current_token;
+                            new_expr_item->token = NULL;
                             new_expr_item->type = T_OPERAND_EXPR;
                             new_expr_item->is_terminal = false;
                             new_expr_item->handle = false;
 
                             StackPush(&expr_stack, new_expr_item);
                         } else {
+                            if (tmp_stack_item->token != NULL){
+                                free(tmp_stack_item->token);
+                                tmp_stack_item->token = NULL;
+                            }
                             free(tmp_stack_item);
+                            printf("err1\n");
                             return false;
                         }
                     } else {
+                        if (tmp_stack_item->token != NULL){
+                            free(tmp_stack_item->token);
+                            tmp_stack_item->token = NULL;
+                        }
                         free(tmp_stack_item);
+                        printf("err2\n");
                         return false;
                     }
                 } else {
+                    if (tmp_stack_item->token != NULL){
+                        free(tmp_stack_item->token);
+                        tmp_stack_item->token = NULL;
+                    }
                     free(tmp_stack_item);
+                    printf("err3\n");
                     return false;
                 }
             } else if (tmp_stack_item->type == T_OPERAND_EXPR){
-                StackPop(&help_stack);
+                free_expr_token(&tmp_stack_item->token);
                 free(tmp_stack_item);
+                StackPop(&help_stack);
                 tmp_stack_item = (tExprItem*) StackTop(&help_stack);
                 tExprItem *new_expr_item = (tExprItem*) malloc(sizeof(tExprItem));
                 if (new_expr_item == NULL){
@@ -395,54 +426,77 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     case T_GTE_EXPR:
                     case T_EQ_EXPR:
                     case T_NEQ_EXPR:
+                        free_expr_token(&tmp_stack_item->token);
                         free(tmp_stack_item);
                         StackPop(&help_stack);
                         tmp_stack_item = (tExprItem*) StackTop(&help_stack);
+
                         if (tmp_stack_item != NULL && tmp_stack_item->type == T_OPERAND_EXPR){
                             // Create new stack item and push it
-                            new_expr_item->token = current_token;
+                            new_expr_item->token = NULL;
                             new_expr_item->type = T_OPERAND_EXPR;
                             new_expr_item->is_terminal = false;
                             new_expr_item->handle = false;
 
                             StackPush(&expr_stack, new_expr_item);
+
                         } else {
                             free(current_token);
                             free(new_expr_item);
+                            printf("err8\n");
                             return false;
                         }
                         break;
                     default:
                         free(current_token);
                         free(new_expr_item);
+                        printf("err7\n");
                         return false;
                 }
             } else {
+                printf("err6\n");
                 return false;
             }
+
+            clean_expr_stack(&help_stack);
+
         } else if (preced_tab[top_terminal_idx][input_token_idx] == '\0'){
+            printf("err5\n");
             return false;
         }
     }
-    //clean_expr_stack(&expr_stack);
+    free_expr_token(&current_token);
+    clean_expr_stack(&expr_stack);
     return true;
 }
 
+void free_expr_token(tToken **token){
+    if ((*token) != NULL){
+        // varid funid string
+        switch ((*token)->type) {
+            case T_VAR_ID:
+            case T_FUN_ID:
+            case T_STRING:
+                dynamicBufferFREE((*token)->data.STRINGval);
+                break;
+            default:
+                break;
+        }
+        free((*token));
+        (*token) = NULL;
+    }
+}
+
 void clean_expr_stack(tStack *expr_stack){
-    //printf("Cleaning stack!\n");
     while (!StackIsEmpty(expr_stack)){
         tExprItem *free_item = (tExprItem*) StackTop(expr_stack);
-        if (free_item->token != NULL){
-            //printf("Cleaning token space!\n");
-            //printf("token to free: \n\taddr: %p\n\ttype: %d\n", (void*)free_item->token, free_item->token->type);
-            free(free_item->token);
-            //printf("Token space cleaned!\n");
-        }
-        //printf("item to free: \n\taddr: %p\n\ttype: %d\n", (void*)free_item, free_item->type);
+
+        free_expr_token(&free_item->token);
+
         free(free_item);
-        //printf("Popping from stack!\n");
         StackPop(expr_stack);
     }
+    StackInit(expr_stack);
 }
 
 bool is_expr_end_token(tToken *current_token, tToken *end_token, size_t *par_level){

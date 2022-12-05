@@ -1271,5 +1271,6 @@ int main(){
     DLL_InsertAfter_main(&instruction_list,instruction);
     dynamicBufferFREE(instruction);
     print_instructions(&instruction_list);
+    DLL_Dispose(&instruction_list);
     return 0;
 }
