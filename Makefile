@@ -53,7 +53,7 @@ all: $(PROG)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 ########################### PARSER #################################
-./bin/test-parser: ./bin/parser.o ./bin/scanner.o ./bin/dynamic_buffer.o ./bin/error.o ./bin/expression_parser.o ./bin/stack.o ./bin/dynamic_buffer.o ./bin/dll_instruction_list.o ./bin/htab.o ./bin/symtable.o ./bin/expression_codegen.o
+./bin/test-parser: ./bin/parser.o ./bin/scanner.o ./bin/dynamic_buffer.o ./bin/error.o ./bin/expression_parser.o ./bin/stack.o ./bin/dynamic_buffer.o ./bin/dll_instruction_list.o ./bin/htab.o ./bin/symtable.o ./bin/expression_codegen.o ./bin/generator.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 
 ./bin/parser.o: ./src/parser.c
@@ -77,6 +77,10 @@ all: $(PROG)
 
 ./bin/expression_codegen.o: ./src/expression_codegen.c
 	$(CC) $(CFLAGS) -c $< -o $@
+
+./bin/generator.o: ./src/generator.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
 
 ############################### XXXXX #####################################
 
