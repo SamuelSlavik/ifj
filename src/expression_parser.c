@@ -124,13 +124,13 @@ tDynamicBuffer *double_2_string(double num){
 
 tDynamicBuffer *long_2_string(long int num){
     tDynamicBuffer *long_str = dynamicBuffer_INIT();
-    long long int digit_count = 0;
+    long long int digit_count = 1;
     long int number = num;
     while (number != 0){
         number /= 10;
         digit_count++;
     }
-    char *buffer = malloc(sizeof(char)*digit_count + 1);
+    char *buffer = calloc(sizeof(char), digit_count + 1);
     if (buffer == NULL){
         exit(99);
     }
