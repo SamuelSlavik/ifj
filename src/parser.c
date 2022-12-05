@@ -18,6 +18,7 @@
 #include "htab.h"
 #include "error.h"
 #include "expression_codegen.h"
+#include "generator.h"
 
 #define ERROR_EXIT(flag,token,errcode) if (!(flag)){error_exit(token,errcode);}
 #define DETECT_MAIN(instruction_list,instruction,key) if(!strcmp(key,"$$main")){DLL_InsertAfter_main(instruction_list,instruction);\
@@ -153,11 +154,13 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
             error_exit(token,RE_DEF_ERROR);
         }
         instruction_list->curr_fun=htab_find(symtable, token->data.STRINGval->data);
-        instruction = dynamicBuffer_INIT();
-        dynamicBuffer_ADD_STRING(instruction, "CREATEFRAME");
-        DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
-        dynamicBufferFREE(instruction);
-        print_stack(instruction_list->curr_fun->data.fun_data.TaV,instruction,instruction_list, "DEFVAR TF@");
+        if (strcmp(instruction_list->curr_fun->key,"write")){
+            instruction = dynamicBuffer_INIT();
+            dynamicBuffer_ADD_STRING(instruction, "CREATEFRAME");
+            DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
+            dynamicBufferFREE(instruction);
+            print_stack(instruction_list->curr_fun->data.fun_data.TaV,instruction,instruction_list, "DEFVAR TF@");
+        }
         *token = get_token(1);
         if (token->type == T_L_PAR){
             *token = get_token(1);
@@ -171,8 +174,20 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
                 ERROR_EXIT(0,token,SYNTAX_ERROR); // lol
             }*/
             instruction = dynamicBuffer_INIT();
-            dynamicBuffer_ADD_STRING(instruction, "CALL ");
-            dynamicBuffer_ADD_STRING(instruction, instruction_list->curr_fun->data.fun_data.label_name->data);
+            if (strcmp(instruction_list->curr_fun->key,"write")){
+                dynamicBuffer_ADD_STRING(instruction, "CALL ");
+                dynamicBuffer_ADD_STRING(instruction, instruction_list->curr_fun->data.fun_data.label_name->data);
+            }
+            else{
+                dynamicBuffer_ADD_STRING(instruction, "PUSHS int@");
+                tDynamicBuffer *numof_param = dynamicBuffer_INIT();
+                numof_param= long_2_string(instruction_list->num_of_params_called);
+                dynamicBuffer_ADD_STRING(instruction, numof_param->data);
+                dynamicBuffer_ADD_STRING(instruction, "\n");
+                dynamicBuffer_ADD_STRING(instruction, "CALL ");
+                dynamicBuffer_ADD_STRING(instruction,"functionWrite");
+                dynamicBufferFREE(numof_param);
+            }
             DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
             dynamicBufferFREE(instruction);
             
@@ -756,10 +771,12 @@ bool f_fn_call_lc(tToken *token,tDynamicBuffer *instruction, DLList *instruction
         ERROR_EXIT(fn_call_bool2,token,SYNTAX_ERROR);
         break;
     case T_R_PAR:
+        if(strcmp(instruction_list->curr_fun->key,"write")){
         if(instruction_list->num_of_params_called != instruction_list->curr_fun->data.fun_data.number_of_params){
             error_exit(token,PARAM_ERROR);
         }
         print_stack(instruction_list->curr_fun->data.fun_data.TaV,instruction,instruction_list, "POPS TF@");
+        }
         *token = get_token(1);
         fn_call_bool2 = true;
         break;
@@ -1060,6 +1077,32 @@ int main(){
     DLL_Next_main(&instruction_list);
     dynamicBufferFREE(instruction);
     tToken token = get_token(0);
+    instruction = dynamicBuffer_INIT();    
+    dynamicBuffer_ADD_STRING(instruction,"write"); 
+    st_fun_create(symtable,instruction->data);
+    dynamicBufferFREE(instruction);
+    instruction=dynamicBuffer_INIT();
+    dynamicBuffer_ADD_STRING(instruction,"LABEL functionWrite\n");
+    dynamicBuffer_ADD_STRING(instruction,"PUSHFRAME\n");
+    dynamicBuffer_ADD_STRING(instruction,"CREATEFRAME\n");
+    dynamicBuffer_ADD_STRING(instruction,"DEFVAR TF@term\n");
+    dynamicBuffer_ADD_STRING(instruction,"DEFVAR TF@numberOfArguments\n");
+    dynamicBuffer_ADD_STRING(instruction,"POPS TF@numberOfArguments\n");
+    dynamicBuffer_ADD_STRING(instruction,"LABEL loopStart\n");
+    dynamicBuffer_ADD_STRING(instruction,"JMPIFEQ loopEnd TF@numberOfArguments int@0\n");
+    dynamicBuffer_ADD_STRING(instruction,"POPS TF@term\n");
+    dynamicBuffer_ADD_STRING(instruction,"JMP loopWrite\n");
+    dynamicBuffer_ADD_STRING(instruction,"LABEL loopWrite\n");
+    dynamicBuffer_ADD_STRING(instruction,"WRITE TF@term\n");
+    dynamicBuffer_ADD_STRING(instruction,"SUB TF@numberOfArguments TF@numberOfArguments int@1\n");
+    dynamicBuffer_ADD_STRING(instruction,"JMP loopStart\n");
+    dynamicBuffer_ADD_STRING(instruction,"LABEL loopEnd\n");
+    dynamicBuffer_ADD_STRING(instruction,"POPFRAME\n");
+    dynamicBuffer_ADD_STRING(instruction,"RETURN");
+    DLL_InsertAfter(&instruction_list,instruction);
+    DLL_Next(&instruction_list);
+    dynamicBufferFREE(instruction);
+    
     if (f_start(&token,instruction,&instruction_list) == false){ //debug error print
         printf("PREBUBLALO TO AZ DO MAINU SKONTROLOVAT\n");
         exit(SYNTAX_ERROR);
