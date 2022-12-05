@@ -19,6 +19,9 @@ void DLL_Dispose( DLList *list ) {
     while (list->first != NULL){
         list->active = list->first;
         list->first = list->first->nextElement;
+        if (list->active->instruction != NULL){
+            dynamicBufferFREE(list->active->instruction);
+        }
         free(list->active);
     }
     list->last = NULL;
