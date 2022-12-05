@@ -106,21 +106,20 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
     tDynamicBuffer *labelnameif;
     tToken end_token;
     tToken tmp_token;
-    tToken tmp_token2;
     switch (token->type)
     {
     case T_VAR_ID:
-        tmp_token2.data.STRINGval= dynamicBuffer_INIT();
-        dynamicBuffer_ADD_STRING(tmp_token2.data.STRINGval,token->data.STRINGval->data);
-        tmp_token2.line = token->line;
+        tmp_token.data.STRINGval= dynamicBuffer_INIT();
+        dynamicBuffer_ADD_STRING(tmp_token.data.STRINGval,token->data.STRINGval->data);
+        tmp_token.line = token->line;
         *token = get_token(1);
         
         if (token->type == T_ASSIGN){
-            if (htab_find(instruction_list->called_from->data.fun_data.localST,tmp_token2.data.STRINGval->data) == NULL ){
+            if (htab_find(instruction_list->called_from->data.fun_data.localST,tmp_token.data.STRINGval->data) == NULL ){
                 instruction = dynamicBuffer_INIT();
                 dynamicBuffer_ADD_STRING(instruction, "DEFVAR ");
                 dynamicBuffer_ADD_STRING(instruction, "LF@");
-                dynamicBuffer_ADD_STRING(instruction, tmp_token2.data.STRINGval->data);
+                dynamicBuffer_ADD_STRING(instruction, tmp_token.data.STRINGval->data);
                 if (instruction_list->if_while != NULL){
                     DLL_InsertBefore_if_while(instruction_list,instruction);
                 }
@@ -129,7 +128,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
                 }
                 dynamicBufferFREE(instruction);
             }
-            instruction_list->curr_var=st_var_create(instruction_list->called_from->data.fun_data.localST, tmp_token2.data.STRINGval->data);
+            instruction_list->curr_var=st_var_create(instruction_list->called_from->data.fun_data.localST, tmp_token.data.STRINGval->data);
 
             *token = get_token(1);
             body = f_body_var(token,instruction, instruction_list);
@@ -142,9 +141,9 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
             dynamicBufferFREE(instruction);
         }
         else{
-            tmp_token2.type = T_VAR_ID;
+            tmp_token.type = T_VAR_ID;
             end_token.type = T_SEMICOLON;
-            body = check_expr_syntax(token, &end_token,instruction_list, &tmp_token2);
+            body = check_expr_syntax(token, &end_token,instruction_list, &tmp_token);
             ERROR_EXIT(body,token,SYNTAX_ERROR);
             *token = get_token(1);
         }
@@ -841,6 +840,25 @@ bool f_fn_call_l(tToken *token,tDynamicBuffer *instruction, DLList *instruction_
         fn_call_bool = f_fn_call_lc(token,instruction, instruction_list);
         ERROR_EXIT(fn_call_bool,token,SYNTAX_ERROR);
         break;
+    case T_NULL:
+        instruction_list->num_of_params_called++;
+        // todo typova kontrola null (instruction_list->curr_fun->data.fun_data.TaV->top)
+        instruction = dynamicBuffer_INIT();
+        dynamicBuffer_ADD_STRING(instruction, "PUSHS ");
+        dynamicBuffer_ADD_STRING(instruction, "float@");
+        dynamicBuffer_ADD_STRING(instruction, double_2_string(token->data.FLOATval)->data);
+        if (strcmp(instruction_list->curr_fun->key,"write") && strcmp(instruction_list->curr_fun->key,"substring")){
+            DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
+            dynamicBufferFREE(instruction);
+            
+        }
+        else{
+            StackPush(&buildinargs,instruction);
+        }
+        *token = get_token(1);
+        fn_call_bool = f_fn_call_lc(token,instruction, instruction_list);
+        ERROR_EXIT(fn_call_bool,token,SYNTAX_ERROR);
+        break;
     case T_R_PAR:
     if(strcmp(instruction_list->curr_fun->key,"write")){
         if(instruction_list->num_of_params_called != instruction_list->curr_fun->data.fun_data.number_of_params){
@@ -954,6 +972,25 @@ bool f_fn_call_lparam(tToken *token,tDynamicBuffer *instruction, DLList *instruc
         if (strcmp(instruction_list->curr_fun->key,"write") && strcmp(instruction_list->curr_fun->key,"substring")){
             DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
             dynamicBufferFREE(instruction);
+        }
+        else{
+            StackPush(&buildinargs,instruction);
+        }
+        *token = get_token(1);
+        fn_call_bool = f_fn_call_lc(token,instruction, instruction_list);
+        ERROR_EXIT(fn_call_bool,token,SYNTAX_ERROR);
+        break;
+    case T_NULL:
+        instruction_list->num_of_params_called++;
+        // todo typova kontrola null (instruction_list->curr_fun->data.fun_data.TaV->top)
+        instruction = dynamicBuffer_INIT();
+        dynamicBuffer_ADD_STRING(instruction, "PUSHS ");
+        dynamicBuffer_ADD_STRING(instruction, "float@");
+        dynamicBuffer_ADD_STRING(instruction, double_2_string(token->data.FLOATval)->data);
+        if (strcmp(instruction_list->curr_fun->key,"write") && strcmp(instruction_list->curr_fun->key,"substring")){
+            DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
+            dynamicBufferFREE(instruction);
+            
         }
         else{
             StackPush(&buildinargs,instruction);
