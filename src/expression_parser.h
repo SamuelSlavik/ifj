@@ -53,6 +53,7 @@ enum expr_item_type{
     T_OPERAND_EXPR,
     T_END_EXPR,
     T_UNKNOW_EXPR,
+    T_ERROR_EXPR,
 };
 
 typedef struct expr_item{
