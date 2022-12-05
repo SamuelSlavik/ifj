@@ -12,7 +12,7 @@ void generate_intval(tDynamicBuffer *instruction, DLList *instruction_list);
 void generate_floatval(tDynamicBuffer *instruction, DLList *instruction_list);
 void generate_strval(tDynamicBuffer *instruction, DLList *instruction_list);
 void generate_strlen(tDynamicBuffer *instruction, DLList *instruction_list);
-//void generate_substring(tDynamicBuffer *instruction, DLList *instruction_list);
+void generate_substr(tDynamicBuffer *instruction, DLList *instruction_list);
 void generate_chr(tDynamicBuffer *instruction, DLList *instruction_list);
 void generate_ord(tDynamicBuffer *instruction, DLList *instruction_list);
 #endif
