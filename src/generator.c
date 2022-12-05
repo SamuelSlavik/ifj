@@ -269,6 +269,10 @@ void generate_strlen(tDynamicBuffer *instruction, DLList *instruction_list){
 // ///////////////////////////////////////////////////////
 void generate_substr(tDynamicBuffer *instruction, DLList *instruction_list){
     instruction=dynamicBuffer_INIT();
+    tDynamicBuffer *error = label_name_gen("error");
+    tDynamicBuffer *loopStart = label_name_gen("loopStart");
+    tDynamicBuffer *loopEnd = label_name_gen("loopEnd");
+
     dynamicBuffer_ADD_STRING(instruction,"LABEL functionSubStr\n");
     dynamicBuffer_ADD_STRING(instruction,"PUSHFRAME\n");
     dynamicBuffer_ADD_STRING(instruction,"CREATEFRAME\n");
@@ -278,22 +282,80 @@ void generate_substr(tDynamicBuffer *instruction, DLList *instruction_list){
     dynamicBuffer_ADD_STRING(instruction,"POPS TF@i\n");
     dynamicBuffer_ADD_STRING(instruction,"DEFVAR TF@j\n");
     dynamicBuffer_ADD_STRING(instruction,"POPS TF@j\n");
+    dynamicBuffer_ADD_STRING(instruction,"DEFVAR TF@tmp\n");
+    dynamicBuffer_ADD_STRING(instruction,"DEFVAR TF@length\n");
+    dynamicBuffer_ADD_STRING(instruction,"DEFVAR TF@subString\n");
+    dynamicBuffer_ADD_STRING(instruction,"MOVE TF@subString string@\n");
+    dynamicBuffer_ADD_STRING(instruction,"DEFVAR TF@tmp2\n");
+    dynamicBuffer_ADD_STRING(instruction,"DEFVAR TF@index\n");
+    dynamicBuffer_ADD_STRING(instruction,"DEFVAR TF@character\n");
 
+    dynamicBuffer_ADD_STRING(instruction,"GT TF@tmp TF@i TF@j\n");
+    dynamicBuffer_ADD_STRING(instruction,"JUMPIFEQ ");
+    dynamicBuffer_ADD_STRING(instruction,error->data);
+    dynamicBuffer_ADD_STRING(instruction," TF@tmp bool@true\n");
 
-    dynamicBuffer_ADD_STRING(instruction,"STRLEN TF@argument1 TF@argument1\n");
-    dynamicBuffer_ADD_STRING(instruction,"PUSHS TF@argument1\n");
-    dynamicBuffer_ADD_STRING(instruction,"PUSHS TF@argument1\n");
+    dynamicBuffer_ADD_STRING(instruction,"LT TF@tmp TF@i int@0\n");
+    dynamicBuffer_ADD_STRING(instruction,"JUMPIFEQ ");
+    dynamicBuffer_ADD_STRING(instruction,error->data);
+    dynamicBuffer_ADD_STRING(instruction," TF@tmp bool@true\n");
 
-    dynamicBuffer_ADD_STRING(instruction,"LABEL error\n");
+    dynamicBuffer_ADD_STRING(instruction,"LT TF@tmp TF@j int@0\n");
+    dynamicBuffer_ADD_STRING(instruction,"JUMPIFEQ ");
+    dynamicBuffer_ADD_STRING(instruction,error->data);
+    dynamicBuffer_ADD_STRING(instruction," TF@tmp bool@true\n");
+
+    dynamicBuffer_ADD_STRING(instruction,"STRLEN TF@length TF@string\n");
+    dynamicBuffer_ADD_STRING(instruction,"GT TF@tmp TF@i TF@length\n");
+    dynamicBuffer_ADD_STRING(instruction,"JUMPIFEQ ");
+    dynamicBuffer_ADD_STRING(instruction,error->data);
+    dynamicBuffer_ADD_STRING(instruction," TF@tmp bool@true\n");
+    dynamicBuffer_ADD_STRING(instruction,"GT TF@tmp TF@j TF@length\n");
+    dynamicBuffer_ADD_STRING(instruction,"JUMPIFEQ ");
+    dynamicBuffer_ADD_STRING(instruction,error->data);
+    dynamicBuffer_ADD_STRING(instruction," TF@tmp bool@true\n");
+    
+    // ///////////////////////////////// HERE YA GO
+    dynamicBuffer_ADD_STRING(instruction,"SUB TF@tmp2 TF@j TF@i\n");
+    dynamicBuffer_ADD_STRING(instruction,"MOVE TF@index TF@i\n");
+
+    // LOOOP START
+    dynamicBuffer_ADD_STRING(instruction,"LABEL ");
+    dynamicBuffer_ADD_STRING(instruction,loopStart->data);
+    dynamicBuffer_ADD_STRING(instruction,"\n");
+    dynamicBuffer_ADD_STRING(instruction,"JUMPIFEQ ");
+    dynamicBuffer_ADD_STRING(instruction,loopEnd->data);
+    dynamicBuffer_ADD_STRING(instruction," TF@tmp2 int@0\n");
+    
+    // LOOP write
+    dynamicBuffer_ADD_STRING(instruction,"GETCHAR TF@character TF@string TF@index\n");
+    dynamicBuffer_ADD_STRING(instruction,"CONCAT TF@subString TF@subString TF@character\n");
+    dynamicBuffer_ADD_STRING(instruction,"ADD TF@index TF@index int@1\n");
+    dynamicBuffer_ADD_STRING(instruction,"SUB TF@tmp2 TF@tmp2 int@1\n");
+    dynamicBuffer_ADD_STRING(instruction,"JUMP ");
+    dynamicBuffer_ADD_STRING(instruction,loopStart->data);
+    dynamicBuffer_ADD_STRING(instruction,"\n");
+
+    // error
+    dynamicBuffer_ADD_STRING(instruction,"LABEL ");
+    dynamicBuffer_ADD_STRING(instruction,error->data);
+    dynamicBuffer_ADD_STRING(instruction,"\n");
+    dynamicBuffer_ADD_STRING(instruction,"PUSHS nil@nil\n");
     dynamicBuffer_ADD_STRING(instruction,"POPFRAME\n");
     dynamicBuffer_ADD_STRING(instruction,"RETURN\n");
 
-
-    dynamicBuffer_ADD_STRING(instruction,"LABEL ending\n");
+    // LOOP end
+    dynamicBuffer_ADD_STRING(instruction,"LABEL ");
+    dynamicBuffer_ADD_STRING(instruction,loopEnd->data);
+    dynamicBuffer_ADD_STRING(instruction,"\n");
+    dynamicBuffer_ADD_STRING(instruction,"PUSHS TF@subString\n");
     dynamicBuffer_ADD_STRING(instruction,"POPFRAME\n");
     dynamicBuffer_ADD_STRING(instruction,"RETURN");
     DLL_InsertAfter(instruction_list,instruction);
     DLL_Next(instruction_list);
+    dynamicBufferFREE(loopStart);
+    dynamicBufferFREE(loopEnd);
+    dynamicBufferFREE(error);
     dynamicBufferFREE(instruction);
 }
 // /////////////////////////////////////////////////////////////////////////////////////////////
