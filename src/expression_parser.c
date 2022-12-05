@@ -59,6 +59,15 @@ void string_to_ifj_fmt(tDynamicBuffer **string){
                     dynamicBuffer_ADD_STRING(*string, "\\092x");
                 } else {
                     tDynamicBuffer *int_val_str = long_2_string(hex_int_val);
+                    if (int_val_str->size < 3){
+                        tDynamicBuffer *int_val_str_tmp = int_val_str;
+                        int_val_str = dynamicBuffer_INIT();
+                        for (size_t j = 0; j < 3 - int_val_str_tmp->size; ++j) {
+                            dynamicBuffer_ADD_CHAR(int_val_str, '0');
+                        }
+                        dynamicBuffer_ADD_STRING(int_val_str, int_val_str_tmp->data);
+                        dynamicBufferFREE(int_val_str_tmp);
+                    }
                     dynamicBuffer_ADD_STRING(*string, "\\");
                     dynamicBuffer_ADD_STRING(*string, int_val_str->data);
                     dynamicBufferFREE(int_val_str);
@@ -78,6 +87,15 @@ void string_to_ifj_fmt(tDynamicBuffer **string){
                     dynamicBuffer_ADD_CHAR(*string, (char) current_char);
                 } else {
                     tDynamicBuffer *int_val_str = long_2_string(oct_int_val);
+                    if (int_val_str->size < 3){
+                        tDynamicBuffer *int_val_str_tmp = int_val_str;
+                        int_val_str = dynamicBuffer_INIT();
+                        for (size_t j = 0; j < 3 - int_val_str_tmp->size; ++j) {
+                            dynamicBuffer_ADD_CHAR(int_val_str, '0');
+                        }
+                        dynamicBuffer_ADD_STRING(int_val_str, int_val_str_tmp->data);
+                        dynamicBufferFREE(int_val_str_tmp);
+                    }
                     dynamicBuffer_ADD_STRING(*string, "\\");
                     dynamicBuffer_ADD_STRING(*string, int_val_str->data);
                     dynamicBufferFREE(int_val_str);
