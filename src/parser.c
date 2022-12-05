@@ -141,13 +141,12 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
             dynamicBufferFREE(instruction);
         }
         else{
-            tmp_token.type = T_VAR_ID;
+            tmp_token2.type = T_VAR_ID;
             end_token.type = T_SEMICOLON;
             body = check_expr_syntax(token, &end_token,instruction_list, &tmp_token2);
             ERROR_EXIT(body,token,SYNTAX_ERROR);
             *token = get_token(1);
         }
-        dynamicBufferFREE(tmp_token2.data.STRINGval);
         break;
     case T_FUN_ID:
         //local_sym = st_fun_call(symtable,&frames,token->data.STRINGval->data);
