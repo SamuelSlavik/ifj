@@ -496,6 +496,7 @@ bool f_fn_call_l(tToken *token,tDynamicBuffer *instruction, DLList *instruction_
     case T_VAR_ID:
         instruction_list->num_of_params_called++;
         ERROR_EXIT(htab_find(instruction_list->called_from->data.fun_data.localST,token->data.STRINGval->data)!=NULL,token,UN_DEF_VAR_ERROR);
+        var_init_check(instruction_list, token->data.STRINGval);
         instruction = dynamicBuffer_INIT();
         dynamicBuffer_ADD_STRING(instruction, "PUSHS LF@");
         dynamicBuffer_ADD_STRING(instruction, token->data.STRINGval->data);
@@ -639,6 +640,7 @@ bool f_fn_call_lparam(tToken *token,tDynamicBuffer *instruction, DLList *instruc
     case T_VAR_ID:
         instruction_list->num_of_params_called++;
         ERROR_EXIT(htab_find(instruction_list->called_from->data.fun_data.localST,token->data.STRINGval->data)!=NULL,token,UN_DEF_VAR_ERROR);
+        var_init_check(instruction_list, token->data.STRINGval);
         instruction = dynamicBuffer_INIT();
         dynamicBuffer_ADD_STRING(instruction, "PUSHS LF@");
         // pridat radmec dynamicBuffer_ADD_STRING(instruction, "");
