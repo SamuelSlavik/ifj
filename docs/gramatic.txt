@@ -7,7 +7,7 @@
 <prog>       =>  [T_EPILOG] [T_EOF]	(pozn. po T_EPILOG automat prechádza do stavu END)
 
 // FUNCTION DECLARATION AND DEFINITION
-<fn>                    =>  [T_FUNCTION] [FUN_ID] [T_L_PAR] <fn_param> [T_COLON] <fn_type> [T_L_BRAC] <in_body>
+<fn>                    =>  [T_FUNCTION] [FUN_ID] [T_L_PAR] <fn_param> [T_COLON] <fn_type> <fn_dedf>
 
 <fn_param>              => [T_R_PAR]
 <fn_param>              => [T_STRING_TYPE, T_FLOAT_TYPE, T_INT_TYPE] <fn_dedf_param_type>
