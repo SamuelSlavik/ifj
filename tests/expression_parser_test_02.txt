@@ -1,6 +1,11 @@
 <?php
 declare(strict_types=1);
-while(null) {
-    write("BAD\n");
+$a = 0;
+if($a === "A") {
+    $x = 5;
+} else {
+
 }
-write("GOOD\n");
+
+$a = 3 + $x;
+write($a);

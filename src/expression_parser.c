@@ -37,6 +37,9 @@ void string_to_ifj_fmt(tDynamicBuffer **string){
             dynamicBuffer_ADD_STRING(*string, "\\032");
         } else if (current_char == '#'){
             dynamicBuffer_ADD_STRING(*string, "\\035");
+        } else if (current_char == '$'){
+            // TODO add token to error exit somehow
+            exit(1);
         } else if (current_char == '\\'){
             current_char = (unsigned char) tmp_copy->data[++i];
 
@@ -48,6 +51,8 @@ void string_to_ifj_fmt(tDynamicBuffer **string){
                 dynamicBuffer_ADD_STRING(*string, "\\010");
             } else if(current_char == '"'){
                 dynamicBuffer_ADD_STRING(*string, "\\034");
+            } else if(current_char == '$'){
+                dynamicBuffer_ADD_STRING(*string, "\\036");
             } else if(current_char == 'x'){
                 tDynamicBuffer *hex_str = dynamicBuffer_INIT();
                 dynamicBuffer_ADD_CHAR(hex_str, tmp_copy->data[i+1]);
@@ -293,6 +298,7 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     dynamicBuffer_ADD_STRING(instruction, "PUSHS ");
                     switch (top_terminal->token->type) {
                         case T_VAR_ID:
+                            // var_init_check(instruction_list, top_terminal->token->data.STRINGval);
                             dynamicBuffer_ADD_STRING(instruction, "LF@");
                             dynamicBuffer_ADD_STRING(instruction, top_terminal->token->data.STRINGval->data);
                             break;

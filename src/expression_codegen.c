@@ -31,6 +31,29 @@ tDynamicBuffer *label_name_gen(char* name){
     return buffer;
 }
 
+void var_init_check(DLList *instruction_list, tDynamicBuffer *var_id){
+    tDynamicBuffer *instruction = dynamicBuffer_INIT();
+    tDynamicBuffer *var_init_true = label_name_gen("var_init_true");
+
+    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@expr_var_type\n");
+
+    dynamicBuffer_ADD_STRING(instruction, "TYPE TF@expr_var_type LF@");
+    dynamicBuffer_ADD_STRING(instruction, var_id->data);
+    dynamicBuffer_ADD_STRING(instruction, "\n");
+
+    dynamicBuffer_ADD_STRING(instruction, "JUMPIFNEQ ");
+    dynamicBuffer_ADD_STRING(instruction, var_init_true->data);
+    dynamicBuffer_ADD_STRING(instruction, " TF@expr_var_type string@\n");
+
+    dynamicBuffer_ADD_STRING(instruction, "EXIT int@5\n");
+
+    dynamicBuffer_ADD_STRING(instruction, "LABEL ");
+    dynamicBuffer_ADD_STRING(instruction, var_init_true->data);
+
+    insert_instruction(instruction_list, instruction);
+    dynamicBufferFREE(var_init_true);
+}
+
 void save_create_tf(tDynamicBuffer *instruction){
     dynamicBuffer_ADD_STRING(instruction, "PUSHFRAME\n");
     dynamicBuffer_ADD_STRING(instruction, "CREATEFRAME\n");
@@ -940,7 +963,7 @@ void gen_lts_gts(DLList *instruction_list, tDynamicBuffer *instruction, char *cm
 
     dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
     dynamicBuffer_ADD_STRING(instruction, lt_gt_op_2_set_false_calc->data);
-    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@null\n");
+    dynamicBuffer_ADD_STRING(instruction, " TF@$TMP_2_TYPE string@nil\n");
 
     dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
     dynamicBuffer_ADD_STRING(instruction, lt_gt_op_1_null_op_2_int2bool->data);

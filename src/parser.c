@@ -392,6 +392,9 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
             dynamicBuffer_ADD_STRING(instruction, "\n");
             dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
             dynamicBuffer_ADD_STRING(instruction, expr_set_false->data);
+            dynamicBuffer_ADD_STRING(instruction, " TF@res string@\n");
+            dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
+            dynamicBuffer_ADD_STRING(instruction, expr_set_false->data);
             dynamicBuffer_ADD_STRING(instruction, " TF@res string@0\n");
             dynamicBuffer_ADD_STRING(instruction, "JUMP ");
             dynamicBuffer_ADD_STRING(instruction, expr_set_true->data);

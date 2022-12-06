@@ -15,6 +15,7 @@
 #include "dll_instruction_list.h"
 
 tDynamicBuffer *label_name_gen(char* name);
+void var_init_check(DLList *instruction_list, tDynamicBuffer *var_id);
 void save_create_tf(tDynamicBuffer *instruction);
 void insert_instruction(DLList *instruction_list, tDynamicBuffer *instruction);
 void def_tmp_get_type(tDynamicBuffer *instruction);
