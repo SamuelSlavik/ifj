@@ -495,7 +495,8 @@ bool f_fn_call_l(tToken *token,tDynamicBuffer *instruction, DLList *instruction_
         break;
     case T_VAR_ID:
         instruction_list->num_of_params_called++;
-        ASSERT_ERROR(htab_find(instruction_list->called_from->data.fun_data.localST,token->data.STRINGval->data)!=NULL,token,UN_DEF_VAR_ERROR);
+        ERROR_EXIT(htab_find(instruction_list->called_from->data.fun_data.localST,token->data.STRINGval->data)!=NULL,token,UN_DEF_VAR_ERROR);
+        var_init_check(instruction_list, token->data.STRINGval);
         instruction = dynamicBuffer_INIT();
         dynamicBuffer_ADD_STRING(instruction, "PUSHS LF@");
         dynamicBuffer_ADD_STRING(instruction, token->data.STRINGval->data);
@@ -638,7 +639,8 @@ bool f_fn_call_lparam(tToken *token,tDynamicBuffer *instruction, DLList *instruc
         break;
     case T_VAR_ID:
         instruction_list->num_of_params_called++;
-        ASSERT_ERROR(htab_find(instruction_list->called_from->data.fun_data.localST,token->data.STRINGval->data)!=NULL,token,UN_DEF_VAR_ERROR);
+        ERROR_EXIT(htab_find(instruction_list->called_from->data.fun_data.localST,token->data.STRINGval->data)!=NULL,token,UN_DEF_VAR_ERROR);
+        var_init_check(instruction_list, token->data.STRINGval);
         instruction = dynamicBuffer_INIT();
         dynamicBuffer_ADD_STRING(instruction, "PUSHS LF@");
         // pridat radmec dynamicBuffer_ADD_STRING(instruction, "");
@@ -890,6 +892,12 @@ int main(){
     dynamicBuffer_ADD_STRING(instruction,"CREATEFRAME\n");
     dynamicBuffer_ADD_STRING(instruction,"PUSHFRAME\n");
     dynamicBuffer_ADD_STRING(instruction,"CREATEFRAME");
+    DLL_InsertAfter(&instruction_list,instruction);
+    DLL_Next(&instruction_list);
+    DLL_Next_main(&instruction_list);
+    dynamicBufferFREE(instruction);
+    instruction = dynamicBuffer_INIT();
+    dynamicBuffer_ADD_STRING(instruction,"DEFVAR GF@expr_var_type");
     DLL_InsertAfter(&instruction_list,instruction);
     DLL_Next(&instruction_list);
     DLL_Next_main(&instruction_list);

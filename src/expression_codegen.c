@@ -35,15 +35,13 @@ void var_init_check(DLList *instruction_list, tDynamicBuffer *var_id){
     tDynamicBuffer *instruction = dynamicBuffer_INIT();
     tDynamicBuffer *var_init_true = label_name_gen("var_init_true");
 
-    dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@expr_var_type\n");
-
-    dynamicBuffer_ADD_STRING(instruction, "TYPE TF@expr_var_type LF@");
+    dynamicBuffer_ADD_STRING(instruction, "TYPE GF@expr_var_type LF@");
     dynamicBuffer_ADD_STRING(instruction, var_id->data);
     dynamicBuffer_ADD_STRING(instruction, "\n");
 
     dynamicBuffer_ADD_STRING(instruction, "JUMPIFNEQ ");
     dynamicBuffer_ADD_STRING(instruction, var_init_true->data);
-    dynamicBuffer_ADD_STRING(instruction, " TF@expr_var_type string@\n");
+    dynamicBuffer_ADD_STRING(instruction, " GF@expr_var_type string@\n");
 
     dynamicBuffer_ADD_STRING(instruction, "EXIT int@5\n");
 
