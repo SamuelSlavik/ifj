@@ -495,7 +495,9 @@ bool f_fn_call_l(tToken *token,tDynamicBuffer *instruction, DLList *instruction_
         break;
     case T_VAR_ID:
         instruction_list->num_of_params_called++;
+        //check if variable is declared
         ERROR_EXIT(htab_find(instruction_list->called_from->data.fun_data.localST,token->data.STRINGval->data)!=NULL,token,UN_DEF_VAR_ERROR);
+        //check if variable is initialized
         var_init_check(instruction_list, token->data.STRINGval);
         instruction = dynamicBuffer_INIT();
         dynamicBuffer_ADD_STRING(instruction, "PUSHS LF@");
@@ -639,7 +641,9 @@ bool f_fn_call_lparam(tToken *token,tDynamicBuffer *instruction, DLList *instruc
         break;
     case T_VAR_ID:
         instruction_list->num_of_params_called++;
+        //check is variable is declared
         ERROR_EXIT(htab_find(instruction_list->called_from->data.fun_data.localST,token->data.STRINGval->data)!=NULL,token,UN_DEF_VAR_ERROR);
+        //check if variable is initialized
         var_init_check(instruction_list, token->data.STRINGval);
         instruction = dynamicBuffer_INIT();
         dynamicBuffer_ADD_STRING(instruction, "PUSHS LF@");
