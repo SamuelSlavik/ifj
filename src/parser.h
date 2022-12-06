@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include "scanner.h"
 #include "dll_instruction_list.h"
+
 #define ERROR_EXIT(flag,token,errcode) if (!(flag)){error_exit(token,errcode);}
 #define DETECT_MAIN(instruction_list,instruction,key) if(!strcmp(key,"$$main")){DLL_InsertAfter_main(instruction_list,instruction);\
 if(instruction_list->active==instruction_list->main_body)\
@@ -17,8 +18,6 @@ bool f_start(tToken *token, tDynamicBuffer *instruction, DLList *instruction_lis
 bool f_prog(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list);
 
 bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list);
-
-//bool f_body_as(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list);
 
 bool f_body_var(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list);
 

@@ -1,3 +1,10 @@
+/**
+ * @file parser.c
+ * @brief Implementation of parser
+ * @version 0.02
+ * @author   
+ */
+
 #include <stdlib.h>
 #include "dll_instruction_list.h"
 #include "dynamic_buffer.h"
@@ -678,4 +685,35 @@ void check_return_type(tDynamicBuffer *instruction, DLList *instruction_list){
     DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
     dynamicBufferFREE(instruction);
     dynamicBufferFREE(return_type_false);
+}
+
+void print_stack(tStack *expr_stack, tDynamicBuffer *instruction, DLList *instruction_list,char *code){
+    // PRINT STACK
+    tStack print_stack;
+    StackInit(&print_stack);
+    while (!StackIsEmpty(expr_stack)){
+        tVar_TaV *stack_top_itm = ((tVar_TaV*) StackTop(expr_stack));
+        StackPush(&print_stack, stack_top_itm);
+        StackPop(expr_stack);
+    }
+    while (!StackIsEmpty(&print_stack)){
+        tVar_TaV *stack_top_itm = ((tVar_TaV*) StackTop(&print_stack));
+        instruction = dynamicBuffer_INIT();
+        dynamicBuffer_ADD_STRING(instruction, code);
+        dynamicBuffer_ADD_STRING(instruction, stack_top_itm->var);
+        DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
+        dynamicBufferFREE(instruction);
+        StackPush(expr_stack, stack_top_itm);
+        StackPop(&print_stack);
+    }
+    // END PRINT STACK
+}
+
+void print_instructions(DLList *instruction_list){
+    DLL_instruction *tmp = instruction_list->first;
+    while(tmp != NULL){
+        printf("%s\n", tmp->instruction->data);
+        tmp = tmp->nextElement;
+    }
+
 }
