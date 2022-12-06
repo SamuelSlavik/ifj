@@ -1,6 +1,6 @@
 /**
  * @file parser.c
- * @brief Implementation of parser
+ * @brief Implementation of top-down parser
  * @authors Jakub Kontrik (xkontr02), Adam Pekny(xpekny00), Samuel Slavik (xslavi37)
  */
 
@@ -21,21 +21,21 @@
 
 extern htab_t *symtable;
 
-//<start> =>  [T_PROLOG] <prog>
+
 bool f_start(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list){
-    ERROR_EXIT(token->type != T_ERROR,token,LEX_ERROR);
+    ASSERT_ERROR(token->type != T_ERROR,token,LEX_ERROR);
     bool start = false;
     if (token->type == T_PROLOG) {
         *token = get_token(1);
         start = f_prog(token,instruction, instruction_list);
-        ERROR_EXIT(start,token,SYNTAX_ERROR);
+        ASSERT_ERROR(start,token,SYNTAX_ERROR);
     }
     return start;
 }
 
 bool f_prog(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list){
     bool prog = false;
-    ERROR_EXIT(token->type != T_ERROR,token,LEX_ERROR);
+    ASSERT_ERROR(token->type != T_ERROR,token,LEX_ERROR);
     if (token->type == T_EOF){
         prog = true;
         return prog;
@@ -49,13 +49,14 @@ bool f_prog(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
     }
     //<prog> => <fn> <prog>
     //<prog> => <body> <prog>
-    prog = (f_func(token,instruction, instruction_list) && f_prog(token,instruction, instruction_list)) || 
-            (f_body(token,instruction, instruction_list) && f_prog(token,instruction, instruction_list));
+    prog = (f_func(token,instruction, instruction_list) && f_prog(token,instruction, instruction_list))
+            || (f_body(token,instruction, instruction_list) && f_prog(token,instruction, instruction_list));
     return prog;
 }
+
 bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list){
     bool body = false;
-    ERROR_EXIT(token->type != T_ERROR,token,LEX_ERROR);
+    ASSERT_ERROR(token->type != T_ERROR,token,LEX_ERROR);
     tDynamicBuffer *labelname;
     tDynamicBuffer *label_name_if;
     tToken end_token;
@@ -88,7 +89,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
 
             *token = get_token(1);
             body = f_body_var(token,instruction, instruction_list);
-            ERROR_EXIT(body,token,SYNTAX_ERROR);
+            ASSERT_ERROR(body,token,SYNTAX_ERROR);
             instruction = dynamicBuffer_INIT();
             dynamicBuffer_ADD_STRING(instruction, "POPS ");
             dynamicBuffer_ADD_STRING(instruction, "LF@");
@@ -100,13 +101,13 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
             tmp_token.type = T_VAR_ID;
             end_token.type = T_SEMICOLON;
             body = check_expr_syntax(token, &end_token,instruction_list, &tmp_token);
-            ERROR_EXIT(body,token,SYNTAX_ERROR);
+            ASSERT_ERROR(body,token,SYNTAX_ERROR);
             *token = get_token(1);
         }
         break;
     case T_FUN_ID:
         //checking funtion is in symtable
-        ERROR_EXIT(htab_find(symtable,token->data.STRINGval->data) != NULL,token,RE_DEF_ERROR);
+        ASSERT_ERROR(htab_find(symtable,token->data.STRINGval->data) != NULL,token,RE_DEF_ERROR);
         //setting current function
         instruction_list->curr_fun=htab_find(symtable, token->data.STRINGval->data);
         instruction = dynamicBuffer_INIT();
@@ -126,8 +127,8 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
             *token = get_token(1);
             instruction_list->num_of_params_called=0;
             body = f_fn_call_l(token,instruction, instruction_list);
-            ERROR_EXIT(body,token,SYNTAX_ERROR);
-            ERROR_EXIT(token->type == T_SEMICOLON,token,SYNTAX_ERROR)
+            ASSERT_ERROR(body,token,SYNTAX_ERROR);
+            ASSERT_ERROR(token->type == T_SEMICOLON,token,SYNTAX_ERROR);
 
             instruction = dynamicBuffer_INIT();
             if (!strcmp(instruction_list->curr_fun->key,"write")){
@@ -179,7 +180,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
         instruction_list->called_from->data.fun_data.has_ret=true;
         *token = get_token(1);
         body = f_body_ret(token,instruction, instruction_list);
-        ERROR_EXIT(body,token,SYNTAX_ERROR);
+        ASSERT_ERROR(body,token,SYNTAX_ERROR);
         check_return_type(instruction,instruction_list);
 
         instruction = dynamicBuffer_INIT();
@@ -216,7 +217,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
             *token = get_token(1);
             end_token.type = T_R_PAR;
             body = check_expr_syntax(token, &end_token,instruction_list,NULL);
-            ERROR_EXIT(body,token,SYNTAX_ERROR);
+            ASSERT_ERROR(body,token,SYNTAX_ERROR);
             //converting value into bool type from expression parser
             convert_into_bool(instruction,instruction_list,label_name_if);
             *token = get_token(1);
@@ -224,7 +225,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
                 //generating labels for jumping
                 *token = get_token(1);
                 body = f_in_body(token,instruction, instruction_list);
-                ERROR_EXIT(body,token,SYNTAX_ERROR);            
+                ASSERT_ERROR(body,token,SYNTAX_ERROR);            
                 instruction = dynamicBuffer_INIT();
                 dynamicBuffer_ADD_STRING(instruction, "JUMP end_");
                 dynamicBuffer_ADD_STRING(instruction, label_name_if->data);
@@ -240,7 +241,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
                         dynamicBufferFREE(instruction);
                         *token = get_token(1);
                         body = f_in_body(token,instruction, instruction_list);
-                        ERROR_EXIT(body,token,SYNTAX_ERROR);
+                        ASSERT_ERROR(body,token,SYNTAX_ERROR);
                         
                         instruction = dynamicBuffer_INIT();
                         dynamicBuffer_ADD_STRING(instruction, "LABEL end_");
@@ -283,7 +284,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
             *token = get_token(1);
             end_token.type = T_R_PAR;
             body = check_expr_syntax(token, &end_token,instruction_list,NULL);
-            ERROR_EXIT(body,token,SYNTAX_ERROR);
+            ASSERT_ERROR(body,token,SYNTAX_ERROR);
             //converting value into bool type from expression parser
             convert_into_bool(instruction,instruction_list,labelname);
             *token = get_token(1);
@@ -291,7 +292,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
                 //generating labels for jumping              
                 *token = get_token(1);
                 body = f_in_body(token,instruction, instruction_list);
-                ERROR_EXIT(body,token,SYNTAX_ERROR);
+                ASSERT_ERROR(body,token,SYNTAX_ERROR);
                 instruction = dynamicBuffer_INIT();
                 dynamicBuffer_ADD_STRING(instruction, "JUMP while_");
                 dynamicBuffer_ADD_STRING(instruction, labelname->data);
@@ -312,7 +313,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
     default:
         end_token.type = T_SEMICOLON;
         body = check_expr_syntax(token, &end_token,instruction_list,NULL);
-        ERROR_EXIT(body,token,SYNTAX_ERROR);
+        ASSERT_ERROR(body,token,SYNTAX_ERROR);
         *token = get_token(1);
         break;
     }
@@ -320,10 +321,10 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
 }
 bool f_body_var(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list){
     bool body_var = false;
-    ERROR_EXIT(token->type != T_ERROR,token,LEX_ERROR);
+    ASSERT_ERROR(token->type != T_ERROR,token,LEX_ERROR);
     if(token->type == T_FUN_ID){
         //checking funtion is in symtable
-        ERROR_EXIT(htab_find(symtable,token->data.STRINGval->data) != NULL,token,RE_DEF_ERROR);
+        ASSERT_ERROR(htab_find(symtable,token->data.STRINGval->data) != NULL,token,RE_DEF_ERROR);
         //setting current function
         instruction_list->curr_fun=htab_find(symtable, token->data.STRINGval->data);
         instruction = dynamicBuffer_INIT();
@@ -343,8 +344,8 @@ bool f_body_var(tToken *token,tDynamicBuffer *instruction, DLList *instruction_l
             *token = get_token(1);
             instruction_list->num_of_params_called=0;
             body_var = f_fn_call_l(token,instruction, instruction_list);
-            ERROR_EXIT(body_var,token,SYNTAX_ERROR);
-            ERROR_EXIT(token->type == T_SEMICOLON,token,SYNTAX_ERROR);
+            ASSERT_ERROR(body_var,token,SYNTAX_ERROR);
+            ASSERT_ERROR(token->type == T_SEMICOLON,token,SYNTAX_ERROR);
             
             instruction = dynamicBuffer_INIT();
             if (!strcmp(instruction_list->curr_fun->key,"write")){
@@ -386,19 +387,18 @@ bool f_body_var(tToken *token,tDynamicBuffer *instruction, DLList *instruction_l
     else{
         tToken end_token={.type = T_SEMICOLON};
         body_var = check_expr_syntax(token, &end_token,instruction_list,NULL);
-        ERROR_EXIT(body_var,token,SYNTAX_ERROR);
+        ASSERT_ERROR(body_var,token,SYNTAX_ERROR);
         *token = get_token(1);
     }
     return body_var;
 }
 
 bool f_body_ret(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list){
-    (void)instruction;
     bool body_ret = false;
-    ERROR_EXIT(token->type != T_ERROR,token,LEX_ERROR);
+    ASSERT_ERROR(token->type != T_ERROR,token,LEX_ERROR);
     if (token->type == T_SEMICOLON){
         //return; can be only in VOID function
-        ERROR_EXIT(instruction_list->called_from->data.fun_data.return_type == T_VOID,token,RETURN_ERROR)
+        ASSERT_ERROR(instruction_list->called_from->data.fun_data.return_type == T_VOID,token,RETURN_ERROR);
         instruction=dynamicBuffer_INIT();
         dynamicBuffer_ADD_STRING(instruction,"PUSHS nil@nil");
         DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
@@ -418,7 +418,7 @@ bool f_body_ret(tToken *token,tDynamicBuffer *instruction, DLList *instruction_l
         }
         tToken end_token={.type = T_SEMICOLON};
         body_ret = check_expr_syntax(token, &end_token,instruction_list,NULL);
-        ERROR_EXIT(body_ret,token,SYNTAX_ERROR);
+        ASSERT_ERROR(body_ret,token,SYNTAX_ERROR);
         *token = get_token(1);
     }
     return body_ret;
@@ -427,7 +427,7 @@ bool f_body_ret(tToken *token,tDynamicBuffer *instruction, DLList *instruction_l
 
 bool f_fn_call_l(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list){
     bool fn_call_bool = false;
-    ERROR_EXIT(token->type != T_ERROR,token,LEX_ERROR);
+    ASSERT_ERROR(token->type != T_ERROR,token,LEX_ERROR);
     switch (token->type)
     {
     case T_STRING:
@@ -451,7 +451,7 @@ bool f_fn_call_l(tToken *token,tDynamicBuffer *instruction, DLList *instruction_
         }
         *token = get_token(1);
         fn_call_bool = f_fn_call_lc(token,instruction, instruction_list);
-        ERROR_EXIT(fn_call_bool,token,SYNTAX_ERROR);
+        ASSERT_ERROR(fn_call_bool,token,SYNTAX_ERROR);
         break;
     case T_NUM_INT:
         instruction_list->num_of_params_called++;
@@ -471,7 +471,7 @@ bool f_fn_call_l(tToken *token,tDynamicBuffer *instruction, DLList *instruction_
         }
         *token = get_token(1);
         fn_call_bool = f_fn_call_lc(token,instruction, instruction_list);
-        ERROR_EXIT(fn_call_bool,token,SYNTAX_ERROR);
+        ASSERT_ERROR(fn_call_bool,token,SYNTAX_ERROR);
         break;
     case T_NUM_FLOAT:
         instruction_list->num_of_params_called++;
@@ -491,11 +491,11 @@ bool f_fn_call_l(tToken *token,tDynamicBuffer *instruction, DLList *instruction_
         }
         *token = get_token(1);
         fn_call_bool = f_fn_call_lc(token,instruction, instruction_list);
-        ERROR_EXIT(fn_call_bool,token,SYNTAX_ERROR);
+        ASSERT_ERROR(fn_call_bool,token,SYNTAX_ERROR);
         break;
     case T_VAR_ID:
         instruction_list->num_of_params_called++;
-        ERROR_EXIT(htab_find(instruction_list->called_from->data.fun_data.localST,token->data.STRINGval->data)!=NULL,token,UN_DEF_VAR_ERROR);
+        ASSERT_ERROR(htab_find(instruction_list->called_from->data.fun_data.localST,token->data.STRINGval->data)!=NULL,token,UN_DEF_VAR_ERROR);
         instruction = dynamicBuffer_INIT();
         dynamicBuffer_ADD_STRING(instruction, "PUSHS LF@");
         dynamicBuffer_ADD_STRING(instruction, token->data.STRINGval->data);
@@ -511,7 +511,7 @@ bool f_fn_call_l(tToken *token,tDynamicBuffer *instruction, DLList *instruction_
         }
         *token = get_token(1);
         fn_call_bool = f_fn_call_lc(token,instruction, instruction_list);
-        ERROR_EXIT(fn_call_bool,token,SYNTAX_ERROR);
+        ASSERT_ERROR(fn_call_bool,token,SYNTAX_ERROR);
         break;
     case T_NULL:
         instruction_list->num_of_params_called++;
@@ -530,12 +530,12 @@ bool f_fn_call_l(tToken *token,tDynamicBuffer *instruction, DLList *instruction_
         }
         *token = get_token(1);
         fn_call_bool = f_fn_call_lc(token,instruction, instruction_list);
-        ERROR_EXIT(fn_call_bool,token,SYNTAX_ERROR);
+        ASSERT_ERROR(fn_call_bool,token,SYNTAX_ERROR);
         break;
     case T_R_PAR:
         //cecking number of called arguments except write that can have infinite args;
         if(strcmp(instruction_list->curr_fun->key,"write")){
-            ERROR_EXIT(instruction_list->num_of_params_called == instruction_list->curr_fun->data.fun_data.number_of_params,token,PARAM_ERROR);
+            ASSERT_ERROR(instruction_list->num_of_params_called == instruction_list->curr_fun->data.fun_data.number_of_params,token,PARAM_ERROR);
         }
         *token = get_token(1);
         fn_call_bool = true;
@@ -547,18 +547,18 @@ bool f_fn_call_l(tToken *token,tDynamicBuffer *instruction, DLList *instruction_
 
 bool f_fn_call_lc(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list){
     bool fn_call_bool2 = false;
-    ERROR_EXIT(token->type != T_ERROR,token,LEX_ERROR);
+    ASSERT_ERROR(token->type != T_ERROR,token,LEX_ERROR);
     switch (token->type)
     {
     case T_COMMA:
         *token = get_token(1);
         fn_call_bool2 = f_fn_call_lparam(token,instruction, instruction_list);
-        ERROR_EXIT(fn_call_bool2,token,SYNTAX_ERROR);
+        ASSERT_ERROR(fn_call_bool2,token,SYNTAX_ERROR);
         break;
     case T_R_PAR:
         //cecking number of called arguments except write that can have infinite args;
         if(strcmp(instruction_list->curr_fun->key,"write")){
-            ERROR_EXIT(instruction_list->num_of_params_called == instruction_list->curr_fun->data.fun_data.number_of_params,token,PARAM_ERROR);
+            ASSERT_ERROR(instruction_list->num_of_params_called == instruction_list->curr_fun->data.fun_data.number_of_params,token,PARAM_ERROR);
         }
         *token = get_token(1);
         fn_call_bool2 = true;
@@ -571,7 +571,7 @@ bool f_fn_call_lc(tToken *token,tDynamicBuffer *instruction, DLList *instruction
 
 bool f_fn_call_lparam(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list){
     bool fn_call_bool = false;
-    ERROR_EXIT(token->type != T_ERROR,token,LEX_ERROR);
+    ASSERT_ERROR(token->type != T_ERROR,token,LEX_ERROR);
     switch (token->type)
     {
     case T_STRING:
@@ -594,7 +594,7 @@ bool f_fn_call_lparam(tToken *token,tDynamicBuffer *instruction, DLList *instruc
         }
         *token = get_token(1);
         fn_call_bool = f_fn_call_lc(token,instruction, instruction_list);
-        ERROR_EXIT(fn_call_bool,token,SYNTAX_ERROR);
+        ASSERT_ERROR(fn_call_bool,token,SYNTAX_ERROR);
         break;
     case T_NUM_INT:
         instruction_list->num_of_params_called++;
@@ -614,7 +614,7 @@ bool f_fn_call_lparam(tToken *token,tDynamicBuffer *instruction, DLList *instruc
         }
         *token = get_token(1);
         fn_call_bool = f_fn_call_lc(token,instruction, instruction_list);
-        ERROR_EXIT(fn_call_bool,token,SYNTAX_ERROR);
+        ASSERT_ERROR(fn_call_bool,token,SYNTAX_ERROR);
         break;
     case T_NUM_FLOAT:
         instruction_list->num_of_params_called++;
@@ -634,11 +634,11 @@ bool f_fn_call_lparam(tToken *token,tDynamicBuffer *instruction, DLList *instruc
         }
         *token = get_token(1);
         fn_call_bool = f_fn_call_lc(token,instruction, instruction_list);
-        ERROR_EXIT(fn_call_bool,token,SYNTAX_ERROR);
+        ASSERT_ERROR(fn_call_bool,token,SYNTAX_ERROR);
         break;
     case T_VAR_ID:
         instruction_list->num_of_params_called++;
-        ERROR_EXIT(htab_find(instruction_list->called_from->data.fun_data.localST,token->data.STRINGval->data)!=NULL,token,UN_DEF_VAR_ERROR);
+        ASSERT_ERROR(htab_find(instruction_list->called_from->data.fun_data.localST,token->data.STRINGval->data)!=NULL,token,UN_DEF_VAR_ERROR);
         instruction = dynamicBuffer_INIT();
         dynamicBuffer_ADD_STRING(instruction, "PUSHS LF@");
         // pridat radmec dynamicBuffer_ADD_STRING(instruction, "");
@@ -655,7 +655,7 @@ bool f_fn_call_lparam(tToken *token,tDynamicBuffer *instruction, DLList *instruc
         }
         *token = get_token(1);
         fn_call_bool = f_fn_call_lc(token,instruction, instruction_list);
-        ERROR_EXIT(fn_call_bool,token,SYNTAX_ERROR);
+        ASSERT_ERROR(fn_call_bool,token,SYNTAX_ERROR);
         break;
     case T_NULL:
         instruction_list->num_of_params_called++;
@@ -674,7 +674,7 @@ bool f_fn_call_lparam(tToken *token,tDynamicBuffer *instruction, DLList *instruc
         }
         *token = get_token(1);
         fn_call_bool = f_fn_call_lc(token,instruction, instruction_list);
-        ERROR_EXIT(fn_call_bool,token,SYNTAX_ERROR);
+        ASSERT_ERROR(fn_call_bool,token,SYNTAX_ERROR);
         break;
     default:
         break;
@@ -685,10 +685,11 @@ bool f_fn_call_lparam(tToken *token,tDynamicBuffer *instruction, DLList *instruc
 
 bool f_func(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list){
     bool func = false;
-    ERROR_EXIT(token->type != T_ERROR,token,LEX_ERROR);
+    ASSERT_ERROR(token->type != T_ERROR,token,LEX_ERROR);
     if(token->type == T_FUNCTION){
         *token = get_token(1);
-        if(token->type == T_FUN_ID){        
+        if(token->type == T_FUN_ID){    
+            //generating if code for new function and checking if it is defined    
             if (htab_find(symtable,token->data.STRINGval->data) == NULL ){
                 instruction_list->curr_fun=st_fun_create(symtable, token->data.STRINGval->data);
                 instruction_list->called_from=st_fun_create(symtable, token->data.STRINGval->data);
@@ -715,15 +716,17 @@ bool f_func(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list)
             if (token->type == T_L_PAR){
                 *token = get_token(1);
                 func = f_func_param(token,instruction, instruction_list);
-                ERROR_EXIT(func,token,SYNTAX_ERROR);
+                ASSERT_ERROR(func,token,SYNTAX_ERROR);
                 if(token->type == T_COLON){
                     *token = get_token(1);
-                    func = f_func_type(token,instruction, instruction_list) && f_func_dedf(token,instruction, instruction_list);
-                    ERROR_EXIT(func,token,SYNTAX_ERROR); 
-                    if (instruction_list->called_from->data.fun_data.has_ret == false && instruction_list->called_from->data.fun_data.return_type !=T_VOID){
+                    func = f_func_type(token, instruction_list) && f_func_dedf(token,instruction, instruction_list);
+                    ASSERT_ERROR(func,token,SYNTAX_ERROR);
+                    //if non-void function has no return;
+                    if (instruction_list->called_from->data.fun_data.has_ret == false 
+                        && instruction_list->called_from->data.fun_data.return_type !=T_VOID){
                         error_exit(token,PARAM_ERROR);
                     }
-                    if(instruction_list->called_from->data.fun_data.return_type ==T_VOID){
+                    if(instruction_list->called_from->data.fun_data.return_type == T_VOID){
                         instruction=dynamicBuffer_INIT();
                         dynamicBuffer_ADD_STRING(instruction,"PUSHS nil@nil");
                         DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
@@ -738,12 +741,13 @@ bool f_func(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list)
                         dynamicBufferFREE(instruction);
                     }
                     else{
+                        //if non void function has return but it is in if 
                         instruction = dynamicBuffer_INIT();
                         dynamicBuffer_ADD_STRING(instruction, "EXIT int@4");
                         DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
                         dynamicBufferFREE(instruction);
                     }
-
+                    //setting calling function "main"
                     instruction_list->called_from = htab_find(symtable, "$$main");
                 }
             }
@@ -753,19 +757,19 @@ bool f_func(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list)
 }
 bool f_func_dedf(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list){
     bool func_dedf = false;
-    ERROR_EXIT(token->type != T_ERROR,token,LEX_ERROR);
+    ASSERT_ERROR(token->type != T_ERROR,token,LEX_ERROR);
+    //end of func definition
     if(token->type == T_L_BRAC){
         *token = get_token(1);
         func_dedf = f_in_body(token,instruction, instruction_list);
-        ERROR_EXIT(func_dedf,token,SYNTAX_ERROR);
+        ASSERT_ERROR(func_dedf,token,SYNTAX_ERROR);
     }
     return func_dedf;
 }
 
-bool f_func_type(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list){
-    (void)instruction;
+bool f_func_type(tToken *token, DLList *instruction_list){
     bool func_type = false;
-    ERROR_EXIT(token->type != T_ERROR,token,LEX_ERROR);
+    ASSERT_ERROR(token->type != T_ERROR,token,LEX_ERROR);
     switch (token->type)
     {
     case T_VOID:
@@ -787,20 +791,20 @@ bool f_func_type(tToken *token,tDynamicBuffer *instruction, DLList *instruction_
 
 bool f_in_body(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list){
     bool in_body = false;
-    ERROR_EXIT(token->type != T_ERROR,token,LEX_ERROR);
+    ASSERT_ERROR(token->type != T_ERROR,token,LEX_ERROR);
     if(token->type== T_R_BRAC){
         *token = get_token(1);
         in_body = true;
         return in_body;
     }
     in_body = f_body(token,instruction, instruction_list) && f_in_body(token,instruction, instruction_list);
-    ERROR_EXIT(in_body,token,SYNTAX_ERROR);
+    ASSERT_ERROR(in_body,token,SYNTAX_ERROR);
     return in_body;
 }
 
 bool f_func_param(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list){
     bool func_param = false;
-    ERROR_EXIT(token->type != T_ERROR,token,LEX_ERROR);
+    ASSERT_ERROR(token->type != T_ERROR,token,LEX_ERROR);
     switch (token->type)
     {
     case T_STRING_TYPE:
@@ -812,7 +816,7 @@ bool f_func_param(tToken *token,tDynamicBuffer *instruction, DLList *instruction
         st_fun_param_type(instruction_list->curr_fun->data.fun_data.TaV,token->type);
         *token = get_token(1);
         func_param = f_func_dedf_param_type(token,instruction, instruction_list);
-        ERROR_EXIT(func_param,token,SYNTAX_ERROR);
+        ASSERT_ERROR(func_param,token,SYNTAX_ERROR);
         break;
     case T_R_PAR:
         *token = get_token(1);
@@ -825,8 +829,9 @@ bool f_func_param(tToken *token,tDynamicBuffer *instruction, DLList *instruction
 
 bool f_func_dedf_param_type(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list){
     bool func_param = false;
-    if(token->type == T_VAR_ID){         //skontrolovat first
+    if(token->type == T_VAR_ID){
         st_fun_param_name(instruction_list->curr_fun->data.fun_data.TaV,token->data.STRINGval->data);
+        //checking if parameter was defined or no, error if 2 or more parameters has same name
         if (htab_find(instruction_list->curr_fun->data.fun_data.localST,token->data.STRINGval->data) == NULL){
             st_var_create(instruction_list->curr_fun->data.fun_data.localST,token->data.STRINGval->data);
         }
@@ -836,7 +841,7 @@ bool f_func_dedf_param_type(tToken *token,tDynamicBuffer *instruction, DLList *i
         instruction_list->curr_fun->data.fun_data.number_of_params++;
         *token = get_token(1);
         func_param = f_func_dedf_param_var(token,instruction, instruction_list);
-        ERROR_EXIT(func_param,token,SYNTAX_ERROR);
+        ASSERT_ERROR(func_param,token,SYNTAX_ERROR);
     }
     return func_param;
 }
@@ -856,7 +861,7 @@ bool f_func_dedf_param_var(tToken *token,tDynamicBuffer *instruction, DLList *in
             st_fun_param_type(instruction_list->curr_fun->data.fun_data.TaV,token->type);
             *token = get_token(1);
             func_param = f_func_dedf_param_type(token,instruction, instruction_list);
-            ERROR_EXIT(func_param,token,SYNTAX_ERROR);
+            ASSERT_ERROR(func_param,token,SYNTAX_ERROR);
             break;
         default:
             break;
