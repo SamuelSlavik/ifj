@@ -21,6 +21,7 @@ typedef struct {
 	DLL_instruction *if_while;
 	char *label;
 	size_t num_of_params_called;
+	tStack called_args;
 } DLList;
 
 void DLL_Init( DLList * );
