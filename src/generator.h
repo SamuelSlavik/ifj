@@ -15,4 +15,7 @@ void generate_strlen(tDynamicBuffer *instruction, DLList *instruction_list);
 void generate_substr(tDynamicBuffer *instruction, DLList *instruction_list);
 void generate_chr(tDynamicBuffer *instruction, DLList *instruction_list);
 void generate_ord(tDynamicBuffer *instruction, DLList *instruction_list);
+void check_fn_arguments(tStack *defined_params, tStack *called, tDynamicBuffer *instruction, DLList *instruction_list);
+void convert_into_bool(tDynamicBuffer *instruction, DLList *instruction_list,tDynamicBuffer *labelname);
+void check_return_type(tDynamicBuffer *instruction, DLList *instruction_list);
 #endif
