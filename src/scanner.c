@@ -390,6 +390,7 @@ tToken automat_state_prolog(tToken *token, char c, unsigned long *line_count){
         case S_LINE_COMMENT:
             if (c == '\n'){
                 (*line_count)++;
+                ungetc(c, stdin);
                 STATE = S_START;
             }
             break;
@@ -428,6 +429,7 @@ tToken get_token(short automat_state){
 
     tToken token;
     token.type = T_UNKNOW;
+    bool escapeSeq = false;
     static unsigned long init_count;
     static unsigned long line_count;
     token.line = line_count;
@@ -624,28 +626,29 @@ tToken get_token(short automat_state){
             token.type = T_SUB;
             return token;
         /* "..." */
-        case S_QUOTE:
-            if ((init_count) && c == '"'){
-                /* check for \" */
-                if (token.data.STRINGval->size > 0){
-                    if (token.data.STRINGval->data[token.data.STRINGval->size-1] != '\\'){
-                        /* remove last '"' */
-                        token.data.STRINGval->data[token.data.STRINGval->size] = '\0';
-                        init_count = 0;
-                        token.type = T_STRING;
-                        return token;
-                    }
-                }
-                /* return empty string */
-                else{
-                    /* remove last '"' */
-                    token.data.STRINGval->data[token.data.STRINGval->size] = '\0';
-                    init_count = 0;
-                    token.type = T_STRING;
-                    return token;
-                }
+        case S_QUOTE: 
+            if (c == '$' && !escapeSeq){
+                dynamicBufferFREE(token.data.STRINGval);
+                init_count = 0;
+                return token;
             }
-            load_string(&token, c, &init_count);
+            if (c == '\\' && !escapeSeq){
+                escapeSeq = true;
+            }
+            else if (c != '"'){
+                escapeSeq = false;
+            }
+            if ((init_count) && c == '"' && !escapeSeq){
+                /* remove last '"' */
+                token.data.STRINGval->data[token.data.STRINGval->size] = '\0';
+                init_count = 0;
+                token.type = T_STRING;
+                return token;
+            }
+            if (c == '"' && escapeSeq){
+                escapeSeq = false;
+            }
+            load_string(&token, c, &init_count);     
             break;
         /* $ */
         case S_DOLLAR:
