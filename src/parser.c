@@ -956,6 +956,12 @@ int main(){
     DLL_Next(&instruction_list);
     DLL_Next_main(&instruction_list);
     dynamicBufferFREE(instruction);
+    instruction = dynamicBuffer_INIT();
+    dynamicBuffer_ADD_STRING(instruction,"DEFVAR GF@expr_var_type");
+    DLL_InsertAfter(&instruction_list,instruction);
+    DLL_Next(&instruction_list);
+    DLL_Next_main(&instruction_list);
+    dynamicBufferFREE(instruction);
     tToken token = get_token(0);
     instruction = dynamicBuffer_INIT();    
     dynamicBuffer_ADD_STRING(instruction,"write"); 

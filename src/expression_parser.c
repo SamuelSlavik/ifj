@@ -298,7 +298,7 @@ bool check_expr_syntax(tToken *start_token, tToken *end_token, DLList *instructi
                     dynamicBuffer_ADD_STRING(instruction, "PUSHS ");
                     switch (top_terminal->token->type) {
                         case T_VAR_ID:
-                            // var_init_check(instruction_list, top_terminal->token->data.STRINGval);
+                            var_init_check(instruction_list, top_terminal->token->data.STRINGval);
                             dynamicBuffer_ADD_STRING(instruction, "LF@");
                             dynamicBuffer_ADD_STRING(instruction, top_terminal->token->data.STRINGval->data);
                             break;
