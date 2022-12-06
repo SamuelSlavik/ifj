@@ -26,110 +26,9 @@ if(instruction_list->active==instruction_list->main_body)\
 {DLL_Next(instruction_list);}\
 DLL_Next_main(instruction_list);}\
 else{DLL_InsertAfter(instruction_list,instruction); DLL_Next(instruction_list);}
-tStack buildinargs;
-htab_t *local_sym;
+tStack called_args;
 extern htab_t *symtable;
 
-void check_fn_arguments(tStack *defined_params, tDynamicBuffer *instruction, DLList *instruction_list){
-    // PRINT STACK
-    tStack print_stack;
-    StackInit(&print_stack);
-    while (!StackIsEmpty(defined_params)){
-        tVar_TaV *stack_top_itm = ((tVar_TaV*) StackTop(defined_params));
-        tDynamicBuffer *stack_top_itm_called = ((tDynamicBuffer *) StackTop(&buildinargs));
-        tDynamicBuffer *return_type_false = label_name_gen("return_type_false");
-        tDynamicBuffer *TF_res = label_name_gen("TF@res_");
-        tDynamicBuffer *TF_res_type = label_name_gen("TF@res_type_");
-        instruction = dynamicBuffer_INIT();
-        dynamicBuffer_ADD_STRING(instruction, "DEFVAR ");
-        dynamicBuffer_ADD_STRING(instruction, TF_res->data);
-        dynamicBuffer_ADD_STRING(instruction,"\n");
-        dynamicBuffer_ADD_STRING(instruction, "DEFVAR ");
-        dynamicBuffer_ADD_STRING(instruction, TF_res_type->data);
-        dynamicBuffer_ADD_STRING(instruction,"\n");
-        dynamicBuffer_ADD_STRING(instruction, stack_top_itm_called->data);
-        dynamicBuffer_ADD_STRING(instruction, "\n");
-        dynamicBuffer_ADD_STRING(instruction, "POPS ");
-        dynamicBuffer_ADD_STRING(instruction, TF_res->data);
-        dynamicBuffer_ADD_STRING(instruction,"\n");
-        dynamicBuffer_ADD_STRING(instruction, "TYPE ");
-        dynamicBuffer_ADD_STRING(instruction,TF_res_type->data);
-        dynamicBuffer_ADD_STRING(instruction," ");
-        dynamicBuffer_ADD_STRING(instruction,TF_res->data);
-        dynamicBuffer_ADD_STRING(instruction,"\n");
-        dynamicBuffer_ADD_STRING(instruction, "PUSHS ");
-        dynamicBuffer_ADD_STRING(instruction,TF_res->data);
-        dynamicBuffer_ADD_STRING(instruction,"\n");
-        
-        dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-        dynamicBuffer_ADD_STRING(instruction, return_type_false->data);
-        dynamicBuffer_ADD_STRING(instruction, " ");
-        dynamicBuffer_ADD_STRING(instruction,TF_res_type->data);
-        dynamicBuffer_ADD_STRING(instruction," string@");
-        switch(stack_top_itm->var_type){
-            case T_STRING_TYPE:
-                dynamicBuffer_ADD_STRING(instruction, "string\n");
-                break;
-            case T_FLOAT_TYPE:
-                dynamicBuffer_ADD_STRING(instruction, "float\n");
-                break;
-            case T_INT_TYPE:
-                dynamicBuffer_ADD_STRING(instruction, "int\n");
-                break;
-            case T_STRING_N_TYPE:
-                dynamicBuffer_ADD_STRING(instruction, "string\n");
-                dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-                dynamicBuffer_ADD_STRING(instruction, return_type_false->data);
-                        dynamicBuffer_ADD_STRING(instruction, " ");
-        dynamicBuffer_ADD_STRING(instruction,TF_res_type->data);
-        dynamicBuffer_ADD_STRING(instruction," string@nil\n");
-                break;
-            case T_FLOAT_N_TYPE:
-                dynamicBuffer_ADD_STRING(instruction, "float\n");
-                dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-                dynamicBuffer_ADD_STRING(instruction, return_type_false->data);
-                        dynamicBuffer_ADD_STRING(instruction, " ");
-        dynamicBuffer_ADD_STRING(instruction,TF_res_type->data);
-        dynamicBuffer_ADD_STRING(instruction," string@nil\n");
-                break;
-            case T_INT_N_TYPE:
-                dynamicBuffer_ADD_STRING(instruction, "int\n");
-                dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-                dynamicBuffer_ADD_STRING(instruction, return_type_false->data);
-                        dynamicBuffer_ADD_STRING(instruction, " ");
-        dynamicBuffer_ADD_STRING(instruction,TF_res_type->data);
-        dynamicBuffer_ADD_STRING(instruction," string@nil\n");
-                break;
-            default:
-                dynamicBuffer_ADD_STRING(instruction, "\n");
-                dynamicBuffer_ADD_STRING(instruction, "JUMP ");
-                dynamicBuffer_ADD_STRING(instruction, return_type_false->data);
-                dynamicBuffer_ADD_STRING(instruction, "\n");
-                break;
-
-        }
-        dynamicBuffer_ADD_STRING(instruction, "EXIT int@4\n");
-        dynamicBuffer_ADD_STRING(instruction, "LABEL ");
-        dynamicBuffer_ADD_STRING(instruction, return_type_false->data);
-        dynamicBuffer_ADD_STRING(instruction, "\n");
-
-        DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
-        dynamicBufferFREE(instruction);
-        dynamicBufferFREE(return_type_false);
-        dynamicBufferFREE(stack_top_itm_called);
-        dynamicBufferFREE(TF_res);
-        dynamicBufferFREE(TF_res_type);
-        StackPush(&print_stack, stack_top_itm);
-        StackPop(defined_params);
-        StackPop(&buildinargs);
-    }
-    while (!StackIsEmpty(&print_stack)){
-        tVar_TaV *stack_top_itm = ((tVar_TaV*) StackTop(&print_stack));
-        StackPush(defined_params, stack_top_itm);
-        StackPop(&print_stack);
-    }
-    // END PRINT 
-}
 void print_stack(tStack *expr_stack, tDynamicBuffer *instruction, DLList *instruction_list,char *code){
     // PRINT STACK
     tStack print_stack;
@@ -276,20 +175,20 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
             }*/
             instruction = dynamicBuffer_INIT();
             if (!strcmp(instruction_list->curr_fun->key,"substring")){
-                while (!StackIsEmpty(&buildinargs)){
-                    tDynamicBuffer *stack_top_itm = ((tDynamicBuffer *) StackTop(&buildinargs));
+                while (!StackIsEmpty(&called_args)){
+                    tDynamicBuffer *stack_top_itm = ((tDynamicBuffer *) StackTop(&called_args));
                     DETECT_MAIN(instruction_list,stack_top_itm,instruction_list->called_from->key);
-                    StackPop(&buildinargs);
+                    StackPop(&called_args);
                     dynamicBufferFREE(stack_top_itm);
                 }
                 dynamicBuffer_ADD_STRING(instruction, "CALL ");
                 dynamicBuffer_ADD_STRING(instruction, instruction_list->curr_fun->data.fun_data.label_name->data);
             }
             else if (!strcmp(instruction_list->curr_fun->key,"write")){
-                while (!StackIsEmpty(&buildinargs)){
-                    tDynamicBuffer *stack_top_itm = ((tDynamicBuffer *) StackTop(&buildinargs));
+                while (!StackIsEmpty(&called_args)){
+                    tDynamicBuffer *stack_top_itm = ((tDynamicBuffer *) StackTop(&called_args));
                     DETECT_MAIN(instruction_list,stack_top_itm,instruction_list->called_from->key);
-                    StackPop(&buildinargs);
+                    StackPop(&called_args);
                     dynamicBufferFREE(stack_top_itm);
                 }
                 dynamicBuffer_ADD_STRING(instruction, "PUSHS int@");
@@ -303,7 +202,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
                 dynamicBufferFREE(numof_param);
             }
             else{
-                check_fn_arguments(instruction_list->curr_fun->data.fun_data.TaV,instruction,instruction_list);
+                check_fn_arguments(instruction_list->curr_fun->data.fun_data.TaV,&called_args,instruction,instruction_list);
                 print_stack(instruction_list->curr_fun->data.fun_data.TaV,instruction,instruction_list, "POPS TF@");
                 dynamicBuffer_ADD_STRING(instruction, "CALL ");
                 dynamicBuffer_ADD_STRING(instruction, instruction_list->curr_fun->data.fun_data.label_name->data);
@@ -326,64 +225,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
         *token = get_token(1);
         body = f_body_ret(token,instruction, instruction_list);
         ERROR_EXIT(body,token,SYNTAX_ERROR);
-        tDynamicBuffer *return_type_false = label_name_gen("return_type_false");
-        instruction = dynamicBuffer_INIT();
-        dynamicBuffer_ADD_STRING(instruction, "PUSHFRAME\n");
-        dynamicBuffer_ADD_STRING(instruction, "CREATEFRAME\n");
-        dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@res\n");
-        dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@res_type\n");
-        dynamicBuffer_ADD_STRING(instruction, "POPS TF@res\n");
-        dynamicBuffer_ADD_STRING(instruction, "TYPE TF@res_type TF@res\n");
-        dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@res\n");
-        
-        dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-        dynamicBuffer_ADD_STRING(instruction, return_type_false->data);
-        dynamicBuffer_ADD_STRING(instruction, " TF@res_type string@");
-        switch(instruction_list->called_from->data.fun_data.return_type){
-            case T_STRING_TYPE:
-                dynamicBuffer_ADD_STRING(instruction, "string\n");
-                break;
-            case T_FLOAT_TYPE:
-                dynamicBuffer_ADD_STRING(instruction, "float\n");
-                break;
-            case T_INT_TYPE:
-                dynamicBuffer_ADD_STRING(instruction, "int\n");
-                break;
-            case T_STRING_N_TYPE:
-                dynamicBuffer_ADD_STRING(instruction, "string\n");
-                dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-                dynamicBuffer_ADD_STRING(instruction, return_type_false->data);
-                dynamicBuffer_ADD_STRING(instruction, " TF@res_type string@nil\n");
-                break;
-            case T_FLOAT_N_TYPE:
-                dynamicBuffer_ADD_STRING(instruction, "float\n");
-                dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-                dynamicBuffer_ADD_STRING(instruction, return_type_false->data);
-                dynamicBuffer_ADD_STRING(instruction, " TF@res_type string@nil\n");
-                break;
-            case T_INT_N_TYPE:
-                dynamicBuffer_ADD_STRING(instruction, "int\n");
-                dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-                dynamicBuffer_ADD_STRING(instruction, return_type_false->data);
-                dynamicBuffer_ADD_STRING(instruction, " TF@res_type string@nil\n");
-                break;
-            default:
-                dynamicBuffer_ADD_STRING(instruction, "\n");
-                dynamicBuffer_ADD_STRING(instruction, "JUMP ");
-                dynamicBuffer_ADD_STRING(instruction, return_type_false->data);
-                dynamicBuffer_ADD_STRING(instruction, "\n");
-                break;
-
-        }
-        dynamicBuffer_ADD_STRING(instruction, "EXIT int@4\n");
-        dynamicBuffer_ADD_STRING(instruction, "LABEL ");
-        dynamicBuffer_ADD_STRING(instruction, return_type_false->data);
-        dynamicBuffer_ADD_STRING(instruction, "\n");
-
-        dynamicBuffer_ADD_STRING(instruction, "POPFRAME");
-        DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
-        dynamicBufferFREE(instruction);
-        dynamicBufferFREE(return_type_false);
+        check_return_type(instruction,instruction_list);
 
         instruction = dynamicBuffer_INIT();
         dynamicBuffer_ADD_STRING(instruction, "POPFRAME");
@@ -418,128 +260,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
             end_token.type = T_R_PAR;
             body = check_expr_syntax(token, &end_token,instruction_list,NULL);
             ERROR_EXIT(body,token,SYNTAX_ERROR);
-            instruction = dynamicBuffer_INIT();
-
-            tDynamicBuffer *expr_set_false = label_name_gen("expr_set_false");
-            tDynamicBuffer *expr_set_true = label_name_gen("expr_set_true");
-            tDynamicBuffer *expr_res_int2bool = label_name_gen("expr_res_int2bool");
-            tDynamicBuffer *expr_res_float2bool = label_name_gen("expr_res_float2bool");
-            tDynamicBuffer *expr_res_string2bool = label_name_gen("expr_res_string2bool");
-            tDynamicBuffer *expr_res_eval = label_name_gen("expr_res_eval");
-            
-            dynamicBuffer_ADD_STRING(instruction, "PUSHFRAME\n");
-            dynamicBuffer_ADD_STRING(instruction, "CREATEFRAME\n");
-            dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@res\n");
-            dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@res_type\n");
-            dynamicBuffer_ADD_STRING(instruction, "POPS TF@res\n");
-            dynamicBuffer_ADD_STRING(instruction, "TYPE TF@res_type TF@res\n");
-
-            // IF RESULT IS NULL
-            dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-            dynamicBuffer_ADD_STRING(instruction, expr_set_false->data);
-            dynamicBuffer_ADD_STRING(instruction, " TF@res_type string@nil\n");
-
-            // IF RESULT IS INT
-            dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-            dynamicBuffer_ADD_STRING(instruction, expr_res_int2bool->data);
-            dynamicBuffer_ADD_STRING(instruction, " TF@res_type string@int\n");
-
-            // IF RESULT IS FLOAT
-            dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-            dynamicBuffer_ADD_STRING(instruction, expr_res_float2bool->data);
-            dynamicBuffer_ADD_STRING(instruction, " TF@res_type string@float\n");
-
-            // IF RESULT IS STRING
-            dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-            dynamicBuffer_ADD_STRING(instruction, expr_res_string2bool->data);
-            dynamicBuffer_ADD_STRING(instruction, " TF@res_type string@string\n");
-
-            // IF RESULT IS BOOL
-            dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-            dynamicBuffer_ADD_STRING(instruction, expr_res_eval->data);
-            dynamicBuffer_ADD_STRING(instruction, " TF@res_type string@bool\n");
-
-            // UNKNOWN TYPE
-            dynamicBuffer_ADD_STRING(instruction, "EXIT int@7\n");
-            
-            // INT TO BOOL
-            dynamicBuffer_ADD_STRING(instruction, "LABEL ");
-            dynamicBuffer_ADD_STRING(instruction, expr_res_int2bool->data);
-            dynamicBuffer_ADD_STRING(instruction, "\n");
-            dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-            dynamicBuffer_ADD_STRING(instruction, expr_set_false->data);
-            dynamicBuffer_ADD_STRING(instruction, " TF@res int@\n");
-            dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-            dynamicBuffer_ADD_STRING(instruction, expr_set_false->data);
-            dynamicBuffer_ADD_STRING(instruction, " TF@res int@0\n");
-            dynamicBuffer_ADD_STRING(instruction, "JUMP ");
-            dynamicBuffer_ADD_STRING(instruction, expr_set_true->data);
-            dynamicBuffer_ADD_STRING(instruction, "\n");
-
-            // FLOAT TO BOOL
-            dynamicBuffer_ADD_STRING(instruction, "LABEL ");
-            dynamicBuffer_ADD_STRING(instruction, expr_res_float2bool->data);
-            dynamicBuffer_ADD_STRING(instruction, "\n");
-            dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-            dynamicBuffer_ADD_STRING(instruction, expr_set_false->data);
-            dynamicBuffer_ADD_STRING(instruction, " TF@res float@0x0p+0\n");
-            dynamicBuffer_ADD_STRING(instruction, "JUMP ");
-            dynamicBuffer_ADD_STRING(instruction, expr_set_true->data);
-            dynamicBuffer_ADD_STRING(instruction, "\n");
-
-            // STRING TO BOOL
-            dynamicBuffer_ADD_STRING(instruction, "LABEL ");
-            dynamicBuffer_ADD_STRING(instruction, expr_res_string2bool->data);
-            dynamicBuffer_ADD_STRING(instruction, "\n");
-            dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-            dynamicBuffer_ADD_STRING(instruction, expr_set_false->data);
-            dynamicBuffer_ADD_STRING(instruction, " TF@res string@\n");
-            dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-            dynamicBuffer_ADD_STRING(instruction, expr_set_false->data);
-            dynamicBuffer_ADD_STRING(instruction, " TF@res string@0\n");
-            dynamicBuffer_ADD_STRING(instruction, "JUMP ");
-            dynamicBuffer_ADD_STRING(instruction, expr_set_true->data);
-            dynamicBuffer_ADD_STRING(instruction, "\n");
-
-            // SET RESULT AS FALSE
-            dynamicBuffer_ADD_STRING(instruction, "LABEL ");
-            dynamicBuffer_ADD_STRING(instruction, expr_set_false->data);
-            dynamicBuffer_ADD_STRING(instruction, "\n");
-            dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@res\n");
-            dynamicBuffer_ADD_STRING(instruction, "MOVE TF@res bool@false\n");
-            dynamicBuffer_ADD_STRING(instruction, "JUMP ");
-            dynamicBuffer_ADD_STRING(instruction, expr_res_eval->data);
-            dynamicBuffer_ADD_STRING(instruction, "\n");
-            
-            // SET RESULT AS TRUE
-            dynamicBuffer_ADD_STRING(instruction, "LABEL ");
-            dynamicBuffer_ADD_STRING(instruction, expr_set_true->data);
-            dynamicBuffer_ADD_STRING(instruction, "\n");
-            dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@res\n");
-            dynamicBuffer_ADD_STRING(instruction, "MOVE TF@res bool@true\n");
-            dynamicBuffer_ADD_STRING(instruction, "JUMP ");
-            dynamicBuffer_ADD_STRING(instruction, expr_res_eval->data);
-            dynamicBuffer_ADD_STRING(instruction, "\n");
-            
-            // EVALUATE RESULT
-            dynamicBuffer_ADD_STRING(instruction, "LABEL ");
-            dynamicBuffer_ADD_STRING(instruction, expr_res_eval->data);
-            dynamicBuffer_ADD_STRING(instruction, "\n");
-            dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@res\n");
-            dynamicBuffer_ADD_STRING(instruction, "PUSHS bool@true\n");
-            dynamicBuffer_ADD_STRING(instruction, "POPFRAME\n");
-            dynamicBuffer_ADD_STRING(instruction, "JUMPIFNEQS false_");
-            dynamicBuffer_ADD_STRING(instruction, labelnameif->data);
-            // cond jump 
-
-            DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
-            dynamicBufferFREE(expr_set_false);
-            dynamicBufferFREE(expr_set_true);
-            dynamicBufferFREE(expr_res_int2bool);
-            dynamicBufferFREE(expr_res_float2bool);
-            dynamicBufferFREE(expr_res_string2bool);
-            dynamicBufferFREE(expr_res_eval);
-            dynamicBufferFREE(instruction);
+            convert_into_bool(instruction,instruction_list,labelnameif);
             
             *token = get_token(1);
             if (token->type == T_L_BRAC){
@@ -602,125 +323,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
             end_token.type = T_R_PAR;
             body = check_expr_syntax(token, &end_token,instruction_list,NULL);
             ERROR_EXIT(body,token,SYNTAX_ERROR);
-            instruction = dynamicBuffer_INIT();
-
-            tDynamicBuffer *expr_set_false = label_name_gen("expr_set_false");
-            tDynamicBuffer *expr_set_true = label_name_gen("expr_set_true");
-            tDynamicBuffer *expr_res_int2bool = label_name_gen("expr_res_int2bool");
-            tDynamicBuffer *expr_res_float2bool = label_name_gen("expr_res_float2bool");
-            tDynamicBuffer *expr_res_string2bool = label_name_gen("expr_res_string2bool");
-            tDynamicBuffer *expr_res_eval = label_name_gen("expr_res_eval");
-            
-            dynamicBuffer_ADD_STRING(instruction, "PUSHFRAME\n");
-            dynamicBuffer_ADD_STRING(instruction, "CREATEFRAME\n");
-            dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@res\n");
-            dynamicBuffer_ADD_STRING(instruction, "DEFVAR TF@res_type\n");
-            dynamicBuffer_ADD_STRING(instruction, "POPS TF@res\n");
-            dynamicBuffer_ADD_STRING(instruction, "TYPE TF@res_type TF@res\n");
-
-            // IF RESULT IS NULL
-            dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-            dynamicBuffer_ADD_STRING(instruction, expr_set_false->data);
-            dynamicBuffer_ADD_STRING(instruction, " TF@res_type string@nil\n");
-
-            // IF RESULT IS INT
-            dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-            dynamicBuffer_ADD_STRING(instruction, expr_res_int2bool->data);
-            dynamicBuffer_ADD_STRING(instruction, " TF@res_type string@int\n");
-
-            // IF RESULT IS FLOAT
-            dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-            dynamicBuffer_ADD_STRING(instruction, expr_res_float2bool->data);
-            dynamicBuffer_ADD_STRING(instruction, " TF@res_type string@float\n");
-
-            // IF RESULT IS STRING
-            dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-            dynamicBuffer_ADD_STRING(instruction, expr_res_string2bool->data);
-            dynamicBuffer_ADD_STRING(instruction, " TF@res_type string@string\n");
-
-            // IF RESULT IS BOOL
-            dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-            dynamicBuffer_ADD_STRING(instruction, expr_res_eval->data);
-            dynamicBuffer_ADD_STRING(instruction, " TF@res_type string@bool\n");
-
-            // UNKNOWN TYPE
-            dynamicBuffer_ADD_STRING(instruction, "EXIT int@7\n");
-            
-            // INT TO BOOL
-            dynamicBuffer_ADD_STRING(instruction, "LABEL ");
-            dynamicBuffer_ADD_STRING(instruction, expr_res_int2bool->data);
-            dynamicBuffer_ADD_STRING(instruction, "\n");
-            dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-            dynamicBuffer_ADD_STRING(instruction, expr_set_false->data);
-            dynamicBuffer_ADD_STRING(instruction, " TF@res int@0\n");
-            dynamicBuffer_ADD_STRING(instruction, "JUMP ");
-            dynamicBuffer_ADD_STRING(instruction, expr_set_true->data);
-            dynamicBuffer_ADD_STRING(instruction, "\n");
-
-            // FLOAT TO BOOL
-            dynamicBuffer_ADD_STRING(instruction, "LABEL ");
-            dynamicBuffer_ADD_STRING(instruction, expr_res_float2bool->data);
-            dynamicBuffer_ADD_STRING(instruction, "\n");
-            dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-            dynamicBuffer_ADD_STRING(instruction, expr_set_false->data);
-            dynamicBuffer_ADD_STRING(instruction, " TF@res float@0x0p+0\n");
-            dynamicBuffer_ADD_STRING(instruction, "JUMP ");
-            dynamicBuffer_ADD_STRING(instruction, expr_set_true->data);
-            dynamicBuffer_ADD_STRING(instruction, "\n");
-
-            // STRING TO BOOL
-            dynamicBuffer_ADD_STRING(instruction, "LABEL ");
-            dynamicBuffer_ADD_STRING(instruction, expr_res_string2bool->data);
-            dynamicBuffer_ADD_STRING(instruction, "\n");
-            dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-            dynamicBuffer_ADD_STRING(instruction, expr_set_false->data);
-            dynamicBuffer_ADD_STRING(instruction, " TF@res string@\n");
-            dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
-            dynamicBuffer_ADD_STRING(instruction, expr_set_false->data);
-            dynamicBuffer_ADD_STRING(instruction, " TF@res string@0\n");
-            dynamicBuffer_ADD_STRING(instruction, "JUMP ");
-            dynamicBuffer_ADD_STRING(instruction, expr_set_true->data);
-            dynamicBuffer_ADD_STRING(instruction, "\n");
-
-            // SET RESULT AS FALSE
-            dynamicBuffer_ADD_STRING(instruction, "LABEL ");
-            dynamicBuffer_ADD_STRING(instruction, expr_set_false->data);
-            dynamicBuffer_ADD_STRING(instruction, "\n");
-            dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@res\n");
-            dynamicBuffer_ADD_STRING(instruction, "MOVE TF@res bool@false\n");
-            dynamicBuffer_ADD_STRING(instruction, "JUMP ");
-            dynamicBuffer_ADD_STRING(instruction, expr_res_eval->data);
-            dynamicBuffer_ADD_STRING(instruction, "\n");
-            
-            // SET RESULT AS TRUE
-            dynamicBuffer_ADD_STRING(instruction, "LABEL ");
-            dynamicBuffer_ADD_STRING(instruction, expr_set_true->data);
-            dynamicBuffer_ADD_STRING(instruction, "\n");
-            dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@res\n");
-            dynamicBuffer_ADD_STRING(instruction, "MOVE TF@res bool@true\n");
-            dynamicBuffer_ADD_STRING(instruction, "JUMP ");
-            dynamicBuffer_ADD_STRING(instruction, expr_res_eval->data);
-            dynamicBuffer_ADD_STRING(instruction, "\n");
-            
-            // EVALUATE RESULT
-            dynamicBuffer_ADD_STRING(instruction, "LABEL ");
-            dynamicBuffer_ADD_STRING(instruction, expr_res_eval->data);
-            dynamicBuffer_ADD_STRING(instruction, "\n");
-            dynamicBuffer_ADD_STRING(instruction, "PUSHS TF@res\n");
-            dynamicBuffer_ADD_STRING(instruction, "PUSHS bool@true\n");
-            dynamicBuffer_ADD_STRING(instruction, "POPFRAME\n");
-            dynamicBuffer_ADD_STRING(instruction, "JUMPIFNEQS false_");
-            dynamicBuffer_ADD_STRING(instruction, labelname->data);
-            // cond jump 
-
-            DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
-            dynamicBufferFREE(expr_set_false);
-            dynamicBufferFREE(expr_set_true);
-            dynamicBufferFREE(expr_res_int2bool);
-            dynamicBufferFREE(expr_res_float2bool);
-            dynamicBufferFREE(expr_res_string2bool);
-            dynamicBufferFREE(expr_res_eval);
-            dynamicBufferFREE(instruction);
+            convert_into_bool(instruction,instruction_list,labelname);
             *token = get_token(1);
             if (token->type == T_L_BRAC){                
                 *token = get_token(1);
@@ -786,20 +389,20 @@ bool f_body_var(tToken *token,tDynamicBuffer *instruction, DLList *instruction_l
             }*/
             instruction = dynamicBuffer_INIT();
             if (!strcmp(instruction_list->curr_fun->key,"substring")){
-                while (!StackIsEmpty(&buildinargs)){
-                    tDynamicBuffer *stack_top_itm = ((tDynamicBuffer *) StackTop(&buildinargs));
+                while (!StackIsEmpty(&called_args)){
+                    tDynamicBuffer *stack_top_itm = ((tDynamicBuffer *) StackTop(&called_args));
                     DETECT_MAIN(instruction_list,stack_top_itm,instruction_list->called_from->key);
-                    StackPop(&buildinargs);
+                    StackPop(&called_args);
                     dynamicBufferFREE(stack_top_itm);
                 }
                 dynamicBuffer_ADD_STRING(instruction, "CALL ");
                 dynamicBuffer_ADD_STRING(instruction, instruction_list->curr_fun->data.fun_data.label_name->data);
             }
             else if (!strcmp(instruction_list->curr_fun->key,"write")){
-                while (!StackIsEmpty(&buildinargs)){
-                    tDynamicBuffer *stack_top_itm = ((tDynamicBuffer *) StackTop(&buildinargs));
+                while (!StackIsEmpty(&called_args)){
+                    tDynamicBuffer *stack_top_itm = ((tDynamicBuffer *) StackTop(&called_args));
                     DETECT_MAIN(instruction_list,stack_top_itm,instruction_list->called_from->key);
-                    StackPop(&buildinargs);
+                    StackPop(&called_args);
                     dynamicBufferFREE(stack_top_itm);
                 }
                 dynamicBuffer_ADD_STRING(instruction, "PUSHS int@");
@@ -813,7 +416,7 @@ bool f_body_var(tToken *token,tDynamicBuffer *instruction, DLList *instruction_l
                 dynamicBufferFREE(numof_param);
             }
             else{
-                check_fn_arguments(instruction_list->curr_fun->data.fun_data.TaV,instruction,instruction_list);
+                check_fn_arguments(instruction_list->curr_fun->data.fun_data.TaV,&called_args,instruction,instruction_list);
                 print_stack(instruction_list->curr_fun->data.fun_data.TaV,instruction,instruction_list, "POPS TF@");
                 dynamicBuffer_ADD_STRING(instruction, "CALL ");
                 dynamicBuffer_ADD_STRING(instruction, instruction_list->curr_fun->data.fun_data.label_name->data);
@@ -892,7 +495,7 @@ bool f_fn_call_l(tToken *token,tDynamicBuffer *instruction, DLList *instruction_
             
         }
         else{
-            StackPush(&buildinargs,instruction);
+            StackPush(&called_args,instruction);
         }
         *token = get_token(1);
         fn_call_bool = f_fn_call_lc(token,instruction, instruction_list);
@@ -910,7 +513,7 @@ bool f_fn_call_l(tToken *token,tDynamicBuffer *instruction, DLList *instruction_
             
         }
         else{
-            StackPush(&buildinargs,instruction);
+            StackPush(&called_args,instruction);
         }
         *token = get_token(1);
         fn_call_bool = f_fn_call_lc(token,instruction, instruction_list);
@@ -928,7 +531,7 @@ bool f_fn_call_l(tToken *token,tDynamicBuffer *instruction, DLList *instruction_
             
         }
         else{
-            StackPush(&buildinargs,instruction);
+            StackPush(&called_args,instruction);
         }
         *token = get_token(1);
         fn_call_bool = f_fn_call_lc(token,instruction, instruction_list);
@@ -949,7 +552,7 @@ bool f_fn_call_l(tToken *token,tDynamicBuffer *instruction, DLList *instruction_
             
         }
         else{
-            StackPush(&buildinargs,instruction);
+            StackPush(&called_args,instruction);
         }
         *token = get_token(1);
         fn_call_bool = f_fn_call_lc(token,instruction, instruction_list);
@@ -967,7 +570,7 @@ bool f_fn_call_l(tToken *token,tDynamicBuffer *instruction, DLList *instruction_
             
         }
         else{
-            StackPush(&buildinargs,instruction);
+            StackPush(&called_args,instruction);
         }
         *token = get_token(1);
         fn_call_bool = f_fn_call_lc(token,instruction, instruction_list);
@@ -1034,7 +637,7 @@ bool f_fn_call_lparam(tToken *token,tDynamicBuffer *instruction, DLList *instruc
             
         }
         else{
-            StackPush(&buildinargs,instruction);
+            StackPush(&called_args,instruction);
         }
         *token = get_token(1);
         fn_call_bool = f_fn_call_lc(token,instruction, instruction_list);
@@ -1052,7 +655,7 @@ bool f_fn_call_lparam(tToken *token,tDynamicBuffer *instruction, DLList *instruc
             
         }
         else{
-            StackPush(&buildinargs,instruction);
+            StackPush(&called_args,instruction);
         }
         *token = get_token(1);
         fn_call_bool = f_fn_call_lc(token,instruction, instruction_list);
@@ -1070,7 +673,7 @@ bool f_fn_call_lparam(tToken *token,tDynamicBuffer *instruction, DLList *instruc
             
         }
         else{
-            StackPush(&buildinargs,instruction);
+            StackPush(&called_args,instruction);
         }
         *token = get_token(1);
         fn_call_bool = f_fn_call_lc(token,instruction, instruction_list);
@@ -1091,7 +694,7 @@ bool f_fn_call_lparam(tToken *token,tDynamicBuffer *instruction, DLList *instruc
             
         }
         else{
-            StackPush(&buildinargs,instruction);
+            StackPush(&called_args,instruction);
         }
         *token = get_token(1);
         fn_call_bool = f_fn_call_lc(token,instruction, instruction_list);
@@ -1109,7 +712,7 @@ bool f_fn_call_lparam(tToken *token,tDynamicBuffer *instruction, DLList *instruc
             
         }
         else{
-            StackPush(&buildinargs,instruction);
+            StackPush(&called_args,instruction);
         }
         *token = get_token(1);
         fn_call_bool = f_fn_call_lc(token,instruction, instruction_list);
@@ -1172,14 +775,22 @@ bool f_func(tToken *token,tDynamicBuffer *instruction, DLList *instruction_list)
                         dynamicBufferFREE(instruction);
 
                     }
-                    instruction = dynamicBuffer_INIT();
-                    dynamicBuffer_ADD_STRING(instruction, "POPFRAME");
-                    DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
-                    dynamicBufferFREE(instruction);
-                    instruction = dynamicBuffer_INIT();
-                    dynamicBuffer_ADD_STRING(instruction, "RETURN");
-                    DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
-                    dynamicBufferFREE(instruction);
+                    if(instruction_list->called_from->data.fun_data.return_type ==T_VOID){
+                        instruction = dynamicBuffer_INIT();
+                        dynamicBuffer_ADD_STRING(instruction, "POPFRAME");
+                        DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
+                        dynamicBufferFREE(instruction);
+                        instruction = dynamicBuffer_INIT();
+                        dynamicBuffer_ADD_STRING(instruction, "RETURN");
+                        DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
+                        dynamicBufferFREE(instruction);
+                    }
+                    else{
+                        instruction = dynamicBuffer_INIT();
+                        dynamicBuffer_ADD_STRING(instruction, "EXIT int@4");
+                        DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
+                        dynamicBufferFREE(instruction);
+                    }
 
                     instruction_list->called_from = htab_find(symtable, "$$main");
                 }
@@ -1320,7 +931,7 @@ int main(){
     tDynamicBuffer *instruction = dynamicBuffer_INIT();
     symtable = htab_init(HTAB_SIZE);
     DLList instruction_list;
-    StackInit(&buildinargs);
+    StackInit(&called_args);
     dynamicBuffer_ADD_STRING(instruction,".IFJcode22");
     DLL_Init(&instruction_list);
     DLL_InsertFirst(&instruction_list, instruction);
