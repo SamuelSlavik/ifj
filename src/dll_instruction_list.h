@@ -19,7 +19,7 @@ typedef struct {
 	DLL_instruction *main_body;
 	DLL_instruction *last;
 	DLL_instruction *if_while;
-	char *label;
+	char *label; //ifwhilelabel
 	size_t num_of_params_called;
 	tStack called_args;
 } DLList;
