@@ -202,7 +202,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
         dynamicBufferFREE(instruction);
         //condition for nested ifs and whiles
         if (instruction_list->if_while == NULL){
-            instruction_list->label = label_name_if->data;
+            instruction_list->if_while_label = label_name_if->data;
             if (!strcmp(instruction_list->called_from->key,"$$main")){
                 instruction_list->if_while=instruction_list->main_body;
             }
@@ -248,7 +248,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
                         DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
                         dynamicBufferFREE(instruction);
                         //most outer if or while check
-                        if (!strcmp(instruction_list->label,label_name_if->data)){
+                        if (!strcmp(instruction_list->if_while_label,label_name_if->data)){
                             instruction_list->if_while=NULL; 
                         }
                     }
@@ -269,7 +269,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
         dynamicBufferFREE(instruction);
         //condition for nested ifs and whiles
         if (instruction_list->if_while == NULL){
-            instruction_list->label = labelname->data;
+            instruction_list->if_while_label = labelname->data;
             if (!strcmp(instruction_list->called_from->key,"$$main")){
                 instruction_list->if_while=instruction_list->main_body;
             }
@@ -303,7 +303,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
                 DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
                 dynamicBufferFREE(instruction);
                 //most outer if or while check
-                if (!strcmp(instruction_list->label,labelname->data)){
+                if (!strcmp(instruction_list->if_while_label,labelname->data)){
                     instruction_list->if_while=NULL; 
                 }          
             }

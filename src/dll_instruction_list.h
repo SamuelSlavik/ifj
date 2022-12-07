@@ -25,7 +25,7 @@ typedef struct {
 	DLL_instruction *main_body; //pointer to last main body element
 	DLL_instruction *last; //pointer to last element
 	DLL_instruction *if_while; //pointer to if while instruction that is on top
-	char *label;  // name of if while label that is on top
+	char *if_while_label;  // name of if while label that is on top
 	size_t num_of_params_called; //numbers of parameters called
 	tStack called_args; // stack with called arguments
 } DLList;

@@ -20,7 +20,7 @@ void DLL_Init( DLList *list ) {
     list->curr_fun = NULL;
     list->curr_var = NULL;
     list->if_while = NULL;
-    list->label = NULL;
+    list->if_while_label = NULL;
     list->main_body = NULL;
 }
 
