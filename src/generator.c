@@ -9,6 +9,7 @@
 #include "dynamic_buffer.h"
 #include "expression_codegen.h"
 #include "parser.h"
+#include "generator.h"
 
 void generate_reads(tDynamicBuffer *instruction, DLList *instruction_list){
     instruction=dynamicBuffer_INIT();
@@ -414,13 +415,14 @@ void generate_chr(tDynamicBuffer *instruction, DLList *instruction_list){
     dynamicBufferFREE(instruction);
 }
 
-void check_fn_arguments(tStack *defined_params, tStack *called, tDynamicBuffer *instruction, DLList *instruction_list){
+void check_fn_arguments(tStack *defined_params, tStack *called_params, tDynamicBuffer *instruction, DLList *instruction_list){
     // PRINT STACK
     tStack print_stack;
     StackInit(&print_stack);
+    // looping through whole stack of arguments
     while (!StackIsEmpty(defined_params)){
         tVar_TaV *stack_top_itm = ((tVar_TaV*) StackTop(defined_params));
-        tDynamicBuffer *stack_top_itm_called = ((tDynamicBuffer *) StackTop(called));
+        tDynamicBuffer *stack_top_itm_called = ((tDynamicBuffer *) StackTop(called_params));
         tDynamicBuffer *return_type_false = label_name_gen("return_type_false");
         tDynamicBuffer *TF_res = label_name_gen("TF@res_");
         tDynamicBuffer *TF_res_type = label_name_gen("TF@res_type_");
@@ -444,12 +446,12 @@ void check_fn_arguments(tStack *defined_params, tStack *called, tDynamicBuffer *
         dynamicBuffer_ADD_STRING(instruction, "PUSHS ");
         dynamicBuffer_ADD_STRING(instruction,TF_res->data);
         dynamicBuffer_ADD_STRING(instruction,"\n");
-        
         dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
         dynamicBuffer_ADD_STRING(instruction, return_type_false->data);
         dynamicBuffer_ADD_STRING(instruction, " ");
         dynamicBuffer_ADD_STRING(instruction,TF_res_type->data);
         dynamicBuffer_ADD_STRING(instruction," string@");
+        // checking parameter type
         switch(stack_top_itm->var_type){
             case T_STRING_TYPE:
                 dynamicBuffer_ADD_STRING(instruction, "string\n");
@@ -504,16 +506,15 @@ void check_fn_arguments(tStack *defined_params, tStack *called, tDynamicBuffer *
         dynamicBufferFREE(TF_res_type);
         StackPush(&print_stack, stack_top_itm);
         StackPop(defined_params);
-        StackPop(called);
+        StackPop(called_params);
     }
     while (!StackIsEmpty(&print_stack)){
         tVar_TaV *stack_top_itm = ((tVar_TaV*) StackTop(&print_stack));
         StackPush(defined_params, stack_top_itm);
         StackPop(&print_stack);
     }
-    // END PRINT 
 }
-void convert_into_bool(tDynamicBuffer *instruction, DLList *instruction_list,tDynamicBuffer *labelname){
+void convert_into_bool(tDynamicBuffer *instruction, DLList *instruction_list,tDynamicBuffer *label_name){
     instruction = dynamicBuffer_INIT();
 
     tDynamicBuffer *expr_set_false = label_name_gen("expr_set_false");
@@ -625,7 +626,7 @@ void convert_into_bool(tDynamicBuffer *instruction, DLList *instruction_list,tDy
     dynamicBuffer_ADD_STRING(instruction, "PUSHS bool@true\n");
     dynamicBuffer_ADD_STRING(instruction, "POPFRAME\n");
     dynamicBuffer_ADD_STRING(instruction, "JUMPIFNEQS false_");
-    dynamicBuffer_ADD_STRING(instruction, labelname->data);
+    dynamicBuffer_ADD_STRING(instruction, label_name->data);
     // cond jump 
 
     DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
@@ -652,6 +653,7 @@ void check_return_type(tDynamicBuffer *instruction, DLList *instruction_list){
     dynamicBuffer_ADD_STRING(instruction, "JUMPIFEQ ");
     dynamicBuffer_ADD_STRING(instruction, return_type_false->data);
     dynamicBuffer_ADD_STRING(instruction, " TF@res_type string@");
+    //deciding which return type has function
     switch(instruction_list->called_from->data.fun_data.return_type){
         case T_STRING_TYPE:
             dynamicBuffer_ADD_STRING(instruction, "string\n");
@@ -699,14 +701,14 @@ void check_return_type(tDynamicBuffer *instruction, DLList *instruction_list){
     dynamicBufferFREE(return_type_false);
 }
 
-void print_stack(tStack *arg_stack, tDynamicBuffer *instruction, DLList *instruction_list,char *code){
-    // PRINT STACK
+void print_stack(tStack *defined_param, tDynamicBuffer *instruction, DLList *instruction_list,char *code){
+    // helping stack so we can keep popped parameters
     tStack print_stack;
     StackInit(&print_stack);
-    while (!StackIsEmpty(arg_stack)){
-        tVar_TaV *stack_top_itm = ((tVar_TaV*) StackTop(arg_stack));
+    while (!StackIsEmpty(defined_param)){
+        tVar_TaV *stack_top_itm = ((tVar_TaV*) StackTop(defined_param));
         StackPush(&print_stack, stack_top_itm);
-        StackPop(arg_stack);
+        StackPop(defined_param);
     }
     while (!StackIsEmpty(&print_stack)){
         tVar_TaV *stack_top_itm = ((tVar_TaV*) StackTop(&print_stack));
@@ -715,14 +717,14 @@ void print_stack(tStack *arg_stack, tDynamicBuffer *instruction, DLList *instruc
         dynamicBuffer_ADD_STRING(instruction, stack_top_itm->var);
         DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
         dynamicBufferFREE(instruction);
-        StackPush(arg_stack, stack_top_itm);
+        StackPush(defined_param, stack_top_itm);
         StackPop(&print_stack);
     }
-    // END PRINT STACK
 }
 
 void print_instructions(DLList *instruction_list){
     DLL_instruction *tmp = instruction_list->first;
+    //looping through whole list and printing instructions
     while(tmp != NULL){
         printf("%s\n", tmp->instruction->data);
         tmp = tmp->nextElement;

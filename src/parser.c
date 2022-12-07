@@ -1,6 +1,6 @@
 /**
  * @file parser.c
- * @brief Implementation of top-down parser
+ * @brief Implementation of recursive top-down parser
  * @authors Jakub Kontrik (xkontr02), Adam Pekny(xpekny00), Samuel Slavik (xslavi37)
  */
 
