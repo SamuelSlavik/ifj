@@ -1,8 +1,7 @@
 /**
- * @file parser.c
- * @brief Implementation of parser
- * @version 0.02
- * @author   
+ * @file generator.c
+ * @brief Implementation of built in functions and working with ifjcode22
+ * @author Samuel Slávik (xslavi37), Jakub Kontrík (xkontr00)  
  */
 
 #include <stdlib.h>
@@ -58,6 +57,7 @@ void generate_readf(tDynamicBuffer *instruction, DLList *instruction_list){
 
 void generate_write(tDynamicBuffer *instruction, DLList *instruction_list){
     instruction=dynamicBuffer_INIT();
+    // generate unique labels
     tDynamicBuffer *loopStart = label_name_gen("loopStart");
     tDynamicBuffer *loopWrite = label_name_gen("loopWrite");
     tDynamicBuffer *loopEnd = label_name_gen("loopEnd");
@@ -68,16 +68,18 @@ void generate_write(tDynamicBuffer *instruction, DLList *instruction_list){
     dynamicBuffer_ADD_STRING(instruction,"DEFVAR TF@term\n");
     dynamicBuffer_ADD_STRING(instruction,"DEFVAR TF@numberOfArguments\n");
     dynamicBuffer_ADD_STRING(instruction,"POPS TF@numberOfArguments\n");
+    // Loop start
     dynamicBuffer_ADD_STRING(instruction,"LABEL ");
     dynamicBuffer_ADD_STRING(instruction, loopStart->data);
     dynamicBuffer_ADD_STRING(instruction,"\n");
-    dynamicBuffer_ADD_STRING(instruction,"JUMPIFEQ ");
+    dynamicBuffer_ADD_STRING(instruction,"JUMPIFEQ "); // Loop condition
     dynamicBuffer_ADD_STRING(instruction, loopEnd->data);
     dynamicBuffer_ADD_STRING(instruction," TF@numberOfArguments int@0\n");
     dynamicBuffer_ADD_STRING(instruction,"POPS TF@term\n");
     dynamicBuffer_ADD_STRING(instruction,"JUMP ");
     dynamicBuffer_ADD_STRING(instruction,loopWrite->data);
     dynamicBuffer_ADD_STRING(instruction,"\n");
+    // Loop content
     dynamicBuffer_ADD_STRING(instruction,"LABEL ");
     dynamicBuffer_ADD_STRING(instruction, loopWrite->data);
     dynamicBuffer_ADD_STRING(instruction,"\n");
@@ -86,6 +88,7 @@ void generate_write(tDynamicBuffer *instruction, DLList *instruction_list){
     dynamicBuffer_ADD_STRING(instruction,"JUMP ");
     dynamicBuffer_ADD_STRING(instruction, loopStart->data);
     dynamicBuffer_ADD_STRING(instruction,"\n");
+    // Loop end
     dynamicBuffer_ADD_STRING(instruction,"LABEL ");
     dynamicBuffer_ADD_STRING(instruction,loopEnd->data);
     dynamicBuffer_ADD_STRING(instruction,"\n");
@@ -101,6 +104,7 @@ void generate_write(tDynamicBuffer *instruction, DLList *instruction_list){
 
 void generate_floatval(tDynamicBuffer *instruction, DLList *instruction_list){
     instruction=dynamicBuffer_INIT();
+    // generate unique labels
     tDynamicBuffer *argumentIsNil = label_name_gen("argumentIsNil");
     tDynamicBuffer *ending = label_name_gen("ending");
     tDynamicBuffer *isUnsupported = label_name_gen("isUnsupported");
@@ -111,20 +115,23 @@ void generate_floatval(tDynamicBuffer *instruction, DLList *instruction_list){
     dynamicBuffer_ADD_STRING(instruction,"DEFVAR TF@argument1\n");
     dynamicBuffer_ADD_STRING(instruction,"POPS TF@argument1\n");
     dynamicBuffer_ADD_STRING(instruction,"DEFVAR TF@argumentType\n");
+    // Checking type or argument
     dynamicBuffer_ADD_STRING(instruction,"TYPE TF@argumentType TF@argument1\n");
-    dynamicBuffer_ADD_STRING(instruction,"JUMPIFEQ ");
+    dynamicBuffer_ADD_STRING(instruction,"JUMPIFEQ "); 
     dynamicBuffer_ADD_STRING(instruction, argumentIsNil->data);
     dynamicBuffer_ADD_STRING(instruction," string@nil TF@argumentType\n");
-    dynamicBuffer_ADD_STRING(instruction,"JUMPIFEQ ");
+    dynamicBuffer_ADD_STRING(instruction,"JUMPIFEQ "); 
     dynamicBuffer_ADD_STRING(instruction, ending->data);
     dynamicBuffer_ADD_STRING(instruction," string@float TF@argumentType\n");
-    dynamicBuffer_ADD_STRING(instruction,"JUMPIFEQ ");
+    dynamicBuffer_ADD_STRING(instruction,"JUMPIFEQ "); 
     dynamicBuffer_ADD_STRING(instruction, isUnsupported->data);
     dynamicBuffer_ADD_STRING(instruction," string@string TF@argumentType\n");
+    // is int
     dynamicBuffer_ADD_STRING(instruction,"INT2FLOAT TF@argument1 TF@argument1\n");
     dynamicBuffer_ADD_STRING(instruction,"JUMP ");
     dynamicBuffer_ADD_STRING(instruction, ending->data);
     dynamicBuffer_ADD_STRING(instruction,"\n");
+    // Is null
     dynamicBuffer_ADD_STRING(instruction, "LABEL ");
     dynamicBuffer_ADD_STRING(instruction, argumentIsNil->data);
     dynamicBuffer_ADD_STRING(instruction, "\n");
@@ -132,6 +139,7 @@ void generate_floatval(tDynamicBuffer *instruction, DLList *instruction_list){
     dynamicBuffer_ADD_STRING(instruction,"POPFRAME\n");
     dynamicBuffer_ADD_STRING(instruction,"RETURN\n");
     dynamicBuffer_ADD_STRING(instruction,"LABEL ");
+    // Is string
     dynamicBuffer_ADD_STRING(instruction, isUnsupported->data);
     dynamicBuffer_ADD_STRING(instruction, "\n");
     dynamicBuffer_ADD_STRING(instruction,"EXIT int@4\n");
@@ -151,6 +159,7 @@ void generate_floatval(tDynamicBuffer *instruction, DLList *instruction_list){
 
 void generate_intval(tDynamicBuffer *instruction, DLList *instruction_list){
     instruction=dynamicBuffer_INIT();
+    // generate unique labels
     tDynamicBuffer *argumentIsNil = label_name_gen("argumentIsNil");
     tDynamicBuffer *ending = label_name_gen("ending");
     tDynamicBuffer *isUnsupported = label_name_gen("isUnsupported");
@@ -161,6 +170,7 @@ void generate_intval(tDynamicBuffer *instruction, DLList *instruction_list){
     dynamicBuffer_ADD_STRING(instruction,"DEFVAR TF@argument1\n");
     dynamicBuffer_ADD_STRING(instruction,"POPS TF@argument1\n");
     dynamicBuffer_ADD_STRING(instruction,"DEFVAR TF@argumentType\n");
+    // Checking type of argument1
     dynamicBuffer_ADD_STRING(instruction,"TYPE TF@argumentType TF@argument1\n");
     dynamicBuffer_ADD_STRING(instruction,"JUMPIFEQ ");
     dynamicBuffer_ADD_STRING(instruction, argumentIsNil->data);
@@ -171,16 +181,19 @@ void generate_intval(tDynamicBuffer *instruction, DLList *instruction_list){
     dynamicBuffer_ADD_STRING(instruction,"JUMPIFEQ ");
     dynamicBuffer_ADD_STRING(instruction,isUnsupported->data);
     dynamicBuffer_ADD_STRING(instruction," string@string TF@argumentType\n");
+    // is float
     dynamicBuffer_ADD_STRING(instruction,"FLOAT2INT TF@argument1 TF@argument1\n");
     dynamicBuffer_ADD_STRING(instruction,"JUMP ");
     dynamicBuffer_ADD_STRING(instruction,ending->data);
     dynamicBuffer_ADD_STRING(instruction,"\n");
+    // is null
     dynamicBuffer_ADD_STRING(instruction,"LABEL ");
     dynamicBuffer_ADD_STRING(instruction,argumentIsNil->data);
     dynamicBuffer_ADD_STRING(instruction,"\n");
     dynamicBuffer_ADD_STRING(instruction,"PUSHS int@0\n");
     dynamicBuffer_ADD_STRING(instruction,"POPFRAME\n");
     dynamicBuffer_ADD_STRING(instruction,"RETURN\n");
+    // is string
     dynamicBuffer_ADD_STRING(instruction,"LABEL ");
     dynamicBuffer_ADD_STRING(instruction,isUnsupported->data);
     dynamicBuffer_ADD_STRING(instruction,"\n");
@@ -200,6 +213,7 @@ void generate_intval(tDynamicBuffer *instruction, DLList *instruction_list){
 }
 
 void generate_strval(tDynamicBuffer *instruction, DLList *instruction_list){
+    // generate unique labels
     tDynamicBuffer *isNil = label_name_gen("isNil");
     tDynamicBuffer *isString = label_name_gen("isString");
     tDynamicBuffer *ending = label_name_gen("ending");
@@ -212,6 +226,7 @@ void generate_strval(tDynamicBuffer *instruction, DLList *instruction_list){
     dynamicBuffer_ADD_STRING(instruction,"POPS TF@argument1\n");
     dynamicBuffer_ADD_STRING(instruction,"DEFVAR TF@argumentType\n");
     dynamicBuffer_ADD_STRING(instruction,"TYPE TF@argumentType TF@argument1\n");
+    // Check the type of argument1
     dynamicBuffer_ADD_STRING(instruction,"JUMPIFEQ ");
     dynamicBuffer_ADD_STRING(instruction,isString->data);
     dynamicBuffer_ADD_STRING(instruction," string@string TF@argumentType\n");    
@@ -227,6 +242,7 @@ void generate_strval(tDynamicBuffer *instruction, DLList *instruction_list){
     dynamicBuffer_ADD_STRING(instruction,"JUMPIFEQ ");
     dynamicBuffer_ADD_STRING(instruction,isUnsupported->data);
     dynamicBuffer_ADD_STRING(instruction," string@bool TF@argumentType\n");
+    // is null
     dynamicBuffer_ADD_STRING(instruction,"LABEL ");
     dynamicBuffer_ADD_STRING(instruction, isNil->data);
     dynamicBuffer_ADD_STRING(instruction,"\n");
@@ -234,10 +250,12 @@ void generate_strval(tDynamicBuffer *instruction, DLList *instruction_list){
     dynamicBuffer_ADD_STRING(instruction,"JUMP ");
     dynamicBuffer_ADD_STRING(instruction,ending->data);
     dynamicBuffer_ADD_STRING(instruction,"\n");
+    // is int, float or bool
     dynamicBuffer_ADD_STRING(instruction,"LABEL ");
     dynamicBuffer_ADD_STRING(instruction, isUnsupported->data);
     dynamicBuffer_ADD_STRING(instruction,"\n");
     dynamicBuffer_ADD_STRING(instruction,"EXIT int@4\n");
+    // is string
     dynamicBuffer_ADD_STRING(instruction,"LABEL ");
     dynamicBuffer_ADD_STRING(instruction,isString->data);
     dynamicBuffer_ADD_STRING(instruction,"\n");
@@ -272,11 +290,9 @@ void generate_strlen(tDynamicBuffer *instruction, DLList *instruction_list){
     dynamicBufferFREE(instruction);
 }
 
-// ////////////////////////////////////////////////////////
-// TO DO SUBSTRING
-// ///////////////////////////////////////////////////////
 void generate_substr(tDynamicBuffer *instruction, DLList *instruction_list){
     instruction=dynamicBuffer_INIT();
+    // generate unique labels
     tDynamicBuffer *error = label_name_gen("error");
     tDynamicBuffer *loopStart = label_name_gen("loopStart");
     tDynamicBuffer *loopEnd = label_name_gen("loopEnd");
@@ -297,22 +313,23 @@ void generate_substr(tDynamicBuffer *instruction, DLList *instruction_list){
     dynamicBuffer_ADD_STRING(instruction,"DEFVAR TF@tmp2\n");
     dynamicBuffer_ADD_STRING(instruction,"DEFVAR TF@index\n");
     dynamicBuffer_ADD_STRING(instruction,"DEFVAR TF@character\n");
-
+    // error states
+    // i > j
     dynamicBuffer_ADD_STRING(instruction,"GT TF@tmp TF@i TF@j\n");
     dynamicBuffer_ADD_STRING(instruction,"JUMPIFEQ ");
     dynamicBuffer_ADD_STRING(instruction,error->data);
     dynamicBuffer_ADD_STRING(instruction," TF@tmp bool@true\n");
-
+    // i < 0
     dynamicBuffer_ADD_STRING(instruction,"LT TF@tmp TF@i int@0\n");
     dynamicBuffer_ADD_STRING(instruction,"JUMPIFEQ ");
     dynamicBuffer_ADD_STRING(instruction,error->data);
     dynamicBuffer_ADD_STRING(instruction," TF@tmp bool@true\n");
-
+    // j < 0
     dynamicBuffer_ADD_STRING(instruction,"LT TF@tmp TF@j int@0\n");
     dynamicBuffer_ADD_STRING(instruction,"JUMPIFEQ ");
     dynamicBuffer_ADD_STRING(instruction,error->data);
     dynamicBuffer_ADD_STRING(instruction," TF@tmp bool@true\n");
-
+    // j or i > strlen
     dynamicBuffer_ADD_STRING(instruction,"STRLEN TF@length TF@string\n");
     dynamicBuffer_ADD_STRING(instruction,"GT TF@tmp TF@i TF@length\n");
     dynamicBuffer_ADD_STRING(instruction,"JUMPIFEQ ");
@@ -322,11 +339,9 @@ void generate_substr(tDynamicBuffer *instruction, DLList *instruction_list){
     dynamicBuffer_ADD_STRING(instruction,"JUMPIFEQ ");
     dynamicBuffer_ADD_STRING(instruction,error->data);
     dynamicBuffer_ADD_STRING(instruction," TF@tmp bool@true\n");
-    
-    // ///////////////////////////////// HERE YA GO
+    // get length of substring and set starting index
     dynamicBuffer_ADD_STRING(instruction,"SUB TF@tmp2 TF@j TF@i\n");
     dynamicBuffer_ADD_STRING(instruction,"MOVE TF@index TF@i\n");
-
     // LOOOP START
     dynamicBuffer_ADD_STRING(instruction,"LABEL ");
     dynamicBuffer_ADD_STRING(instruction,loopStart->data);
@@ -334,7 +349,6 @@ void generate_substr(tDynamicBuffer *instruction, DLList *instruction_list){
     dynamicBuffer_ADD_STRING(instruction,"JUMPIFEQ ");
     dynamicBuffer_ADD_STRING(instruction,loopEnd->data);
     dynamicBuffer_ADD_STRING(instruction," TF@tmp2 int@0\n");
-    
     // LOOP write
     dynamicBuffer_ADD_STRING(instruction,"GETCHAR TF@character TF@string TF@index\n");
     dynamicBuffer_ADD_STRING(instruction,"CONCAT TF@subString TF@subString TF@character\n");
@@ -343,7 +357,6 @@ void generate_substr(tDynamicBuffer *instruction, DLList *instruction_list){
     dynamicBuffer_ADD_STRING(instruction,"JUMP ");
     dynamicBuffer_ADD_STRING(instruction,loopStart->data);
     dynamicBuffer_ADD_STRING(instruction,"\n");
-
     // error
     dynamicBuffer_ADD_STRING(instruction,"LABEL ");
     dynamicBuffer_ADD_STRING(instruction,error->data);
@@ -351,7 +364,6 @@ void generate_substr(tDynamicBuffer *instruction, DLList *instruction_list){
     dynamicBuffer_ADD_STRING(instruction,"PUSHS nil@nil\n");
     dynamicBuffer_ADD_STRING(instruction,"POPFRAME\n");
     dynamicBuffer_ADD_STRING(instruction,"RETURN\n");
-
     // LOOP end
     dynamicBuffer_ADD_STRING(instruction,"LABEL ");
     dynamicBuffer_ADD_STRING(instruction,loopEnd->data);
@@ -366,7 +378,6 @@ void generate_substr(tDynamicBuffer *instruction, DLList *instruction_list){
     dynamicBufferFREE(error);
     dynamicBufferFREE(instruction);
 }
-// /////////////////////////////////////////////////////////////////////////////////////////////
 
 void generate_ord(tDynamicBuffer *instruction, DLList *instruction_list){
     instruction=dynamicBuffer_INIT();
@@ -375,6 +386,7 @@ void generate_ord(tDynamicBuffer *instruction, DLList *instruction_list){
     dynamicBuffer_ADD_STRING(instruction,"CREATEFRAME\n");
     dynamicBuffer_ADD_STRING(instruction,"DEFVAR TF@argument1\n");
     dynamicBuffer_ADD_STRING(instruction,"POPS TF@argument1\n");
+    // Add char with ascii value 0 at end of argument1, if argument1 is empty string, it returns 0 in the next line
     dynamicBuffer_ADD_STRING(instruction,"CONCAT TF@argument1 TF@argument1 string@\\000\n");
     dynamicBuffer_ADD_STRING(instruction,"STRI2INT TF@argument1 TF@argument1 int@0\n");
     dynamicBuffer_ADD_STRING(instruction,"PUSHS TF@argument1\n");
@@ -687,14 +699,14 @@ void check_return_type(tDynamicBuffer *instruction, DLList *instruction_list){
     dynamicBufferFREE(return_type_false);
 }
 
-void print_stack(tStack *expr_stack, tDynamicBuffer *instruction, DLList *instruction_list,char *code){
+void print_stack(tStack *arg_stack, tDynamicBuffer *instruction, DLList *instruction_list,char *code){
     // PRINT STACK
     tStack print_stack;
     StackInit(&print_stack);
-    while (!StackIsEmpty(expr_stack)){
-        tVar_TaV *stack_top_itm = ((tVar_TaV*) StackTop(expr_stack));
+    while (!StackIsEmpty(arg_stack)){
+        tVar_TaV *stack_top_itm = ((tVar_TaV*) StackTop(arg_stack));
         StackPush(&print_stack, stack_top_itm);
-        StackPop(expr_stack);
+        StackPop(arg_stack);
     }
     while (!StackIsEmpty(&print_stack)){
         tVar_TaV *stack_top_itm = ((tVar_TaV*) StackTop(&print_stack));
@@ -703,7 +715,7 @@ void print_stack(tStack *expr_stack, tDynamicBuffer *instruction, DLList *instru
         dynamicBuffer_ADD_STRING(instruction, stack_top_itm->var);
         DETECT_MAIN(instruction_list,instruction,instruction_list->called_from->key);
         dynamicBufferFREE(instruction);
-        StackPush(expr_stack, stack_top_itm);
+        StackPush(arg_stack, stack_top_itm);
         StackPop(&print_stack);
     }
     // END PRINT STACK
