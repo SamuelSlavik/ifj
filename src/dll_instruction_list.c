@@ -33,8 +33,7 @@ void DLL_Dispose( DLList *list ) {
 void DLL_InsertFirst( DLList *list, tDynamicBuffer *instruction ) {
 	DLL_instruction *new_element = malloc(sizeof(DLL_instruction));
     if (new_element == NULL){
-        
-        return;
+        exit(99);
     }
     new_element->instruction = dynamicBuffer_INIT();
     dynamicBuffer_ADD_STRING(new_element->instruction, instruction->data);
@@ -65,8 +64,7 @@ void DLL_InsertAfter( DLList *list, tDynamicBuffer *instruction ) {
         // Allocate space for new element and check whether it was successful
         DLL_instruction *new_element = malloc(sizeof(DLL_instruction));
         if (new_element == NULL){
-            
-            return;
+            exit(99);
         }
         new_element->instruction = dynamicBuffer_INIT();
         dynamicBuffer_ADD_STRING(new_element->instruction, instruction->data);
@@ -89,8 +87,7 @@ void DLL_InsertAfter_main( DLList *list, tDynamicBuffer *instruction ) {
         // Allocate space for new element and check whether it was successful
         DLL_instruction *new_element = malloc(sizeof(DLL_instruction));
         if (new_element == NULL){
-            
-            return;
+            exit(99);
         }
         new_element->instruction = dynamicBuffer_INIT();
         dynamicBuffer_ADD_STRING(new_element->instruction, instruction->data);
@@ -113,8 +110,7 @@ void DLL_InsertBefore_if_while( DLList *list, tDynamicBuffer *instruction ) {
         // Allocate space for new element and check whether it was successful
         DLL_instruction *new_element = malloc(sizeof(DLL_instruction));
         if (new_element == NULL){
-            
-            return;
+            exit(99);
         }
         new_element->instruction = dynamicBuffer_INIT();
         dynamicBuffer_ADD_STRING(new_element->instruction, instruction->data);

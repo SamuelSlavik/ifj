@@ -58,24 +58,19 @@ void dynamicBufferFREE(tDynamicBuffer* buffer);
 
 
 /**
- * @brief Function add one char to dynamic buffer
+ * @brief Function adds string to dynamic buffer
  * 
- * @param buffer buffer where char will be added
- * @param c char that will be added to buffer
- * @return true if success
- * @return false if fail
+ * @param buffer buffer where string will be added
+ * @param c string that will be added into buffer
  */
 void dynamicBuffer_ADD_STRING(tDynamicBuffer* buffer, const char *c);
 
 
 
 /**
- * @brief Function add one char to dynamic buffer
+ * @brief Function that frees and initializes buffer
  * 
- * @param buffer buffer where char will be added
- * @param c char that will be added to buffer
- * @return true if success
- * @return false if fail
+ * @param buffer buffer that will be renewed
  */
 tDynamicBuffer *dynamicBuffer_RESET(tDynamicBuffer* buffer);
 
