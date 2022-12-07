@@ -1,7 +1,7 @@
 /**
  * @file scanner.c
  * @author Michal Ľaš (xlasmi00)
- * @brief 
+ * @brief Implementation of lexical analysis
  * @version 0.1
  * @date 2022-10-12
  * 

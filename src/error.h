@@ -1,7 +1,7 @@
 /**
  * @file error.h
  * @author Michal Ľaš (xlasmi00)
- * @brief 
+ * @brief Implementation of error handling and writing proper error code on standard output
  * @version 0.1
  * @date 2022-11-10
  * 

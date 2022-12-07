@@ -1,10 +1,7 @@
 /**
  * @file stack.h
- * @author Michal Ľaš (xlasmi00)
+ * @author Samuel Slávik (xslavi37)
  * @brief Implemantation of Stack data type storing data type void *
- * @version 0.1
- * @date 2022-11-11
- * 
  */
 
 
