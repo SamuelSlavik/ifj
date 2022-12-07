@@ -692,7 +692,7 @@ tToken get_token(short automat_state){
                 init_count = 0;
                 STATE = S_TYPE_ID;
             }
-            else if ((init_count != 2) && (c == '?')){
+            else if ((init_count != 2) && (c == '?')){ //skip ?
                 init_count = 2;
             }
             else{
@@ -716,22 +716,27 @@ tToken get_token(short automat_state){
             break;
         /* ! */
         case S_EXCLAMATION:
-            if ((init_count == 0) && (c == '!')){       // !
+            token.type = T_ERROR;
+            if ((init_count == 0) && (c == '!')){
                 init_count = 2;
-                token.type = T_ERROR; 
+
             }
-            else if ((init_count == 2) && (c == '=')){  // !=
-                init_count = 3;
-                token.type = T_ERROR;
-            }
-            else if ((init_count == 3) && (c == '=')){  // !==
+            else if ((init_count == 2) && (c == '=')){
                 init_count = 0;
+                STATE = S_EXEQ;
+            }
+            else{
+                init_count = 0;
+                return token;
+            }
+            break;
+        /* != */
+        case S_EXEQ:
+            if (c == '='){ // !==
                 token.type = T_NOT_EQUALS;
                 return token;
             }
-            else {
-                init_count = 0;
-                token.type = T_ERROR;
+            else{
                 return token;
             }
             break;

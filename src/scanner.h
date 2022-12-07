@@ -52,6 +52,7 @@ enum automat_state {
     S_QUESTIONER,           // ?
     S_TYPE_ID,              // ?int | ?string | ?float
     S_EXCLAMATION,          // !
+    S_EXEQ,                 // !=
     S_LETTER,
     S_INT_NUM,
     S_FLOAT_NUM,

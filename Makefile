@@ -5,7 +5,7 @@
 
 CC=gcc
 CFLAGS=-std=c11 -pedantic -Wall -Wextra -g
-PROG=./bin/test-scanner ./bin/test-dynamic_buffer ./bin/test-parser ./bin/test-expression_parser
+PROG=./bin/test-scanner ./bin/test-dynamic_buffer ./bin/test-parser
 .PHONY: clean all
 
 
@@ -66,12 +66,6 @@ all: $(PROG)
 
 ./bin/expression_parser.o: ./src/expression_parser.c
 	$(CC) $(CFLAGS) -c $< -o $@
-
-./bin/test-expression_parser.o: ./src/expression_parser.c
-	$(CC) $(CFLAGS) -DTESTING -c $< -o $@
-
-./bin/test-expression_parser: ./bin/test-expression_parser.o ./bin/stack.o ./bin/scanner.o ./bin/error.o ./bin/dynamic_buffer.o ./bin/htab.o ./bin/symtable.o ./bin/dll_instruction_list.o ./bin/htab.o ./bin/symtable.o ./bin/expression_codegen.o ./bin/error.o
-	$(CC) $(CFLAGS) $^ -o $@ -lm
 
 ############################## EXPRESSION CODEGEN ###################################
 
