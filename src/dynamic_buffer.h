@@ -1,7 +1,7 @@
 /**
  * @file dynamic_buffer.h
- * @author Michal Ľaš (xlasmi00)
- * @brief 
+ * @author Michal Ľaš (xlasmi00), Samuel Slávik (xslavi37)
+ * @brief Implementation of dynamic buffer
  * @version 0.1
  * @date 2022-10-13
  * 
