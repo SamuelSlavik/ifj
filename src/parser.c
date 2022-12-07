@@ -99,7 +99,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
         else{
             tmp_token.type = T_VAR_ID;
             end_token.type = T_SEMICOLON;
-            body = check_expr_syntax(token, &end_token,instruction_list, &tmp_token);
+            body = parse_expression(token, &end_token, instruction_list, &tmp_token);
             ERROR_EXIT(body,token,SYNTAX_ERROR);
             *token = get_token(1);
         }
@@ -215,7 +215,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
         if(token->type == T_L_PAR){
             *token = get_token(1);
             end_token.type = T_R_PAR;
-            body = check_expr_syntax(token, &end_token,instruction_list,NULL);
+            body = parse_expression(token, &end_token, instruction_list, NULL);
             ERROR_EXIT(body,token,SYNTAX_ERROR);
             //converting value into bool type from expression parser
             convert_into_bool(instruction,instruction_list,label_name_if);
@@ -282,7 +282,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
         if(token->type == T_L_PAR){
             *token = get_token(1);
             end_token.type = T_R_PAR;
-            body = check_expr_syntax(token, &end_token,instruction_list,NULL);
+            body = parse_expression(token, &end_token, instruction_list, NULL);
             ERROR_EXIT(body,token,SYNTAX_ERROR);
             //converting value into bool type from expression parser
             convert_into_bool(instruction,instruction_list,labelname);
@@ -311,7 +311,7 @@ bool f_body(tToken *token, tDynamicBuffer *instruction, DLList *instruction_list
     break;
     default:
         end_token.type = T_SEMICOLON;
-        body = check_expr_syntax(token, &end_token,instruction_list,NULL);
+        body = parse_expression(token, &end_token, instruction_list, NULL);
         ERROR_EXIT(body,token,SYNTAX_ERROR);
         *token = get_token(1);
         break;
@@ -385,7 +385,7 @@ bool f_body_var(tToken *token,tDynamicBuffer *instruction, DLList *instruction_l
     }
     else{
         tToken end_token={.type = T_SEMICOLON};
-        body_var = check_expr_syntax(token, &end_token,instruction_list,NULL);
+        body_var = parse_expression(token, &end_token, instruction_list, NULL);
         ERROR_EXIT(body_var,token,SYNTAX_ERROR);
         *token = get_token(1);
     }
@@ -417,7 +417,7 @@ bool f_body_ret(tToken *token,tDynamicBuffer *instruction, DLList *instruction_l
             error_exit(token,RETURN_ERROR);
         }
         tToken end_token={.type = T_SEMICOLON};
-        body_ret = check_expr_syntax(token, &end_token,instruction_list,NULL);
+        body_ret = parse_expression(token, &end_token, instruction_list, NULL);
         ERROR_EXIT(body_ret,token,SYNTAX_ERROR);
         *token = get_token(1);
     }
