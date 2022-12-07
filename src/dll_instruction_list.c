@@ -1,3 +1,10 @@
+/**
+ * @file dll_instruction_list.c
+ * @brief Implementation of double linked list for manipulation with instructions
+ * @author Jakub Kontrík (xkontr00)  
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
