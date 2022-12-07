@@ -181,6 +181,11 @@ void st_fun_free(htab_data_t *data){
             StackPop(data->data.fun_data.TaV);
         }                
         free(data->data.fun_data.TaV);
-        htab_free(data->data.fun_data.localST);
+        if (data->data.fun_data.localST != NULL){
+            htab_free(data->data.fun_data.localST);
+        }
+        if (data->data.fun_data.label_name != NULL){
+            dynamicBufferFREE(data->data.fun_data.label_name);
+        }
     }
 }

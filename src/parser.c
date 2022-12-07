@@ -884,6 +884,7 @@ int main(){
     //initialization of structures and needed codegen
     tDynamicBuffer *instruction = dynamicBuffer_INIT();
     symtable = htab_init(HTAB_SIZE);
+
     DLList instruction_list;
     dynamicBuffer_ADD_STRING(instruction,".IFJcode22");
     DLL_Init(&instruction_list);
@@ -1036,5 +1037,6 @@ int main(){
     //dispose and free structures
     print_instructions(&instruction_list);
     DLL_Dispose(&instruction_list);
+    htab_free(symtable);
     return 0;
 }
