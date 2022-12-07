@@ -30,6 +30,12 @@
  */
 int error_handle();
 
+/**
+ * @brief function that exits program with error code and writes at stderr message where error orcured
+ * 
+ * @param token pointer on token for displaying line
+ * @param code error code
+ */
 int error_exit(tToken *token,int code);
 
 #endif // ERROR_H
