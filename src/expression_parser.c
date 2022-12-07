@@ -1,9 +1,7 @@
 /**
  * @file expression_parser.c
  * @author Adam Pekný (xpekny00)
- * @brief
- * @version 0.1
- * @date 2022-11-18
+ * @brief File used for parsing expressions, checking their syntax, semantic and generating their IFJcode22
  *
  */
 
@@ -53,8 +51,6 @@ void string_to_ifj_fmt(tDynamicBuffer **string){
             dynamicBuffer_ADD_STRING(*string, "\\032");
         } else if (current_char == '#'){
             dynamicBuffer_ADD_STRING(*string, "\\035");
-        } else if (current_char == '$'){ // Character $ is forbidden outside escape sequence in string
-            exit(1);
         } else if (current_char == '\\'){ // Found escape sequence beginning
             current_char = (unsigned char) tmp_copy->data[++i];
 
@@ -324,10 +320,10 @@ bool parse_expression(tToken *start_token, tToken *end_token, DLList *instructio
                     gen_divs(instruction_list, instruction);
                     break;
                 case T_ADD_EXPR:
-                    gen_adds(instruction_list, instruction);
+                    gen_adds_subs(instruction_list, instruction, "ADDS");
                     break;
                 case T_SUB_EXPR:
-                    gen_subs(instruction_list, instruction);
+                    gen_adds_subs(instruction_list, instruction, "SUBS");
                     break;
                 case T_CONCAT_EXPR:
                     gen_concat(instruction_list, instruction);

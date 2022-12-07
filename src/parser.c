@@ -1,7 +1,7 @@
 /**
  * @file parser.c
  * @brief Implementation of recursive top-down parser
- * @authors Jakub Kontrik (xkontr02), Adam Pekny(xpekny00), Samuel Slavik (xslavi37)
+ * @authors Jakub Kontrik (xkontr02), Adam Pekny (xpekny00), Samuel Slavik (xslavi37)
  */
 
 
@@ -16,7 +16,6 @@
 #include "dll_instruction_list.h"
 #include "htab.h"
 #include "error.h"
-#include "expression_codegen.h"
 #include "generator.h"
 
 extern htab_t *symtable;

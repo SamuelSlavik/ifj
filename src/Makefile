@@ -1,6 +1,6 @@
  ##
  # @file Makefile
- # @author Michal Ľaš (xlasmi00)
+ # @author Michal Ľaš (xlasmi00), Jakub Kontrík (xkontr02), Adam Pekný (xpekny00), Samuel Slávik (xslavi37)
  #
 
 CC=gcc
@@ -41,7 +41,7 @@ error.o: error.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 ########################### PARSER #################################
-parser: parser.o scanner.o dynamic_buffer.o error.o expression_parser.o stack.o dynamic_buffer.o dll_instruction_list.o htab.o symtable.o expression_codegen.o
+parser: parser.o scanner.o dynamic_buffer.o error.o expression_parser.o stack.o dynamic_buffer.o dll_instruction_list.o htab.o symtable.o generator.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 
 parser.o: parser.c
@@ -57,7 +57,7 @@ expression_parser.o: expression_parser.c
 
 ############################## EXPRESSION CODGEN ###################################
 
-expression_codegen.o: expression_codegen.c
+generator.o: generator.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 ############################### XXXXX #####################################
