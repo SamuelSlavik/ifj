@@ -1,3 +1,9 @@
+/**
+ * @file dll_instruction_list.h
+ * @brief Implementation of double linked list for manipulation with instructions
+ * @author Jakub Kontrík (xkontr00)  
+ */
+
 #ifndef DDL_INSTRUCTION_LIST
 #define DDL_INSTRUCTION_LIST
 
@@ -78,7 +84,7 @@ void DLL_Next( DLList *instruction_list );
 int DLL_IsActive( DLList *instruction_list );
 
 /**
- * @brief Inserts element after last instruction from main body
+ * @brief Inserts element after last element from main body
  * 
  * @param instruction pointer to buffer to store string with instructions
  * @param instruction_list double linked list to store all generated IFJcode22 instructions in correct order
@@ -94,7 +100,7 @@ void DLL_InsertAfter_main( DLList *instruction_list, tDynamicBuffer *instruction
 void DLL_InsertBefore_if_while( DLList *instruction_list, tDynamicBuffer *instruction);
 
 /**
- * @brief Sets first elemt as main body element
+ * @brief Sets first element as main body element
  * 
  * @param instruction_list double linked list to store all generated IFJcode22 instructions in correct order
  */

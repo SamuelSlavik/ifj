@@ -1,5 +1,5 @@
 /**
- * @file parser.c
+ * @file parser.h
  * @brief Implementation of recursive top-down parser
  * @authors Jakub Kontrik (xkontr02), Adam Pekny(xpekny00), Samuel Slavik (xslavi37)
  */

@@ -1,7 +1,7 @@
 /**
- * @file generator.c
+ * @file generator.h
  * @brief Implementation of built in functions and working with ifjcode22
- * @author Samuel Slávik (xslavi37), Jakub Kontrík (xkontr00)  
+ * @author Samuel Slávik (xslavi37), Jakub Kontrík (xkontr02)  
  */
 
 #ifndef GENERATOR_H
