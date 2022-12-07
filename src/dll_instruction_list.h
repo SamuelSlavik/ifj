@@ -30,40 +30,15 @@ void DLL_Dispose( DLList * );
 
 void DLL_InsertFirst( DLList *, tDynamicBuffer * );
 
-void DLL_InsertLast( DLList *, tDynamicBuffer * );
-
 void DLL_First( DLList * );
-
-void DLL_Last( DLList * );
-
-void DLL_GetFirst( DLList *, tDynamicBuffer * );
-
-void DLL_GetLast( DLList *, tDynamicBuffer * );
-
-void DLL_DeleteFirst( DLList * );
-
-void DLL_DeleteLast( DLList * );
-
-void DLL_DeleteAfter( DLList * );
-
-void DLL_DeleteBefore( DLList * );
 
 void DLL_InsertAfter( DLList *, tDynamicBuffer * );
 
-void DLL_InsertBefore( DLList *, tDynamicBuffer * );
-
-void DLL_GetValue( DLList *, tDynamicBuffer * );
-
-void DLL_SetValue( DLList *, tDynamicBuffer * );
-
 void DLL_Next( DLList * );
-
-void DLL_Previous( DLList * );
 
 int DLL_IsActive( DLList * );
 void DLL_InsertAfter_main( DLList *, tDynamicBuffer *);
 void DLL_InsertBefore_if_while( DLList *, tDynamicBuffer *);
-void DLL_Set_if_while( DLList *);
 void DLL_First_main( DLList * );
 void DLL_Next_main( DLList * );
 
