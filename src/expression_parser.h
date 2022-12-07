@@ -1,9 +1,7 @@
 /**
  * @file expression_parser.h
  * @author Adam Pekný (xpekny00)
- * @brief
- * @version 0.1
- * @date 2022-11-18
+ * @brief Header file for expression_parser.c
  *
  */
 
@@ -15,7 +13,7 @@
 #include "scanner.h"
 #include "htab.h"
 #include "dll_instruction_list.h"
-#include "expression_codegen.h"
+#include "generator.h"
 #include "error.h"
 
 /**

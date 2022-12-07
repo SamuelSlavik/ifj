@@ -1,7 +1,7 @@
 /**
  * @file generator.c
  * @brief Implementation of built in functions and working with ifjcode22
- * @author Samuel Slávik (xslavi37), Jakub Kontrík (xkontr00)  
+ * @author Adam Pekný (xpekny00), Samuel Slávik (xslavi37), Jakub Kontrík (xkontr00)
  */
 
 #ifndef GENERATOR_H
@@ -142,5 +142,133 @@ void print_stack(tStack *defined_params, tDynamicBuffer *instruction, DLList *in
  * @param instruction_list double linked list to store all generated IFJcode22 instructions in correct order
  */
 void print_instructions(DLList *instruction_list);
+
+// EXPRESSION CODEGEN START
+/**
+ * @brief Function for generating string with unique id
+ *
+ * @param name String to which the id should be added
+ *
+ * @return Dynamic buffer containing unique string as data
+ * */
+tDynamicBuffer *label_name_gen(char* name);
+
+/**
+ * @brief Function for generating IFJcode22 that checks whether variable has been initialized on runtime
+ *
+ * @param instruction_list Double linked list used to store IFJcode22 instructions in correct order
+ * @param var_id Dynamic buffer containing variable identificator as data
+ *
+ * */
+void var_init_check(DLList *instruction_list, tDynamicBuffer *var_id);
+
+/**
+ * @brief Function for generating IFJcode22 that pushes TF to stack of LFs and creates new TF
+ *
+ * @param instruction Dynamic buffer to store those instructions as string
+ *
+ * */
+void save_create_tf(tDynamicBuffer *instruction);
+
+/**
+ * @brief Function for inserting dynamic buffer with IFJcode22 instructions into instruction list and freeing the buffer
+ *
+ * @param instruction Dynamic buffer containing IFJcode22 instructions as string
+ * @param instruction_list Double linked list used to store IFJcode22 instructions in correct order
+ *
+ * */
+void insert_instruction(DLList *instruction_list, tDynamicBuffer *instruction);
+
+/**
+ * @brief Function for generating IFJcode22 that defines and inits temporary variables for operands on TF and gets their type
+ *
+ * @param instruction Dynamic buffer containing IFJcode22 instructions as string
+ *
+ * */
+void def_tmp_get_type(tDynamicBuffer *instruction);
+
+/**
+ * @brief Function for generating IFJcode22 that evaluates multiplication of 2 operands
+ *
+ * @param instruction Dynamic buffer to store IFJcode22 instructions as string
+ * @param instruction_list Double linked list used to store IFJcode22 instructions in correct order
+ *
+ * */
+void gen_muls(DLList *instruction_list, tDynamicBuffer *instruction);
+
+/**
+ * @brief Function for generating IFJcode22 that evaluates division of 2 operands
+ *
+ * @param instruction Dynamic buffer to store IFJcode22 instructions as string
+ * @param instruction_list Double linked list used to store IFJcode22 instructions in correct order
+ *
+ * */
+void gen_divs(DLList *instruction_list, tDynamicBuffer *instruction);
+
+/**
+ * @brief Function for generating IFJcode22 that evaluates addition or subtraction of 2 operands
+ *
+ * @param instruction Dynamic buffer to store IFJcode22 instructions as string
+ * @param instruction_list Double linked list used to store IFJcode22 instructions in correct order
+ * @param op_instruction String containing instruction of operator (ADDS for addition SUBS for subtraction)
+ *
+ * */
+void gen_adds_subs(DLList *instruction_list, tDynamicBuffer *instruction, char *op_instruction);
+
+/**
+ * @brief Function for generating IFJcode22 that evaluates concatenation of 2 operands
+ *
+ * @param instruction Dynamic buffer to store IFJcode22 instructions as string
+ * @param instruction_list Double linked list used to store IFJcode22 instructions in correct order
+ *
+ * */
+void gen_concat(DLList *instruction_list, tDynamicBuffer *instruction);
+
+/**
+ * @brief Function for generating IFJcode22 that evaluates less than or greater than comparison of 2 operands
+ *
+ * @param instruction Dynamic buffer to store IFJcode22 instructions as string
+ * @param instruction_list Double linked list used to store IFJcode22 instructions in correct order
+ * @param cmp_instruction String containing instruction of comparison (LTS for less than GTS for greater than)
+ *
+ * */
+void gen_lts_gts(DLList *instruction_list, tDynamicBuffer *instruction, char *cmp_instruction);
+
+/**
+ * @brief Function for generating IFJcode22 that evaluates less than or equal comparison of 2 operands
+ *
+ * @param instruction Dynamic buffer to store IFJcode22 instructions as string
+ * @param instruction_list Double linked list used to store IFJcode22 instructions in correct order
+ *
+ * */
+void gen_ltes(DLList *instruction_list, tDynamicBuffer *instruction);
+
+/**
+ * @brief Function for generating IFJcode22 that evaluates greater than or equal comparison of 2 operands
+ *
+ * @param instruction Dynamic buffer to store IFJcode22 instructions as string
+ * @param instruction_list Double linked list used to store IFJcode22 instructions in correct order
+ *
+ * */
+void gen_gtes(DLList *instruction_list, tDynamicBuffer *instruction);
+
+/**
+ * @brief Function for generating IFJcode22 that evaluates equality comparison of 2 operands
+ *
+ * @param instruction Dynamic buffer to store IFJcode22 instructions as string
+ * @param instruction_list Double linked list used to store IFJcode22 instructions in correct order
+ *
+ * */
+void gen_eqs(DLList *instruction_list, tDynamicBuffer *instruction);
+
+/**
+ * @brief Function for generating IFJcode22 that evaluates non-equality comparison of 2 operands
+ *
+ * @param instruction Dynamic buffer to store IFJcode22 instructions as string
+ * @param instruction_list Double linked list used to store IFJcode22 instructions in correct order
+ *
+ * */
+void gen_neqs(DLList *instruction_list, tDynamicBuffer *instruction);
+// EXPRESSION CODEGEN END
 
 #endif // GENERATOR_H
