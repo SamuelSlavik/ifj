@@ -14,8 +14,31 @@
 #include "dynamic_buffer.h"
 #include "dll_instruction_list.h"
 
+/**
+ * @brief Function for generating string with unique id
+ *
+ * @param name String to which the id should be added
+ *
+ * @return Dynamic buffer containing unique string as data
+ * */
 tDynamicBuffer *label_name_gen(char* name);
+
+/**
+ * @brief Function for generating IFJcode22 that checks whether variable has been initialized on runtime
+ *
+ * @param instruction_list Double linked list used to store IFJcode22 instructions in correct order
+ * @param var_id Dynamic buffer containing variable identificator as data
+ *
+ * */
 void var_init_check(DLList *instruction_list, tDynamicBuffer *var_id);
+
+/**
+ * @brief Function for generating IFJcode22 that pushes TF to stack of LF
+ *
+ * @param instruction_list Double linked list used to store IFJcode22 instructions in correct order
+ * @param var_id Dynamic buffer containing variable identificator as data
+ *
+ * */
 void save_create_tf(tDynamicBuffer *instruction);
 void insert_instruction(DLList *instruction_list, tDynamicBuffer *instruction);
 void def_tmp_get_type(tDynamicBuffer *instruction);

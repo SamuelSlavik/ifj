@@ -410,20 +410,26 @@ bool parse_expression(tToken *start_token, tToken *end_token, DLList *instructio
 
                             StackPush(&expr_stack, new_expr_item);
                         } else { // No match ( found (E[NOT RIGHT PARENTHESIS] ), syntax is wrong
-                            free_expr_token(&tmp_stack_item->token);
-                            free(tmp_stack_item);
+                            if (tmp_stack_item != NULL){
+                                free_expr_token(&tmp_stack_item->token);
+                                free(tmp_stack_item);
+                            }
                             free_expr_token(&current_token);
                             return false;
                         }
                     } else { // No match ( found ([NOT OPERAND] ), syntax is wrong
-                        free_expr_token(&tmp_stack_item->token);
-                        free(tmp_stack_item);
+                        if (tmp_stack_item != NULL){
+                            free_expr_token(&tmp_stack_item->token);
+                            free(tmp_stack_item);
+                        }
                         free_expr_token(&current_token);
                         return false;
                     }
                 } else { // No rule found for the found terminal, syntax is wrong
-                    free_expr_token(&tmp_stack_item->token);
-                    free(tmp_stack_item);
+                    if (tmp_stack_item != NULL){
+                        free_expr_token(&tmp_stack_item->token);
+                        free(tmp_stack_item);
+                    }
                     free_expr_token(&current_token);
                     return false;
                 }
@@ -466,21 +472,27 @@ bool parse_expression(tToken *start_token, tToken *end_token, DLList *instructio
                             StackPush(&expr_stack, new_expr_item);
 
                         } else { // No match, ( found E [OPERATOR] [NOT OPERAND] ), syntax is wrong
-                            free_expr_token(&tmp_stack_item->token);
-                            free(tmp_stack_item);
+                            if (tmp_stack_item != NULL){
+                                free_expr_token(&tmp_stack_item->token);
+                                free(tmp_stack_item);
+                            }
                             free_expr_token(&current_token);
                             return false;
                         }
                         break;
                     default: // No match, ( found E [NOT OPERATOR] ), syntax is wrong
-                        free_expr_token(&tmp_stack_item->token);
-                        free(tmp_stack_item);
+                        if (tmp_stack_item != NULL){
+                            free_expr_token(&tmp_stack_item->token);
+                            free(tmp_stack_item);
+                        }
                         free_expr_token(&current_token);
                         return false;
                 }
             } else { // No rule found to match
-                free_expr_token(&tmp_stack_item->token);
-                free(tmp_stack_item);
+                if (tmp_stack_item != NULL){
+                    free_expr_token(&tmp_stack_item->token);
+                    free(tmp_stack_item);
+                }
                 free_expr_token(&current_token);
                 return false;
             }
@@ -489,6 +501,7 @@ bool parse_expression(tToken *start_token, tToken *end_token, DLList *instructio
             clean_expr_stack(&help_stack);
 
         } else if (preced_tab[top_terminal_idx][input_token_idx] == '\0'){ // Found error combination in precedence table
+            free_expr_token(&current_token);
             return false;
         }
     }
