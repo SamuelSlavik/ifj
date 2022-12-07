@@ -5,7 +5,7 @@
 
 CC=gcc
 CFLAGS=-std=c11 -pedantic -Wall -Wextra -g
-PROG=./bin/test-scanner ./bin/test-dynamic_buffer ./bin/test-parser
+PROG=./bin/test-parser
 .PHONY: clean all
 
 

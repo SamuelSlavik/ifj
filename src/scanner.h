@@ -250,16 +250,4 @@ tToken automat_state_prolog(tToken *token, char c, unsigned long *line_count);
  */
 tToken get_token(short automat_state);
 
-/*************** TESTING ***************/
-
-    #ifdef TESTING
-
-    #define ANSI_COLOR_YELLOW  "\x1b[33m"
-    #define ANSI_COLOR_RED     "\x1b[31m"
-    #define ANSI_COLOR_RESET   "\x1b[0m"
-
-    void print_token_type(enum token_type type);
-
-    #endif // TESTING
-
 #endif // SCANNER_H
