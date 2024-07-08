@@ -1,5 +1,7 @@
 # IFJ - Compiler
 
+<br/>
+
 ## Project description 
 School Project for IFJ at Brno University of Technology
 
