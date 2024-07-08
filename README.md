@@ -1,12 +1,23 @@
-# ifj
+# IFJ - Compiler
 
+## Project description 
+School Project for IFJ at Brno University of Technology
 
-Pri každom začatí práce prosím: checkout na main branch -> pull -> checkout na vašu branch
+Compiler of PHP like imperative language.
 
+<br/>
 
-Po každom skončení práce prosím: commit + push 
+## Technologies / Stack
+- C
+- Aseembler
 
+<br/>
 
-# Zadanie
+## Setup
+```make all```
+
+<br/>
+
+## Task
 
 https://www.fit.vutbr.cz/study/courses/IFJ/private/projekt/ifj2022.pdf
