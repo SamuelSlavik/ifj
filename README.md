@@ -7,6 +7,8 @@ School Project for IFJ at Brno University of Technology
 
 Compiler of PHP like imperative language.
 
+See /docs
+
 <br/>
 
 ## Technologies / Stack
